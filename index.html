@@ -16,6 +16,7 @@
       --yellow:#d29922;
       --red:#da3633;
       --blue:#1f6feb;
+      --orange:#f0883e;
       --card-radius:16px;
       --shadow:0 10px 30px rgba(0,0,0,.25);
     }
@@ -177,6 +178,7 @@
     .yellow{background:var(--yellow)}
     .red{background:var(--red)}
     .blue{background:var(--blue)}
+    .orange{background:var(--orange)}
 
     .grid{
       display:grid;
@@ -217,7 +219,7 @@
 
     button.gray, .btn.gray{background:#30363d}
     button.blue, .btn.blue{background:var(--blue)}
-    button.orange, .btn.orange{background:var(--yellow)}
+    button.orange, .btn.orange{background:var(--orange)}
     button.red, .btn.red{background:var(--red)}
 
     .two-col{
@@ -317,6 +319,27 @@
       animation:pulse 1.4s infinite;
     }
 
+    .range-box{
+      margin-top:10px;
+      padding:12px;
+      background:#0f141b;
+      border:1px solid var(--border);
+      border-radius:12px;
+    }
+
+    .range-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+      font-size:13px;
+      color:var(--text);
+    }
+
+    .range-row:last-child{
+      margin-bottom:0;
+    }
+
     @keyframes pulse{
       0%{box-shadow:0 0 0 0 rgba(218,54,51,.28)}
       70%{box-shadow:0 0 0 14px rgba(218,54,51,0)}
@@ -410,6 +433,10 @@
           <div>Turbidity</div>
           <div class="value" id="turbVal">--</div>
           <div class="small">Water clarity / cloudiness level</div>
+          <div class="status-line" style="margin-top:10px;">
+            <div class="pill"><span id="turbDot" class="dot yellow"></span><span id="turbState">Checking...</span></div>
+          </div>
+          <div class="small" id="turbMeaning">Waiting for turbidity quality analysis...</div>
         </div>
 
         <div class="card">
@@ -479,6 +506,17 @@
       </div>
 
       <div class="card" style="margin-bottom:16px;">
+        <h3>Live Summary</h3>
+        <div class="muted" id="analyticsSummary">Waiting for live data...</div>
+        <div class="range-box">
+          <div class="range-row"><span class="dot green"></span><span><strong>Good:</strong> below 1800 — cleaner / clearer water</span></div>
+          <div class="range-row"><span class="dot yellow"></span><span><strong>Mild:</strong> 1800 to 2199 — slightly cloudy, monitor it</span></div>
+          <div class="range-row"><span class="dot orange"></span><span><strong>Bad:</strong> 2200 to 2999 — poor quality, take action soon</span></div>
+          <div class="range-row"><span class="dot red"></span><span><strong>Critical:</strong> 3000 and above — severe cloudiness / instability</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
         <h3>Temperature Graph</h3>
         <div class="chart-wrap"><canvas id="tempChart" width="900" height="260"></canvas></div>
       </div>
@@ -517,6 +555,7 @@
           <button class="gray" onclick="fillPrompt('Why is the pump on?')">Why is the pump on?</button>
           <button class="gray" onclick="fillPrompt('What should I do now?')">What should I do?</button>
           <button class="gray" onclick="fillPrompt('Is there ammonia or nitrate risk?')">Ammonia/nitrate risk?</button>
+          <button class="gray" onclick="fillPrompt('What does the turbidity mean?')">Turbidity meaning?</button>
         </div>
         <div id="aiResponse" class="response-box">Ask a question and the dashboard will answer using the live Firebase data.</div>
       </div>
@@ -555,6 +594,12 @@
         <h3>Turbidity Sensor</h3>
         <div class="muted">
           Estimates water cloudiness. Higher turbidity may suggest suspended waste, poor clarity, or declining water conditions.
+        </div>
+        <div class="range-box">
+          <div class="range-row"><span class="dot green"></span><span><strong>Good:</strong> below 1800</span></div>
+          <div class="range-row"><span class="dot yellow"></span><span><strong>Mild:</strong> 1800 to 2199</span></div>
+          <div class="range-row"><span class="dot orange"></span><span><strong>Bad:</strong> 2200 to 2999</span></div>
+          <div class="range-row"><span class="dot red"></span><span><strong>Critical:</strong> 3000 and above</span></div>
         </div>
       </div>
 
@@ -642,6 +687,36 @@
       return "Stable trend";
     }
 
+    function getTurbidityInfo(value) {
+      const turb = Number(value || 0);
+
+      if (turb < 1800) {
+        return {
+          label: "GOOD",
+          color: "green",
+          meaning: "Water is cleaner and clearer. This is a good range."
+        };
+      } else if (turb < 2200) {
+        return {
+          label: "MILD",
+          color: "yellow",
+          meaning: "Water is slightly cloudy. Monitor conditions."
+        };
+      } else if (turb < 3000) {
+        return {
+          label: "BAD",
+          color: "orange",
+          meaning: "Water quality is poor. Action is recommended soon."
+        };
+      } else {
+        return {
+          label: "CRITICAL",
+          color: "red",
+          meaning: "Severe cloudiness or instability detected. Immediate action needed."
+        };
+      }
+    }
+
     function drawGraph(canvasId, values, color) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
@@ -687,15 +762,17 @@
 
     function updateAlertBanner(data) {
       const banner = document.getElementById("alertBanner");
-      const critical = data.systemStopped || !data.waterDetected || data.statusLabel === "CRITICAL";
+      const critical = data.systemStopped || !data.waterDetected || data.statusLabel === "CRITICAL" || Number(data.turbidity) >= 3000;
       banner.style.display = critical ? "block" : "none";
     }
 
     function updateHome(data) {
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+
       document.getElementById("tempVal").innerText = `${Number(data.temperature || 0).toFixed(1)} °C`;
       document.getElementById("waterVal").innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
       document.getElementById("turbVal").innerText = data.turbidity ?? "--";
-      document.getElementById("healthVal").innerText = `${data.healthScore ?? "--"}%`;
+      document.getElementById("healthScoreBig").innerText = `${data.healthScore ?? "--"}%`;
       document.getElementById("statusVal").innerText = data.statusLabel || "--";
       document.getElementById("modeVal").innerText = data.autoMode ? "AUTO" : "MANUAL";
       document.getElementById("heaterVal").innerText = data.heater ? "ON" : "OFF";
@@ -709,16 +786,19 @@
       document.getElementById("trendVal").innerText = calculateTrend();
       document.getElementById("lastLogVal").innerText = logsData[0] || "No logs";
 
-      document.getElementById("healthScoreBig").innerText = `${data.healthScore ?? "--"}%`;
       setGauge(Number(data.healthScore || 0));
 
       const statusDot = document.getElementById("statusDot");
-      const statusTag = document.getElementById("statusTag");
       const color = statusColor(data.statusLabel || "WARNING");
       setDot(statusDot, color);
-      statusTag.className = `tag ${color}`;
-      statusTag.innerText = data.statusLabel || "UNKNOWN";
       document.getElementById("statusTextHero").innerText = data.statusLabel || "Unknown";
+
+      document.getElementById("turbDot").className = `dot ${turbidityInfo.color}`;
+      document.getElementById("turbState").innerText = turbidityInfo.label;
+      document.getElementById("turbMeaning").innerText = turbidityInfo.meaning;
+
+      document.getElementById("analyticsSummary").innerText =
+        `Temperature: ${Number(data.temperature || 0).toFixed(1)} °C | Turbidity: ${data.turbidity} (${turbidityInfo.label}) | Water: ${data.waterDetected ? "OK" : "LOW / NONE"} | Status: ${data.statusLabel || "--"}`;
     }
 
     function updateConnectionState(ok) {
@@ -740,6 +820,8 @@
     }
 
     function updateAI(data) {
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+
       let summary = "System Stable";
       let details = "All major readings are within expected operating conditions.";
       let risk = "LOW RISK";
@@ -770,14 +852,19 @@
         details = "The water temperature is below the lower control threshold. Heating support may be required.";
         risk = "MEDIUM RISK";
         color = "yellow";
-      } else if (Number(data.turbidity) >= 3000) {
+      } else if (turbidityInfo.label === "CRITICAL") {
         summary = "Critical Turbidity Warning";
         details = "The water appears extremely cloudy, suggesting severe waste suspension or instability.";
         risk = "HIGH RISK";
         color = "red";
-      } else if (Number(data.turbidity) > 2200) {
-        summary = "High Turbidity Detected";
-        details = "The water is cloudier than normal, which may indicate declining water quality.";
+      } else if (turbidityInfo.label === "BAD") {
+        summary = "Bad Turbidity Detected";
+        details = "The water is in a poor turbidity range. Action is recommended soon.";
+        risk = "HIGH RISK";
+        color = "orange";
+      } else if (turbidityInfo.label === "MILD") {
+        summary = "Mild Turbidity Detected";
+        details = "The water is slightly cloudy. Monitor the system closely.";
         risk = "MEDIUM RISK";
         color = "yellow";
       }
@@ -807,6 +894,7 @@
         return;
       }
 
+      const turbidityInfo = getTurbidityInfo(latestData.turbidity);
       const prompt = document.getElementById("aiPrompt").value.toLowerCase().trim();
       let response = "";
 
@@ -815,7 +903,7 @@
           response = "The system is currently stopped, so it cannot actively maintain stability.";
         } else if (!latestData.waterDetected) {
           response = "No. The tank is not fully stable because the water sensor is reporting a low or missing water condition.";
-        } else if (Number(latestData.temperature) < 24.0 || Number(latestData.temperature) > 30.0 || Number(latestData.turbidity) > 2200) {
+        } else if (Number(latestData.temperature) < 24.0 || Number(latestData.temperature) > 30.0 || Number(latestData.turbidity) >= 2200) {
           response = "The tank is not fully stable right now. One or more readings are outside the preferred range.";
         } else {
           response = "Yes. Based on temperature, water detection, and turbidity, the tank appears stable at the moment.";
@@ -840,9 +928,12 @@
         response = "This system does not directly measure ammonia, nitrate, or nitrite. However, elevated turbidity can suggest rising waste load and possible water quality decline if left unmanaged.";
       }
       else if (prompt.includes("water quality")) {
-        response = Number(latestData.turbidity) > 2200
-          ? "Water quality may be declining because turbidity is elevated. This may indicate suspended waste, poor clarity, or instability."
-          : "Water quality appears acceptable from the currently available sensor readings, but full chemical testing is still recommended for direct ammonia or nitrate measurement.";
+        response = Number(latestData.turbidity) >= 2200
+          ? `Water quality may be declining. The turbidity is currently in the ${turbidityInfo.label} range, which suggests cloudiness, suspended waste, or instability.`
+          : `Water quality appears acceptable at the moment. The turbidity is currently in the ${turbidityInfo.label} range.`;
+      }
+      else if (prompt.includes("turbidity")) {
+        response = `The current turbidity is ${latestData.turbidity}, which is in the ${turbidityInfo.label} range. ${turbidityInfo.meaning}`;
       }
       else if (prompt.includes("what should i do")) {
         if (!latestData.waterDetected) {
@@ -851,14 +942,18 @@
           response = "Reduce temperature immediately, improve cooling, and monitor the system closely.";
         } else if (Number(latestData.temperature) < 24.0) {
           response = "Let the heater recover the temperature and verify the sensor reading remains stable.";
-        } else if (Number(latestData.turbidity) > 2200) {
-          response = "Let the pump continue circulating, inspect the water clarity, and consider cleaning or maintenance if the condition continues.";
+        } else if (Number(latestData.turbidity) >= 3000) {
+          response = "The turbidity is critical. Inspect the water immediately, improve filtration or circulation, and consider maintenance.";
+        } else if (Number(latestData.turbidity) >= 2200) {
+          response = "The turbidity is bad. Let the pump continue circulating and inspect the water clarity. Maintenance is recommended soon.";
+        } else if (Number(latestData.turbidity) >= 1800) {
+          response = "The turbidity is mildly elevated. Monitor the system and watch for any worsening trend.";
         } else {
           response = "The system appears stable. Continue monitoring and maintain normal operation.";
         }
       }
       else {
-        response = "I can answer questions about stability, heater status, pump status, light status, water quality, and general risk based on the live Firebase readings.";
+        response = "I can answer questions about stability, heater status, pump status, light status, water quality, turbidity meaning, and general risk based on the live Firebase readings.";
       }
 
       document.getElementById("aiResponse").innerText = response;
@@ -891,11 +986,12 @@
     async function shareSummary() {
       if (!latestData) return;
 
+      const turbidityInfo = getTurbidityInfo(latestData.turbidity);
       const text =
         `EcoGuard Cloud Dashboard\n` +
         `Temperature: ${Number(latestData.temperature || 0).toFixed(1)} °C\n` +
         `Water: ${latestData.waterDetected ? "OK" : "LOW / NONE"}\n` +
-        `Turbidity: ${latestData.turbidity}\n` +
+        `Turbidity: ${latestData.turbidity} (${turbidityInfo.label})\n` +
         `Health Score: ${latestData.healthScore}%\n` +
         `Status: ${latestData.statusLabel}`;
 
