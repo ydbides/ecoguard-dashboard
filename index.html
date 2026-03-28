@@ -1,1 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoGuard Cloud Dashboard</title>
+  <style>
+    :root{
+      --bg:#0d1117;
+      --panel:#161b22;
+      --panel-2:#11161d;
+      --border:#30363d;
+      --text:#f0f6fc;
+      --muted:#8b949e;
+      --green:#238636;
+      --yellow:#d29922;
+      --red:#da3633;
+      --blue:#1f6feb;
+      --card-radius:16px;
+      --shadow:0 10px 30px rgba(0,0,0,.25);
+    }
 
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:1000;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      background:rgba(22,27,34,.95);
+      border-bottom:1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    .burger{
+      width:28px;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      user-select:none;
+    }
+
+    .burger span{
+      display:block;
+      height:3px;
+      border-radius:3px;
+      background:var(--text);
+    }
+
+    .title-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .title{
+      font-size:22px;
+      font-weight:700;
+    }
+
+    .subtitle{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .sidebar{
+      position:fixed;
+      top:0;
+      left:-270px;
+      width:250px;
+      height:100%;
+      background:var(--panel);
+      border-right:1px solid var(--border);
+      padding-top:74px;
+      z-index:2000;
+      transition:left .28s ease;
+      overflow-y:auto;
+      box-shadow:var(--shadow);
+    }
+
+    .sidebar.open{left:0}
+
+    .sidebar a{
+      display:block;
+      color:var(--text);
+      text-decoration:none;
+      padding:14px 18px;
+      border-bottom:1px solid var(--border);
+      cursor:pointer;
+    }
+
+    .sidebar a:hover{
+      background:#21262d;
+    }
+
+    .overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      z-index:1500;
+    }
+
+    .overlay.show{display:block}
+
+    .content{
+      padding:20px;
+      max-width:1400px;
+      margin:0 auto;
+    }
+
+    .page{display:none}
+    .page.active{display:block}
+
+    .hero{
+      display:grid;
+      grid-template-columns: 1.6fr .9fr;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .hero-card, .card{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--card-radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+
+    .hero h2, .card h2, .card h3{
+      margin:0 0 10px 0;
+    }
+
+    .muted{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .status-line{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      border:1px solid var(--border);
+      background:#10151c;
+    }
+
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+    }
+
+    .green{background:var(--green)}
+    .yellow{background:var(--yellow)}
+    .red{background:var(--red)}
+    .blue{background:var(--blue)}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+      margin-bottom:20px;
+    }
+
+    .value{
+      font-size:28px;
+      font-weight:700;
+      margin:8px 0 6px;
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .button-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    button, .btn{
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      color:white;
+      background:var(--green);
+      cursor:pointer;
+      font-size:14px;
+      text-decoration:none;
+    }
+
+    button.gray, .btn.gray{background:#30363d}
+    button.blue, .btn.blue{background:var(--blue)}
+    button.orange, .btn.orange{background:var(--yellow)}
+    button.red, .btn.red{background:var(--red)}
+
+    .two-col{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .chart-wrap{
+      margin-top:10px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#0f141b;
+      padding:8px;
+    }
+
+    canvas{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      display:block;
+      border-radius:10px;
+    }
+
+    .response-box, .log-box{
+      margin-top:12px;
+      padding:14px;
+      background:#0f141b;
+      border:1px solid var(--border);
+      border-radius:12px;
+      min-height:72px;
+      white-space:pre-wrap;
+      line-height:1.65;
+    }
+
+    .prompt-box, select{
+      width:100%;
+      margin-top:8px;
+      padding:12px;
+      border-radius:10px;
+      background:#0f141b;
+      border:1px solid var(--border);
+      color:var(--text);
+      font-size:14px;
+    }
+
+    .about-block{
+      margin-bottom:16px;
+      padding:16px;
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:16px;
+    }
+
+    .gauge{
+      width:170px;
+      height:170px;
+      margin:10px auto 0;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(closest-side, var(--panel) 72%, transparent 73% 100%),
+        conic-gradient(var(--blue) 0deg, var(--blue) 0deg, #232a33 0deg 360deg);
+      border:1px solid var(--border);
+    }
+
+    .gauge-inner{
+      text-align:center;
+    }
+
+    .gauge-score{
+      font-size:30px;
+      font-weight:700;
+    }
+
+    .gauge-label{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .footer-note{
+      margin-top:16px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+
+    .alert-banner{
+      display:none;
+      margin-bottom:16px;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid rgba(218,54,51,.4);
+      background:rgba(218,54,51,.12);
+      animation:pulse 1.4s infinite;
+    }
+
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(218,54,51,.28)}
+      70%{box-shadow:0 0 0 14px rgba(218,54,51,0)}
+      100%{box-shadow:0 0 0 0 rgba(218,54,51,0)}
+    }
+
+    ul{
+      margin:0;
+      padding-left:18px;
+    }
+
+    li{
+      margin-bottom:8px;
+      color:var(--text);
+    }
+
+    @media (max-width: 900px){
+      .hero, .two-col{
+        grid-template-columns:1fr;
+      }
+      .title{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="burger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="title-wrap">
+      <div class="title">EcoGuard Cloud Dashboard</div>
+      <div class="subtitle">Worldwide monitoring via Firebase</div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+  <div id="sidebar" class="sidebar">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('analytics')">Analytics</a>
+    <a onclick="showPage('ai')">AI Analysis</a>
+    <a onclick="showPage('logs')">Event Logs</a>
+    <a onclick="showPage('about')">About</a>
+  </div>
+
+  <div class="content">
+    <div id="alertBanner" class="alert-banner">
+      <strong>Warning:</strong> Critical condition detected. Check temperature, water level, or turbidity.
+    </div>
+
+    <div id="home" class="page active">
+      <div class="hero">
+        <div class="hero-card">
+          <h2>EcoGuard Overview</h2>
+          <div class="muted">
+            This is your hosted worldwide dashboard. It reads live system data from Firebase, so you can monitor EcoGuard from anywhere without being on the same Wi-Fi as the ESP32.
+          </div>
+
+          <div class="status-line">
+            <div class="pill"><span id="onlineDot" class="dot yellow"></span><span id="connectionText">Checking connection...</span></div>
+            <div class="pill"><span id="statusDot" class="dot green"></span><span id="statusTextHero">Stable</span></div>
+            <div class="pill"><span class="dot blue"></span><span id="lastUpdatedText">Last updated: --</span></div>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <h2>Health Score</h2>
+          <div id="healthGauge" class="gauge">
+            <div class="gauge-inner">
+              <div id="healthScoreBig" class="gauge-score">--%</div>
+              <div class="gauge-label">System health</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div>Temperature</div>
+          <div class="value" id="tempVal">--</div>
+          <div class="small">DS18B20 digital waterproof temperature sensor</div>
+        </div>
+
+        <div class="card">
+          <div>Water Sensor</div>
+          <div class="value" id="waterVal">--</div>
+          <div class="small">Non-contact water level detection</div>
+        </div>
+
+        <div class="card">
+          <div>Turbidity</div>
+          <div class="value" id="turbVal">--</div>
+          <div class="small">Water clarity / cloudiness level</div>
+        </div>
+
+        <div class="card">
+          <div>System Status</div>
+          <div class="value" id="statusVal">--</div>
+          <div class="small">Overall interpreted state of the system</div>
+        </div>
+
+        <div class="card">
+          <div>Auto Mode</div>
+          <div class="value" id="modeVal">--</div>
+          <div class="small">Reflects whether automation is active on the device</div>
+        </div>
+
+        <div class="card">
+          <div>System Stopped</div>
+          <div class="value" id="stopVal">--</div>
+          <div class="small">Emergency stop state from the controller</div>
+        </div>
+
+        <div class="card">
+          <div>Heater</div>
+          <div class="value" id="heaterVal">--</div>
+          <div class="small">Runtime: <span id="heaterRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Pump</div>
+          <div class="value" id="pumpVal">--</div>
+          <div class="small">Runtime: <span id="pumpRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Light</div>
+          <div class="value" id="lightVal">--</div>
+          <div class="small">Runtime: <span id="lightRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Device IP</div>
+          <div class="value" id="ipVal">--</div>
+          <div class="small">Local controller address reported by ESP32</div>
+        </div>
+
+        <div class="card">
+          <div>Trend</div>
+          <div class="value" id="trendVal">--</div>
+          <div class="small">Direction based on recent history</div>
+        </div>
+
+        <div class="card">
+          <div>Last Log</div>
+          <div class="value" id="lastLogVal" style="font-size:18px;">--</div>
+          <div class="small">Most recent system event</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analytics" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Analytics</h2>
+        <div class="button-row">
+          <button class="blue" onclick="printPage()">Print</button>
+          <button class="gray" onclick="shareSummary()">Share</button>
+          <button class="blue" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Temperature Graph</h3>
+        <div class="chart-wrap"><canvas id="tempChart" width="900" height="260"></canvas></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Turbidity Graph</h3>
+        <div class="chart-wrap"><canvas id="turbChart" width="900" height="260"></canvas></div>
+      </div>
+
+      <div class="card">
+        <h3>Water Sensor Graph</h3>
+        <div class="chart-wrap"><canvas id="waterChart" width="900" height="260"></canvas></div>
+      </div>
+    </div>
+
+    <div id="ai" class="page">
+      <div class="two-col">
+        <div class="card">
+          <h2>AI Interpretation</h2>
+          <div id="aiSummary" class="value" style="font-size:22px;">Analyzing...</div>
+          <div id="aiDetails" class="muted"></div>
+        </div>
+
+        <div class="card">
+          <h2>Risk Level</h2>
+          <div id="riskBadge" class="pill"><span class="dot green"></span><span id="riskText">Low risk</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Ask EcoGuard AI</h3>
+        <input id="aiPrompt" class="prompt-box" type="text" placeholder="Ask: Is my tank stable? Why is the pump on? What should I do now?">
+        <div class="button-row">
+          <button class="blue" onclick="askAI()">Ask AI</button>
+          <button class="gray" onclick="fillPrompt('Is my tank stable right now?')">Is my tank stable?</button>
+          <button class="gray" onclick="fillPrompt('Why is the pump on?')">Why is the pump on?</button>
+          <button class="gray" onclick="fillPrompt('What should I do now?')">What should I do?</button>
+          <button class="gray" onclick="fillPrompt('Is there ammonia or nitrate risk?')">Ammonia/nitrate risk?</button>
+        </div>
+        <div id="aiResponse" class="response-box">Ask a question and the dashboard will answer using the live Firebase data.</div>
+      </div>
+    </div>
+
+    <div id="logs" class="page">
+      <div class="card">
+        <h2>Event Logs</h2>
+        <div id="logList" class="log-box">Loading logs...</div>
+      </div>
+    </div>
+
+    <div id="about" class="page">
+      <div class="about-block">
+        <h2>About EcoGuard</h2>
+        <div class="muted">
+          EcoGuard is an autonomous aquatic monitoring and control system designed to detect instability in a water environment and respond automatically. This cloud dashboard reads live data from Firebase and makes the project accessible from anywhere in the world.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>DS18B20 Temperature Sensor</h3>
+        <div class="muted">
+          Measures water temperature and supports automatic heater control and overheating detection.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>Non-Contact Water Sensor</h3>
+        <div class="muted">
+          Detects whether water is present at the correct level without direct contact, helping prevent unsafe operation.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>Turbidity Sensor</h3>
+        <div class="muted">
+          Estimates water cloudiness. Higher turbidity may suggest suspended waste, poor clarity, or declining water conditions.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>Remote Monitoring</h3>
+        <div class="muted">
+          The ESP32 sends live data to Firebase Realtime Database. This GitHub Pages site reads that data and turns it into a proper dashboard instead of raw JSON.
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      EcoGuard Cloud Dashboard • GitHub Pages + Firebase
+    </div>
+  </div>
+
+  <script>
+    const FIREBASE_BASE = "https://ecoguard-11a04-default-rtdb.firebaseio.com";
+    const LIVE_URL = `${FIREBASE_BASE}/ecoguard/live.json`;
+    const LOGS_URL = `${FIREBASE_BASE}/ecoguard/logs.json`;
+
+    let latestData = null;
+    let logsData = [];
+    let tempHistory = [];
+    let turbHistory = [];
+    let waterHistory = [];
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+      document.getElementById("overlay").classList.toggle("show");
+    }
+
+    function closeSidebar() {
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("overlay").classList.remove("show");
+    }
+
+    function showPage(pageId) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(pageId).classList.add("active");
+      closeSidebar();
+    }
+
+    function formatSeconds(sec) {
+      sec = Number(sec || 0);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (h > 0) return `${h}h ${m}m ${s}s`;
+      if (m > 0) return `${m}m ${s}s`;
+      return `${s}s`;
+    }
+
+    function statusColor(label) {
+      if (label === "STABLE") return "green";
+      if (label === "WARNING") return "yellow";
+      return "red";
+    }
+
+    function setDot(el, colorClass) {
+      el.className = `dot ${colorClass}`;
+    }
+
+    function setGauge(score) {
+      const gauge = document.getElementById("healthGauge");
+      const deg = Math.max(0, Math.min(360, (Number(score) / 100) * 360));
+      gauge.style.background =
+        `radial-gradient(closest-side, var(--panel) 72%, transparent 73% 100%),
+         conic-gradient(var(--blue) 0deg, var(--blue) ${deg}deg, #232a33 ${deg}deg 360deg)`;
+    }
+
+    function pushHistory(arr, value, max = 60) {
+      arr.push(value);
+      if (arr.length > max) arr.shift();
+    }
+
+    function calculateTrend() {
+      if (tempHistory.length < 2 || turbHistory.length < 2) return "Not enough data";
+      const tempDiff = tempHistory[tempHistory.length - 1] - tempHistory[tempHistory.length - 2];
+      const turbDiff = turbHistory[turbHistory.length - 1] - turbHistory[turbHistory.length - 2];
+
+      if (turbDiff > 100) return "Water quality worsening";
+      if (tempDiff > 0.5) return "Temperature rising";
+      if (tempDiff < -0.5) return "Temperature falling";
+      return "Stable trend";
+    }
+
+    function drawGraph(canvasId, values, color) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = "#30363d";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const y = (h / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      if (!values || values.length < 2) return;
+
+      let minVal = Math.min(...values);
+      let maxVal = Math.max(...values);
+
+      if (minVal === maxVal) {
+        minVal -= 1;
+        maxVal += 1;
+      }
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      values.forEach((val, i) => {
+        const x = (i / (values.length - 1)) * w;
+        const y = h - ((val - minVal) / (maxVal - minVal)) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.stroke();
+    }
+
+    function updateAlertBanner(data) {
+      const banner = document.getElementById("alertBanner");
+      const critical = data.systemStopped || !data.waterDetected || data.statusLabel === "CRITICAL";
+      banner.style.display = critical ? "block" : "none";
+    }
+
+    function updateHome(data) {
+      document.getElementById("tempVal").innerText = `${Number(data.temperature || 0).toFixed(1)} °C`;
+      document.getElementById("waterVal").innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
+      document.getElementById("turbVal").innerText = data.turbidity ?? "--";
+      document.getElementById("healthVal").innerText = `${data.healthScore ?? "--"}%`;
+      document.getElementById("statusVal").innerText = data.statusLabel || "--";
+      document.getElementById("modeVal").innerText = data.autoMode ? "AUTO" : "MANUAL";
+      document.getElementById("heaterVal").innerText = data.heater ? "ON" : "OFF";
+      document.getElementById("pumpVal").innerText = data.pump ? "ON" : "OFF";
+      document.getElementById("lightVal").innerText = data.light ? "ON" : "OFF";
+      document.getElementById("ipVal").innerText = data.ip || "--";
+      document.getElementById("stopVal").innerText = data.systemStopped ? "STOPPED" : "RUNNING";
+      document.getElementById("heaterRun").innerText = formatSeconds(data.heaterRuntime || 0);
+      document.getElementById("pumpRun").innerText = formatSeconds(data.pumpRuntime || 0);
+      document.getElementById("lightRun").innerText = formatSeconds(data.lightRuntime || 0);
+      document.getElementById("trendVal").innerText = calculateTrend();
+      document.getElementById("lastLogVal").innerText = logsData[0] || "No logs";
+
+      document.getElementById("healthScoreBig").innerText = `${data.healthScore ?? "--"}%`;
+      setGauge(Number(data.healthScore || 0));
+
+      const statusDot = document.getElementById("statusDot");
+      const statusTag = document.getElementById("statusTag");
+      const color = statusColor(data.statusLabel || "WARNING");
+      setDot(statusDot, color);
+      statusTag.className = `tag ${color}`;
+      statusTag.innerText = data.statusLabel || "UNKNOWN";
+      document.getElementById("statusTextHero").innerText = data.statusLabel || "Unknown";
+    }
+
+    function updateConnectionState(ok) {
+      const dot = document.getElementById("onlineDot");
+      const text = document.getElementById("connectionText");
+      if (ok) {
+        setDot(dot, "green");
+        text.innerText = "Firebase online";
+      } else {
+        setDot(dot, "red");
+        text.innerText = "Firebase offline";
+      }
+    }
+
+    function updateLastUpdated() {
+      const now = new Date();
+      document.getElementById("lastUpdatedText").innerText =
+        `Last updated: ${now.toLocaleTimeString()}`;
+    }
+
+    function updateAI(data) {
+      let summary = "System Stable";
+      let details = "All major readings are within expected operating conditions.";
+      let risk = "LOW RISK";
+      let color = "green";
+
+      if (data.systemStopped) {
+        summary = "System Stopped";
+        details = "The system has been manually stopped. Protection logic is currently disabled.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (!data.waterDetected) {
+        summary = "Critical Water Warning";
+        details = "Water is not being detected normally. This may indicate a low-water condition or unsafe operating state.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.temperature) >= 32.0) {
+        summary = "Critical High Temperature";
+        details = "The water temperature is critically high and immediate cooling intervention may be needed.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.temperature) >= 30.0) {
+        summary = "High Temperature Detected";
+        details = "The water temperature is above the preferred range and should be monitored closely.";
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      } else if (Number(data.temperature) < 24.0) {
+        summary = "Low Temperature Detected";
+        details = "The water temperature is below the lower control threshold. Heating support may be required.";
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      } else if (Number(data.turbidity) >= 3000) {
+        summary = "Critical Turbidity Warning";
+        details = "The water appears extremely cloudy, suggesting severe waste suspension or instability.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.turbidity) > 2200) {
+        summary = "High Turbidity Detected";
+        details = "The water is cloudier than normal, which may indicate declining water quality.";
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      }
+
+      document.getElementById("aiSummary").innerText = summary;
+      document.getElementById("aiDetails").innerText = details;
+      document.getElementById("riskText").innerText = risk;
+      document.getElementById("riskBadge").innerHTML = `<span class="dot ${color}"></span><span>${risk}</span>`;
+    }
+
+    function updateLogs() {
+      const logEl = document.getElementById("logList");
+      if (!logsData.length) {
+        logEl.innerHTML = "No logs yet.";
+        return;
+      }
+      logEl.innerHTML = "<ul>" + logsData.map(l => `<li>${l}</li>`).join("") + "</ul>";
+    }
+
+    function fillPrompt(text) {
+      document.getElementById("aiPrompt").value = text;
+    }
+
+    function askAI() {
+      if (!latestData) {
+        document.getElementById("aiResponse").innerText = "No live data available yet.";
+        return;
+      }
+
+      const prompt = document.getElementById("aiPrompt").value.toLowerCase().trim();
+      let response = "";
+
+      if (prompt.includes("stable")) {
+        if (latestData.systemStopped) {
+          response = "The system is currently stopped, so it cannot actively maintain stability.";
+        } else if (!latestData.waterDetected) {
+          response = "No. The tank is not fully stable because the water sensor is reporting a low or missing water condition.";
+        } else if (Number(latestData.temperature) < 24.0 || Number(latestData.temperature) > 30.0 || Number(latestData.turbidity) > 2200) {
+          response = "The tank is not fully stable right now. One or more readings are outside the preferred range.";
+        } else {
+          response = "Yes. Based on temperature, water detection, and turbidity, the tank appears stable at the moment.";
+        }
+      }
+      else if (prompt.includes("pump")) {
+        response = latestData.pump
+          ? "The pump is currently ON. This is usually because turbidity is elevated or because the system previously triggered a response."
+          : "The pump is currently OFF. That suggests turbidity is within the acceptable range or the system is not demanding extra circulation.";
+      }
+      else if (prompt.includes("heater")) {
+        response = latestData.heater
+          ? "The heater is ON because the system has detected temperature below the lower threshold or it was manually set."
+          : "The heater is OFF because the temperature is currently acceptable or above the threshold.";
+      }
+      else if (prompt.includes("light")) {
+        response = latestData.light
+          ? "The light is ON. It may be on because of schedule control or manual control."
+          : "The light is OFF. It may be outside the scheduled period or manually disabled.";
+      }
+      else if (prompt.includes("ammonia") || prompt.includes("nitrate") || prompt.includes("nitrite")) {
+        response = "This system does not directly measure ammonia, nitrate, or nitrite. However, elevated turbidity can suggest rising waste load and possible water quality decline if left unmanaged.";
+      }
+      else if (prompt.includes("water quality")) {
+        response = Number(latestData.turbidity) > 2200
+          ? "Water quality may be declining because turbidity is elevated. This may indicate suspended waste, poor clarity, or instability."
+          : "Water quality appears acceptable from the currently available sensor readings, but full chemical testing is still recommended for direct ammonia or nitrate measurement.";
+      }
+      else if (prompt.includes("what should i do")) {
+        if (!latestData.waterDetected) {
+          response = "Check the water level first. That is the most urgent issue being reported.";
+        } else if (Number(latestData.temperature) >= 32.0) {
+          response = "Reduce temperature immediately, improve cooling, and monitor the system closely.";
+        } else if (Number(latestData.temperature) < 24.0) {
+          response = "Let the heater recover the temperature and verify the sensor reading remains stable.";
+        } else if (Number(latestData.turbidity) > 2200) {
+          response = "Let the pump continue circulating, inspect the water clarity, and consider cleaning or maintenance if the condition continues.";
+        } else {
+          response = "The system appears stable. Continue monitoring and maintain normal operation.";
+        }
+      }
+      else {
+        response = "I can answer questions about stability, heater status, pump status, light status, water quality, and general risk based on the live Firebase readings.";
+      }
+
+      document.getElementById("aiResponse").innerText = response;
+    }
+
+    function exportCSV() {
+      const len = Math.max(tempHistory.length, turbHistory.length, waterHistory.length);
+      let csv = "Index,Temperature,Turbidity,WaterSensor\n";
+
+      for (let i = 0; i < len; i++) {
+        const t = tempHistory[i] ?? "";
+        const tb = turbHistory[i] ?? "";
+        const w = waterHistory[i] ?? "";
+        csv += `${i},${t},${tb},${w}\n`;
+      }
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ecoguard_cloud_data.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function printPage() {
+      window.print();
+    }
+
+    async function shareSummary() {
+      if (!latestData) return;
+
+      const text =
+        `EcoGuard Cloud Dashboard\n` +
+        `Temperature: ${Number(latestData.temperature || 0).toFixed(1)} °C\n` +
+        `Water: ${latestData.waterDetected ? "OK" : "LOW / NONE"}\n` +
+        `Turbidity: ${latestData.turbidity}\n` +
+        `Health Score: ${latestData.healthScore}%\n` +
+        `Status: ${latestData.statusLabel}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: "EcoGuard Summary", text });
+        } catch (_) {}
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        alert("Summary copied to clipboard.");
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch(LOGS_URL, { cache: "no-store" });
+        const data = await res.json();
+        logsData = data?.items || [];
+      } catch (_) {
+        logsData = [];
+      }
+    }
+
+    async function fetchLiveData() {
+      try {
+        const res = await fetch(LIVE_URL, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!data) throw new Error("No data");
+
+        latestData = data;
+        updateConnectionState(true);
+        updateLastUpdated();
+
+        pushHistory(tempHistory, Number(data.temperature || 0));
+        pushHistory(turbHistory, Number(data.turbidity || 0));
+        pushHistory(waterHistory, data.waterDetected ? 1 : 0);
+
+        updateHome(data);
+        updateAI(data);
+        updateAlertBanner(data);
+
+        drawGraph("tempChart", tempHistory, "#58a6ff");
+        drawGraph("turbChart", turbHistory, "#f0883e");
+        drawGraph("waterChart", waterHistory, "#3fb950");
+      } catch (e) {
+        updateConnectionState(false);
+        console.log("Firebase fetch error:", e);
+      }
+    }
+
+    async function refreshAll() {
+      await Promise.all([fetchLiveData(), fetchLogs()]);
+      updateLogs();
+    }
+
+    refreshAll();
+    setInterval(refreshAll, 5000);
+  </script>
+</body>
+</html>
