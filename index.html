@@ -42,6 +42,17 @@
       backdrop-filter: blur(10px);
     }
 
+    .logo{
+      width:42px;
+      height:42px;
+      object-fit:contain;
+      border-radius:10px;
+      background:#0f141b;
+      border:1px solid var(--border);
+      padding:4px;
+      flex-shrink:0;
+    }
+
     .burger{
       width:28px;
       cursor:pointer;
@@ -361,6 +372,7 @@
         grid-template-columns:1fr;
       }
       .title{font-size:18px}
+      .logo{width:36px;height:36px}
     }
   </style>
 </head>
@@ -369,6 +381,10 @@
     <div class="burger" onclick="toggleSidebar()">
       <span></span><span></span><span></span>
     </div>
+
+    <!-- LOGO: replace logo.png with your own file name -->
+    <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
+
     <div class="title-wrap">
       <div class="title">EcoGuard Cloud Dashboard</div>
       <div class="subtitle">Worldwide monitoring via Firebase</div>
@@ -502,6 +518,7 @@
           <button class="blue" onclick="printPage()">Print</button>
           <button class="gray" onclick="shareSummary()">Share</button>
           <button class="blue" onclick="exportCSV()">Export CSV</button>
+          <button class="red" onclick="clearGraphHistory()">Clear Graph History</button>
         </div>
       </div>
 
@@ -623,9 +640,9 @@
 
     let latestData = null;
     let logsData = [];
-    let tempHistory = [];
-    let turbHistory = [];
-    let waterHistory = [];
+    let tempHistory = JSON.parse(localStorage.getItem("ecoguard_tempHistory") || "[]");
+    let turbHistory = JSON.parse(localStorage.getItem("ecoguard_turbHistory") || "[]");
+    let waterHistory = JSON.parse(localStorage.getItem("ecoguard_waterHistory") || "[]");
 
     function toggleSidebar() {
       document.getElementById("sidebar").classList.toggle("open");
@@ -671,9 +688,23 @@
          conic-gradient(var(--blue) 0deg, var(--blue) ${deg}deg, #232a33 ${deg}deg 360deg)`;
     }
 
-    function pushHistory(arr, value, max = 60) {
+    function pushHistory(arr, value, key, max = 60) {
       arr.push(value);
       if (arr.length > max) arr.shift();
+      localStorage.setItem(key, JSON.stringify(arr));
+    }
+
+    function clearGraphHistory() {
+      localStorage.removeItem("ecoguard_tempHistory");
+      localStorage.removeItem("ecoguard_turbHistory");
+      localStorage.removeItem("ecoguard_waterHistory");
+      tempHistory = [];
+      turbHistory = [];
+      waterHistory = [];
+      drawGraph("tempChart", tempHistory, "#58a6ff");
+      drawGraph("turbChart", turbHistory, "#f0883e");
+      drawGraph("waterChart", waterHistory, "#3fb950");
+      alert("Graph history cleared.");
     }
 
     function calculateTrend() {
@@ -736,7 +767,12 @@
         ctx.stroke();
       }
 
-      if (!values || values.length < 2) return;
+      if (!values || values.length < 2) {
+        ctx.fillStyle = "#8b949e";
+        ctx.font = "16px Arial";
+        ctx.fillText("Waiting for more live data...", 20, 30);
+        return;
+      }
 
       let minVal = Math.min(...values);
       let maxVal = Math.max(...values);
@@ -751,13 +787,18 @@
       ctx.beginPath();
 
       values.forEach((val, i) => {
-        const x = (i / (values.length - 1)) * w;
-        const y = h - ((val - minVal) / (maxVal - minVal)) * h;
+        const x = (i / (values.length - 1)) * (w - 20) + 10;
+        const y = h - 10 - ((val - minVal) / (maxVal - minVal)) * (h - 20);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
 
       ctx.stroke();
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "12px Arial";
+      ctx.fillText(`Min: ${minVal.toFixed(1)}`, 10, h - 12);
+      ctx.fillText(`Max: ${maxVal.toFixed(1)}`, w - 80, 18);
     }
 
     function updateAlertBanner(data) {
@@ -772,7 +813,6 @@
       document.getElementById("tempVal").innerText = `${Number(data.temperature || 0).toFixed(1)} °C`;
       document.getElementById("waterVal").innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
       document.getElementById("turbVal").innerText = data.turbidity ?? "--";
-      document.getElementById("healthScoreBig").innerText = `${data.healthScore ?? "--"}%`;
       document.getElementById("statusVal").innerText = data.statusLabel || "--";
       document.getElementById("modeVal").innerText = data.autoMode ? "AUTO" : "MANUAL";
       document.getElementById("heaterVal").innerText = data.heater ? "ON" : "OFF";
@@ -786,6 +826,7 @@
       document.getElementById("trendVal").innerText = calculateTrend();
       document.getElementById("lastLogVal").innerText = logsData[0] || "No logs";
 
+      document.getElementById("healthScoreBig").innerText = `${data.healthScore ?? "--"}%`;
       setGauge(Number(data.healthScore || 0));
 
       const statusDot = document.getElementById("statusDot");
@@ -1026,9 +1067,9 @@
         updateConnectionState(true);
         updateLastUpdated();
 
-        pushHistory(tempHistory, Number(data.temperature || 0));
-        pushHistory(turbHistory, Number(data.turbidity || 0));
-        pushHistory(waterHistory, data.waterDetected ? 1 : 0);
+        pushHistory(tempHistory, Number(data.temperature || 0), "ecoguard_tempHistory");
+        pushHistory(turbHistory, Number(data.turbidity || 0), "ecoguard_turbHistory");
+        pushHistory(waterHistory, data.waterDetected ? 1 : 0, "ecoguard_waterHistory");
 
         updateHome(data);
         updateAI(data);
