@@ -127,7 +127,7 @@
 
     .content{
       padding:20px;
-      max-width:1400px;
+      max-width:1450px;
       margin:0 auto;
     }
 
@@ -240,6 +240,13 @@
       margin-bottom:18px;
     }
 
+    .three-col{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
     .chart-wrap{
       margin-top:10px;
       border:1px solid var(--border);
@@ -267,7 +274,7 @@
       line-height:1.65;
     }
 
-    .prompt-box, select{
+    .prompt-box, select, input[type="number"]{
       width:100%;
       margin-top:8px;
       padding:12px;
@@ -351,6 +358,53 @@
       margin-bottom:0;
     }
 
+    .profile-box{
+      margin-top:10px;
+      padding:12px;
+      background:#0f141b;
+      border:1px solid var(--border);
+      border-radius:12px;
+    }
+
+    .profile-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .profile-item{
+      background:#121821;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px;
+    }
+
+    .label{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:4px;
+    }
+
+    .fish-title{
+      font-size:18px;
+      font-weight:700;
+      margin-top:8px;
+    }
+
+    .fit-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      border:1px solid var(--border);
+      background:#10151c;
+      margin-top:10px;
+    }
+
     @keyframes pulse{
       0%{box-shadow:0 0 0 0 rgba(218,54,51,.28)}
       70%{box-shadow:0 0 0 14px rgba(218,54,51,0)}
@@ -367,8 +421,47 @@
       color:var(--text);
     }
 
+    @media print {
+      .topbar, .sidebar, .overlay, .button-row, .footer-note, #alertBanner {
+        display:none !important;
+      }
+      body{
+        background:white;
+        color:black;
+      }
+      .page{
+        display:none !important;
+      }
+      #analytics{
+        display:block !important;
+      }
+      .card{
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow:none;
+        background:white;
+        color:black;
+        border:1px solid #ccc;
+      }
+      .chart-page{
+        page-break-before: always;
+      }
+      canvas{
+        background:white !important;
+      }
+    }
+
+    @media (max-width: 1100px){
+      .three-col{
+        grid-template-columns:1fr;
+      }
+    }
+
     @media (max-width: 900px){
       .hero, .two-col{
+        grid-template-columns:1fr;
+      }
+      .profile-grid{
         grid-template-columns:1fr;
       }
       .title{font-size:18px}
@@ -382,7 +475,6 @@
       <span></span><span></span><span></span>
     </div>
 
-    <!-- LOGO: replace logo.png with your own file name -->
     <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
 
     <div class="title-wrap">
@@ -430,6 +522,70 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>Tropical Fish</h3>
+          <div class="small">Select a tropical species profile</div>
+          <select id="tropicalSelect" onchange="handleFishSelection('tropical')">
+            <option value="">Choose tropical fish...</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <h3>Monster Fish</h3>
+          <div class="small">Select a monster fish profile</div>
+          <select id="monsterSelect" onchange="handleFishSelection('monster')">
+            <option value="">Choose monster fish...</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <h3>Custom Preference</h3>
+          <div class="small">Set your own preferred temperature range</div>
+          <div class="profile-grid">
+            <div>
+              <div class="label">Minimum °C</div>
+              <input type="number" id="customTempMin" step="0.1" placeholder="e.g. 26">
+            </div>
+            <div>
+              <div class="label">Maximum °C</div>
+              <input type="number" id="customTempMax" step="0.1" placeholder="e.g. 28">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="blue" onclick="applyCustomProfile()">Use Custom</button>
+            <button class="gray" onclick="clearFishProfile()">Clear Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <h3>Active Fish Profile</h3>
+        <div id="activeProfileName" class="fish-title">No fish profile selected</div>
+        <div id="activeProfileDesc" class="muted">Choose a tropical or monster fish to compare your live water conditions against ideal requirements.</div>
+
+        <div class="profile-grid">
+          <div class="profile-item">
+            <div class="label">Preferred Temperature</div>
+            <div id="profileTempRange">--</div>
+          </div>
+          <div class="profile-item">
+            <div class="label">Current Temperature</div>
+            <div id="profileCurrentTemp">--</div>
+          </div>
+          <div class="profile-item">
+            <div class="label">Turbidity View</div>
+            <div id="profileTurbView">--</div>
+          </div>
+          <div class="profile-item">
+            <div class="label">Best For</div>
+            <div id="profileBestFor">--</div>
+          </div>
+        </div>
+
+        <div id="profileSuitability" class="fit-badge"><span class="dot yellow"></span><span>No active profile</span></div>
       </div>
 
       <div class="grid">
@@ -533,17 +689,17 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px;">
+      <div class="card chart-page" style="margin-bottom:16px;">
         <h3>Temperature Graph</h3>
         <div class="chart-wrap"><canvas id="tempChart" width="900" height="260"></canvas></div>
       </div>
 
-      <div class="card" style="margin-bottom:16px;">
+      <div class="card chart-page" style="margin-bottom:16px;">
         <h3>Turbidity Graph</h3>
         <div class="chart-wrap"><canvas id="turbChart" width="900" height="260"></canvas></div>
       </div>
 
-      <div class="card">
+      <div class="card chart-page">
         <h3>Water Sensor Graph</h3>
         <div class="chart-wrap"><canvas id="waterChart" width="900" height="260"></canvas></div>
       </div>
@@ -573,6 +729,7 @@
           <button class="gray" onclick="fillPrompt('What should I do now?')">What should I do?</button>
           <button class="gray" onclick="fillPrompt('Is there ammonia or nitrate risk?')">Ammonia/nitrate risk?</button>
           <button class="gray" onclick="fillPrompt('What does the turbidity mean?')">Turbidity meaning?</button>
+          <button class="gray" onclick="fillPrompt('Is this water good for my selected fish?')">Good for selected fish?</button>
         </div>
         <div id="aiResponse" class="response-box">Ask a question and the dashboard will answer using the live Firebase data.</div>
       </div>
@@ -621,6 +778,13 @@
       </div>
 
       <div class="about-block">
+        <h3>Fish Profile System</h3>
+        <div class="muted">
+          The dashboard can compare live conditions against popular tropical and monster fish temperature preferences. This makes the system adaptive to different species instead of using one fixed environmental rule for every fish.
+        </div>
+      </div>
+
+      <div class="about-block">
         <h3>Remote Monitoring</h3>
         <div class="muted">
           The ESP32 sends live data to Firebase Realtime Database. This GitHub Pages site reads that data and turns it into a proper dashboard instead of raw JSON.
@@ -638,11 +802,179 @@
     const LIVE_URL = `${FIREBASE_BASE}/ecoguard/live.json`;
     const LOGS_URL = `${FIREBASE_BASE}/ecoguard/logs.json`;
 
+    const fishProfiles = {
+      tropical: {
+        guppy: {
+          name: "Guppy",
+          category: "Tropical Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Community tanks",
+          desc: "A hardy livebearer that prefers warm, stable tropical water."
+        },
+        tetra: {
+          name: "Tetra",
+          category: "Tropical Fish",
+          tempMin: 22,
+          tempMax: 27,
+          bestFor: "Schooling display tanks",
+          desc: "A peaceful schooling fish that does best in stable tropical conditions."
+        },
+        angelfish: {
+          name: "Angelfish",
+          category: "Tropical Fish",
+          tempMin: 26,
+          tempMax: 30,
+          bestFor: "Tall planted aquariums",
+          desc: "A classic tropical cichlid that prefers warmer water."
+        },
+        discus: {
+          name: "Discus",
+          category: "Tropical Fish",
+          tempMin: 28,
+          tempMax: 31,
+          bestFor: "Warm soft-water aquariums",
+          desc: "A premium tropical species needing warmer and very stable conditions."
+        },
+        betta: {
+          name: "Betta",
+          category: "Tropical Fish",
+          tempMin: 25,
+          tempMax: 28,
+          bestFor: "Warm calm aquariums",
+          desc: "A warm-water fish that likes stable temperatures and low stress."
+        },
+        molly: {
+          name: "Molly",
+          category: "Tropical Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Community aquariums",
+          desc: "An adaptable livebearer that prefers warm and clean water."
+        },
+        platy: {
+          name: "Platy",
+          category: "Tropical Fish",
+          tempMin: 22,
+          tempMax: 27,
+          bestFor: "Beginner community tanks",
+          desc: "A peaceful and beginner-friendly tropical livebearer."
+        },
+        swordtail: {
+          name: "Swordtail",
+          category: "Tropical Fish",
+          tempMin: 22,
+          tempMax: 28,
+          bestFor: "Active community tanks",
+          desc: "A strong and active livebearer that likes tropical mid-range warmth."
+        },
+        gourami: {
+          name: "Gourami",
+          category: "Tropical Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Peaceful tropical aquariums",
+          desc: "A labyrinth fish that prefers warm, stable water."
+        },
+        corydoras: {
+          name: "Corydoras",
+          category: "Tropical Fish",
+          tempMin: 22,
+          tempMax: 27,
+          bestFor: "Bottom-dweller community tanks",
+          desc: "A peaceful bottom fish that prefers cooler tropical ranges."
+        }
+      },
+      monster: {
+        arowana: {
+          name: "Arowana",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 30,
+          bestFor: "Large predator aquariums",
+          desc: "A prized monster fish needing warm, stable water and plenty of space."
+        },
+        oscar: {
+          name: "Oscar",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Large cichlid tanks",
+          desc: "A popular intelligent cichlid that prefers stable tropical warmth."
+        },
+        flowerhorn: {
+          name: "Flowerhorn",
+          category: "Monster Fish",
+          tempMin: 26,
+          tempMax: 30,
+          bestFor: "Single showcase tanks",
+          desc: "A warm-water hybrid cichlid that does best in stable conditions."
+        },
+        jaguar_cichlid: {
+          name: "Jaguar Cichlid",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Aggressive cichlid systems",
+          desc: "A strong predatory cichlid that prefers warm, clean water."
+        },
+        red_tail_catfish: {
+          name: "Red Tail Catfish",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Very large predator systems",
+          desc: "A giant catfish needing warm water and very large volume."
+        },
+        pacu: {
+          name: "Pacu",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Large mixed monster tanks",
+          desc: "A large omnivorous fish that likes warm tropical water."
+        },
+        peacock_bass: {
+          name: "Peacock Bass",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 30,
+          bestFor: "Predator aquariums",
+          desc: "A fast predator that prefers warm water and high oxygen."
+        },
+        datnoid: {
+          name: "Datnoid",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 30,
+          bestFor: "Premium predator tanks",
+          desc: "A prized predator needing stable warm tropical conditions."
+        },
+        bichir: {
+          name: "Bichir",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Predator bottom-dweller tanks",
+          desc: "A prehistoric fish that does well in warm stable water."
+        },
+        clown_knife: {
+          name: "Clown Knife",
+          category: "Monster Fish",
+          tempMin: 24,
+          tempMax: 28,
+          bestFor: "Large predatory aquariums",
+          desc: "A large nocturnal predator preferring warm, calm water."
+        }
+      }
+    };
+
     let latestData = null;
     let logsData = [];
     let tempHistory = JSON.parse(localStorage.getItem("ecoguard_tempHistory") || "[]");
     let turbHistory = JSON.parse(localStorage.getItem("ecoguard_turbHistory") || "[]");
     let waterHistory = JSON.parse(localStorage.getItem("ecoguard_waterHistory") || "[]");
+    let activeFishProfile = JSON.parse(localStorage.getItem("ecoguard_activeFishProfile") || "null");
 
     function toggleSidebar() {
       document.getElementById("sidebar").classList.toggle("open");
@@ -658,6 +990,195 @@
       document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
       document.getElementById(pageId).classList.add("active");
       closeSidebar();
+    }
+
+    function populateFishDropdowns() {
+      const tropicalSelect = document.getElementById("tropicalSelect");
+      const monsterSelect = document.getElementById("monsterSelect");
+
+      Object.entries(fishProfiles.tropical).forEach(([key, fish]) => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = fish.name;
+        tropicalSelect.appendChild(option);
+      });
+
+      Object.entries(fishProfiles.monster).forEach(([key, fish]) => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = fish.name;
+        monsterSelect.appendChild(option);
+      });
+
+      if (activeFishProfile) {
+        if (activeFishProfile.source === "tropical") {
+          tropicalSelect.value = activeFishProfile.key;
+        } else if (activeFishProfile.source === "monster") {
+          monsterSelect.value = activeFishProfile.key;
+        }
+      }
+    }
+
+    function handleFishSelection(type) {
+      const tropicalSelect = document.getElementById("tropicalSelect");
+      const monsterSelect = document.getElementById("monsterSelect");
+
+      if (type === "tropical") {
+        const key = tropicalSelect.value;
+        monsterSelect.value = "";
+        if (!key) {
+          clearFishProfile();
+          return;
+        }
+        activeFishProfile = {
+          source: "tropical",
+          key,
+          ...fishProfiles.tropical[key]
+        };
+      } else {
+        const key = monsterSelect.value;
+        tropicalSelect.value = "";
+        if (!key) {
+          clearFishProfile();
+          return;
+        }
+        activeFishProfile = {
+          source: "monster",
+          key,
+          ...fishProfiles.monster[key]
+        };
+      }
+
+      localStorage.setItem("ecoguard_activeFishProfile", JSON.stringify(activeFishProfile));
+      updateFishProfileUI();
+    }
+
+    function applyCustomProfile() {
+      const min = Number(document.getElementById("customTempMin").value);
+      const max = Number(document.getElementById("customTempMax").value);
+
+      if (Number.isNaN(min) || Number.isNaN(max) || min >= max) {
+        alert("Please enter a valid minimum and maximum temperature.");
+        return;
+      }
+
+      document.getElementById("tropicalSelect").value = "";
+      document.getElementById("monsterSelect").value = "";
+
+      activeFishProfile = {
+        source: "custom",
+        key: "custom",
+        name: "Custom Profile",
+        category: "Custom",
+        tempMin: min,
+        tempMax: max,
+        bestFor: "Your preferred setup",
+        desc: "A custom profile based on your own preferred temperature range."
+      };
+
+      localStorage.setItem("ecoguard_activeFishProfile", JSON.stringify(activeFishProfile));
+      updateFishProfileUI();
+    }
+
+    function clearFishProfile() {
+      activeFishProfile = null;
+      localStorage.removeItem("ecoguard_activeFishProfile");
+      document.getElementById("tropicalSelect").value = "";
+      document.getElementById("monsterSelect").value = "";
+      document.getElementById("customTempMin").value = "";
+      document.getElementById("customTempMax").value = "";
+      updateFishProfileUI();
+    }
+
+    function getFishSuitability(profile, data) {
+      if (!profile) {
+        return {
+          label: "No active profile",
+          color: "yellow",
+          message: "Select a fish profile to compare live water conditions."
+        };
+      }
+
+      const temp = Number(data?.temperature ?? 0);
+      const waterOk = !!data?.waterDetected;
+      const turb = Number(data?.turbidity ?? 0);
+
+      if (!waterOk) {
+        return {
+          label: "NOT SUITABLE",
+          color: "red",
+          message: `${profile.name} is not suitable right now because the water sensor is reporting a low or missing water condition.`
+        };
+      }
+
+      if (temp < profile.tempMin || temp > profile.tempMax) {
+        return {
+          label: "WARNING",
+          color: "yellow",
+          message: `${profile.name} prefers ${profile.tempMin}–${profile.tempMax}°C, but the current temperature is ${temp.toFixed(1)}°C.`
+        };
+      }
+
+      if (turb >= 3000) {
+        return {
+          label: "NOT SUITABLE",
+          color: "red",
+          message: `${profile.name} is not suitable right now because turbidity is in a critical range.`
+        };
+      }
+
+      if (turb >= 2200) {
+        return {
+          label: "CAUTION",
+          color: "orange",
+          message: `${profile.name} is within temperature range, but turbidity is poor and should be improved soon.`
+        };
+      }
+
+      if (turb >= 1800) {
+        return {
+          label: "GOOD WITH MONITORING",
+          color: "yellow",
+          message: `${profile.name} is within temperature range, but the water is slightly cloudy and should be monitored.`
+        };
+      }
+
+      return {
+        label: "SUITABLE",
+        color: "green",
+        message: `${profile.name} is currently within the preferred temperature range and the water looks suitable.`
+      };
+    }
+
+    function updateFishProfileUI() {
+      const title = document.getElementById("activeProfileName");
+      const desc = document.getElementById("activeProfileDesc");
+      const tempRange = document.getElementById("profileTempRange");
+      const currentTemp = document.getElementById("profileCurrentTemp");
+      const turbView = document.getElementById("profileTurbView");
+      const bestFor = document.getElementById("profileBestFor");
+      const fit = document.getElementById("profileSuitability");
+
+      if (!activeFishProfile) {
+        title.textContent = "No fish profile selected";
+        desc.textContent = "Choose a tropical or monster fish to compare your live water conditions against ideal requirements.";
+        tempRange.textContent = "--";
+        currentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
+        turbView.textContent = latestData ? `${latestData.turbidity ?? "--"}` : "--";
+        bestFor.textContent = "--";
+        fit.innerHTML = `<span class="dot yellow"></span><span>No active profile</span>`;
+        return;
+      }
+
+      title.textContent = `${activeFishProfile.name} (${activeFishProfile.category})`;
+      desc.textContent = activeFishProfile.desc;
+      tempRange.textContent = `${activeFishProfile.tempMin}–${activeFishProfile.tempMax} °C`;
+      currentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
+      turbView.textContent = latestData ? `${latestData.turbidity ?? "--"} (${getTurbidityInfo(latestData.turbidity).label})` : "--";
+      bestFor.textContent = activeFishProfile.bestFor;
+
+      const suitability = getFishSuitability(activeFishProfile, latestData);
+      fit.innerHTML = `<span class="dot ${suitability.color}"></span><span>${suitability.label} — ${suitability.message}</span>`;
     }
 
     function formatSeconds(sec) {
@@ -701,9 +1222,9 @@
       tempHistory = [];
       turbHistory = [];
       waterHistory = [];
-      drawGraph("tempChart", tempHistory, "#58a6ff");
-      drawGraph("turbChart", turbHistory, "#f0883e");
-      drawGraph("waterChart", waterHistory, "#3fb950");
+      drawGraph("tempChart", tempHistory, "#58a6ff", "Sample", "°C");
+      drawGraph("turbChart", turbHistory, "#f0883e", "Sample", "Turbidity");
+      drawGraph("waterChart", waterHistory, "#3fb950", "Sample", "Water State");
       alert("Graph history cleared.");
     }
 
@@ -748,29 +1269,52 @@
       }
     }
 
-    function drawGraph(canvasId, values, color) {
+    function drawGraph(canvasId, values, color, xLabel, yLabel) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       const w = canvas.width;
       const h = canvas.height;
+      const leftPad = 55;
+      const rightPad = 20;
+      const topPad = 25;
+      const bottomPad = 45;
+      const plotW = w - leftPad - rightPad;
+      const plotH = h - topPad - bottomPad;
 
       ctx.clearRect(0, 0, w, h);
 
       ctx.strokeStyle = "#30363d";
       ctx.lineWidth = 1;
+
       for (let i = 0; i < 5; i++) {
-        const y = (h / 4) * i;
+        const y = topPad + (plotH / 4) * i;
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - rightPad, y);
         ctx.stroke();
       }
+
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, h - bottomPad);
+      ctx.lineTo(w - rightPad, h - bottomPad);
+      ctx.stroke();
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "14px Arial";
+      ctx.fillText(xLabel, w / 2 - 20, h - 12);
+
+      ctx.save();
+      ctx.translate(16, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
 
       if (!values || values.length < 2) {
         ctx.fillStyle = "#8b949e";
         ctx.font = "16px Arial";
-        ctx.fillText("Waiting for more live data...", 20, 30);
+        ctx.fillText("Waiting for more live data...", leftPad + 10, topPad + 20);
         return;
       }
 
@@ -787,18 +1331,18 @@
       ctx.beginPath();
 
       values.forEach((val, i) => {
-        const x = (i / (values.length - 1)) * (w - 20) + 10;
-        const y = h - 10 - ((val - minVal) / (maxVal - minVal)) * (h - 20);
+        const x = leftPad + (i / (values.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
 
       ctx.stroke();
 
-      ctx.fillStyle = "#8b949e";
-      ctx.font = "12px Arial";
-      ctx.fillText(`Min: ${minVal.toFixed(1)}`, 10, h - 12);
-      ctx.fillText(`Max: ${maxVal.toFixed(1)}`, w - 80, 18);
+      ctx.fillStyle = "#f0f6fc";
+      ctx.font = "16px Arial";
+      ctx.fillText(`Min: ${minVal.toFixed(1)}`, leftPad + 8, h - 18);
+      ctx.fillText(`Max: ${maxVal.toFixed(1)}`, w - rightPad - 95, topPad + 16);
     }
 
     function updateAlertBanner(data) {
@@ -838,8 +1382,13 @@
       document.getElementById("turbState").innerText = turbidityInfo.label;
       document.getElementById("turbMeaning").innerText = turbidityInfo.meaning;
 
-      document.getElementById("analyticsSummary").innerText =
-        `Temperature: ${Number(data.temperature || 0).toFixed(1)} °C | Turbidity: ${data.turbidity} (${turbidityInfo.label}) | Water: ${data.waterDetected ? "OK" : "LOW / NONE"} | Status: ${data.statusLabel || "--"}`;
+      let summary = `Temperature: ${Number(data.temperature || 0).toFixed(1)} °C | Turbidity: ${data.turbidity} (${turbidityInfo.label}) | Water: ${data.waterDetected ? "OK" : "LOW / NONE"} | Status: ${data.statusLabel || "--"}`;
+      if (activeFishProfile) {
+        summary += ` | Active Fish: ${activeFishProfile.name}`;
+      }
+      document.getElementById("analyticsSummary").innerText = summary;
+
+      updateFishProfileUI();
     }
 
     function updateConnectionState(ok) {
@@ -862,6 +1411,7 @@
 
     function updateAI(data) {
       const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const fishSuitability = getFishSuitability(activeFishProfile, data);
 
       let summary = "System Stable";
       let details = "All major readings are within expected operating conditions.";
@@ -910,6 +1460,10 @@
         color = "yellow";
       }
 
+      if (activeFishProfile) {
+        details += ` Active fish profile: ${activeFishProfile.name}. ${fishSuitability.message}`;
+      }
+
       document.getElementById("aiSummary").innerText = summary;
       document.getElementById("aiDetails").innerText = details;
       document.getElementById("riskText").innerText = risk;
@@ -936,6 +1490,7 @@
       }
 
       const turbidityInfo = getTurbidityInfo(latestData.turbidity);
+      const fishSuitability = getFishSuitability(activeFishProfile, latestData);
       const prompt = document.getElementById("aiPrompt").value.toLowerCase().trim();
       let response = "";
 
@@ -976,6 +1531,13 @@
       else if (prompt.includes("turbidity")) {
         response = `The current turbidity is ${latestData.turbidity}, which is in the ${turbidityInfo.label} range. ${turbidityInfo.meaning}`;
       }
+      else if (prompt.includes("selected fish") || prompt.includes("my fish") || prompt.includes("good for")) {
+        if (!activeFishProfile) {
+          response = "No fish profile is currently selected. Choose a tropical fish, monster fish, or set a custom profile first.";
+        } else {
+          response = `${activeFishProfile.name}: ${fishSuitability.message}`;
+        }
+      }
       else if (prompt.includes("what should i do")) {
         if (!latestData.waterDetected) {
           response = "Check the water level first. That is the most urgent issue being reported.";
@@ -989,12 +1551,14 @@
           response = "The turbidity is bad. Let the pump continue circulating and inspect the water clarity. Maintenance is recommended soon.";
         } else if (Number(latestData.turbidity) >= 1800) {
           response = "The turbidity is mildly elevated. Monitor the system and watch for any worsening trend.";
+        } else if (activeFishProfile && fishSuitability.label !== "SUITABLE") {
+          response = `${activeFishProfile.name} note: ${fishSuitability.message}`;
         } else {
           response = "The system appears stable. Continue monitoring and maintain normal operation.";
         }
       }
       else {
-        response = "I can answer questions about stability, heater status, pump status, light status, water quality, turbidity meaning, and general risk based on the live Firebase readings.";
+        response = "I can answer questions about stability, heater status, pump status, light status, water quality, turbidity meaning, and whether the current water suits your selected fish profile.";
       }
 
       document.getElementById("aiResponse").innerText = response;
@@ -1021,20 +1585,23 @@
     }
 
     function printPage() {
-      window.print();
+      showPage("analytics");
+      setTimeout(() => window.print(), 200);
     }
 
     async function shareSummary() {
       if (!latestData) return;
 
       const turbidityInfo = getTurbidityInfo(latestData.turbidity);
+      const fishText = activeFishProfile ? `\nActive Fish: ${activeFishProfile.name}` : "";
       const text =
         `EcoGuard Cloud Dashboard\n` +
         `Temperature: ${Number(latestData.temperature || 0).toFixed(1)} °C\n` +
         `Water: ${latestData.waterDetected ? "OK" : "LOW / NONE"}\n` +
         `Turbidity: ${latestData.turbidity} (${turbidityInfo.label})\n` +
         `Health Score: ${latestData.healthScore}%\n` +
-        `Status: ${latestData.statusLabel}`;
+        `Status: ${latestData.statusLabel}` +
+        fishText;
 
       if (navigator.share) {
         try {
@@ -1075,9 +1642,9 @@
         updateAI(data);
         updateAlertBanner(data);
 
-        drawGraph("tempChart", tempHistory, "#58a6ff");
-        drawGraph("turbChart", turbHistory, "#f0883e");
-        drawGraph("waterChart", waterHistory, "#3fb950");
+        drawGraph("tempChart", tempHistory, "#58a6ff", "Sample", "Temperature °C");
+        drawGraph("turbChart", turbHistory, "#f0883e", "Sample", "Turbidity");
+        drawGraph("waterChart", waterHistory, "#3fb950", "Sample", "Water State");
       } catch (e) {
         updateConnectionState(false);
         console.log("Firebase fetch error:", e);
@@ -1089,6 +1656,8 @@
       updateLogs();
     }
 
+    populateFishDropdowns();
+    updateFishProfileUI();
     refreshAll();
     setInterval(refreshAll, 5000);
   </script>
