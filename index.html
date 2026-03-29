@@ -35,25 +35,11 @@
       z-index:1000;
       display:flex;
       align-items:center;
-      justify-content:space-between;
       gap:12px;
       padding:14px 16px;
       background:rgba(22,27,34,.95);
       border-bottom:1px solid var(--border);
       backdrop-filter: blur(10px);
-    }
-
-    .topbar-left{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-
-    .topbar-right{
-      display:flex;
-      align-items:center;
-      gap:10px;
     }
 
     .logo{
@@ -65,17 +51,6 @@
       border:1px solid var(--border);
       padding:4px;
       flex-shrink:0;
-    }
-
-    .account-icon{
-      width:40px;
-      height:40px;
-      object-fit:cover;
-      border-radius:50%;
-      border:1px solid var(--border);
-      background:#0f141b;
-      cursor:pointer;
-      padding:4px;
     }
 
     .burger{
@@ -98,7 +73,6 @@
       display:flex;
       flex-direction:column;
       gap:2px;
-      min-width:0;
     }
 
     .title{
@@ -139,25 +113,6 @@
 
     .sidebar a:hover{
       background:#21262d;
-    }
-
-    .account-panel{
-      position:fixed;
-      top:70px;
-      right:16px;
-      width:340px;
-      max-width:calc(100vw - 32px);
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow:var(--shadow);
-      z-index:2200;
-      display:none;
-      padding:16px;
-    }
-
-    .account-panel.open{
-      display:block;
     }
 
     .overlay{
@@ -243,16 +198,16 @@
       margin-bottom:20px;
     }
 
-    .three-col{
+    .two-col{
       display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1.1fr .9fr;
       gap:16px;
       margin-bottom:18px;
     }
 
-    .two-col{
+    .three-col{
       display:grid;
-      grid-template-columns: 1.1fr .9fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap:16px;
       margin-bottom:18px;
     }
@@ -460,6 +415,19 @@
       font-weight:700;
     }
 
+    .recommend-card{
+      background:#121821;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+    }
+
+    .recommend-title{
+      font-size:16px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
     .chart-minmax{
       margin-top:10px;
       font-size:17px;
@@ -484,7 +452,7 @@
     }
 
     @media print {
-      .topbar, .sidebar, .overlay, .button-row, .footer-note, #alertBanner, .account-panel {
+      .topbar, .sidebar, .overlay, .button-row, .footer-note, #alertBanner {
         display:none !important;
       }
       body{
@@ -531,27 +499,20 @@
       }
       .title{font-size:18px}
       .logo{width:36px;height:36px}
-      .account-icon{width:36px;height:36px}
     }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-left">
-      <div class="burger" onclick="toggleSidebar()">
-        <span></span><span></span><span></span>
-      </div>
-
-      <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
-
-      <div class="title-wrap">
-        <div class="title">EcoGuard Cloud Dashboard</div>
-        <div class="subtitle">Worldwide monitoring via Firebase</div>
-      </div>
+    <div class="burger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
     </div>
 
-    <div class="topbar-right">
-      <img src="account-icon.png" alt="Account" class="account-icon" onclick="toggleAccountPanel()" onerror="this.style.display='none'">
+    <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
+
+    <div class="title-wrap">
+      <div class="title">EcoGuard Cloud Dashboard</div>
+      <div class="subtitle">Worldwide monitoring via Firebase</div>
     </div>
   </div>
 
@@ -562,30 +523,9 @@
     <a onclick="showPage('analytics')">Analytics</a>
     <a onclick="showPage('ai')">AI Analysis</a>
     <a onclick="showPage('logs')">Event Logs</a>
+    <a onclick="showPage('fishprefs')">Fish Preferences</a>
+    <a onclick="showPage('account')">Account</a>
     <a onclick="showPage('about')">About</a>
-  </div>
-
-  <div id="accountPanel" class="account-panel">
-    <h3 style="margin-top:0;">Account</h3>
-
-    <div class="label">Email</div>
-    <input type="email" id="emailInput" placeholder="Enter email">
-
-    <div class="label" style="margin-top:10px;">Password</div>
-    <input type="password" id="passwordInput" placeholder="Enter password">
-
-    <div class="button-row">
-      <button class="blue" id="signupBtn">Sign Up</button>
-      <button id="loginBtn">Log In</button>
-      <button class="gray" id="logoutBtn">Log Out</button>
-    </div>
-
-    <div class="button-row">
-      <button class="orange" id="verifyBtn">Resend Verification Email</button>
-    </div>
-
-    <div class="account-status" id="authStatus">Not signed in.</div>
-    <div class="account-status" id="verifyStatus">Verification status: --</div>
   </div>
 
   <div class="content">
@@ -629,49 +569,11 @@
         <div class="small" id="notifyStatus" style="margin-top:10px;">Browser alerts not enabled yet.</div>
       </div>
 
-      <div class="three-col">
-        <div class="card">
-          <h3>Tropical Fish</h3>
-          <div class="small">Select a tropical species profile</div>
-          <select id="tropicalSelect" onchange="handleFishSelection('tropical')">
-            <option value="">Choose tropical fish...</option>
-          </select>
-        </div>
-
-        <div class="card">
-          <h3>Monster Fish</h3>
-          <div class="small">Select a monster fish profile</div>
-          <select id="monsterSelect" onchange="handleFishSelection('monster')">
-            <option value="">Choose monster fish...</option>
-          </select>
-        </div>
-
-        <div class="card">
-          <h3>Custom Preference</h3>
-          <div class="small">Set your own preferred temperature range</div>
-          <div class="profile-grid">
-            <div>
-              <div class="label">Minimum °C</div>
-              <input type="number" id="customTempMin" step="0.1" placeholder="e.g. 26">
-            </div>
-            <div>
-              <div class="label">Maximum °C</div>
-              <input type="number" id="customTempMax" step="0.1" placeholder="e.g. 28">
-            </div>
-          </div>
-          <div class="button-row">
-            <button class="blue" onclick="applyCustomProfile()">Use Custom</button>
-            <button class="gray" onclick="clearFishProfile()">Clear Profile</button>
-            <button id="savePrefsBtn">Save Preferences</button>
-          </div>
-        </div>
-      </div>
-
       <div class="two-col">
         <div class="card">
           <h3>Active Fish Profile</h3>
           <div id="activeProfileName" class="fish-title">No fish profile selected</div>
-          <div id="activeProfileDesc" class="muted">Choose a tropical or monster fish to compare your live water conditions against ideal requirements.</div>
+          <div id="activeProfileDesc" class="muted">Go to Fish Preferences to choose a fish profile.</div>
 
           <div class="profile-grid">
             <div class="profile-item">
@@ -868,6 +770,164 @@
       </div>
     </div>
 
+    <div id="fishprefs" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Fish Preferences</h2>
+        <div class="muted">
+          Choose a tropical or monster fish profile, or set your own custom temperature range. You can save these preferences to your account.
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>Tropical Fish</h3>
+          <div class="small">Select a tropical species profile</div>
+          <select id="tropicalSelect" onchange="handleFishSelection('tropical')">
+            <option value="">Choose tropical fish...</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <h3>Monster Fish</h3>
+          <div class="small">Select a monster fish profile</div>
+          <select id="monsterSelect" onchange="handleFishSelection('monster')">
+            <option value="">Choose monster fish...</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <h3>Custom Preference</h3>
+          <div class="small">Set your own preferred temperature range</div>
+          <div class="profile-grid">
+            <div>
+              <div class="label">Minimum °C</div>
+              <input type="number" id="customTempMin" step="0.1" placeholder="e.g. 26">
+            </div>
+            <div>
+              <div class="label">Maximum °C</div>
+              <input type="number" id="customTempMax" step="0.1" placeholder="e.g. 28">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="blue" onclick="applyCustomProfile()">Use Custom</button>
+            <button class="gray" onclick="clearFishProfile()">Clear Profile</button>
+            <button id="savePrefsBtn">Save Preferences</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>Recommended Range Cards</h3>
+
+          <div class="recommend-card" style="margin-bottom:10px;">
+            <div class="recommend-title">Tropical Community</div>
+            <div class="small">Recommended temperature: <strong>24–28 °C</strong></div>
+            <div class="small">Ideal for guppies, mollies, platys, and similar community fish.</div>
+          </div>
+
+          <div class="recommend-card" style="margin-bottom:10px;">
+            <div class="recommend-title">Warm Tropical Premium</div>
+            <div class="small">Recommended temperature: <strong>28–31 °C</strong></div>
+            <div class="small">Ideal for discus and other species that prefer warmer stable water.</div>
+          </div>
+
+          <div class="recommend-card" style="margin-bottom:10px;">
+            <div class="recommend-title">Monster Fish Standard</div>
+            <div class="small">Recommended temperature: <strong>24–30 °C</strong></div>
+            <div class="small">Common for arowana, peacock bass, datnoid, oscar, and similar large fish.</div>
+          </div>
+
+          <div class="recommend-card">
+            <div class="recommend-title">Flowerhorn / Warm Cichlid</div>
+            <div class="small">Recommended temperature: <strong>26–30 °C</strong></div>
+            <div class="small">Useful for flowerhorn and similar warm-water show cichlids.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Active Fish Profile</h3>
+          <div id="prefsActiveProfileName" class="fish-title">No fish profile selected</div>
+          <div id="prefsActiveProfileDesc" class="muted">Choose a fish to compare live water conditions against ideal requirements.</div>
+
+          <div class="profile-grid">
+            <div class="profile-item">
+              <div class="label">Preferred Temperature</div>
+              <div id="prefsProfileTempRange">--</div>
+            </div>
+            <div class="profile-item">
+              <div class="label">Current Temperature</div>
+              <div id="prefsProfileCurrentTemp">--</div>
+            </div>
+            <div class="profile-item">
+              <div class="label">Turbidity View</div>
+              <div id="prefsProfileTurbView">--</div>
+            </div>
+            <div class="profile-item">
+              <div class="label">Best For</div>
+              <div id="prefsProfileBestFor">--</div>
+            </div>
+          </div>
+
+          <div id="prefsProfileSuitability" class="fit-badge"><span class="dot yellow"></span><span>No active profile</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="account" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Account</h2>
+        <div class="muted">Create an account, log in, verify your email, and save your preferences.</div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>Login / Signup</h3>
+
+          <div class="label">Email</div>
+          <input type="email" id="emailInput" placeholder="Enter email">
+
+          <div class="label" style="margin-top:10px;">Password</div>
+          <input type="password" id="passwordInput" placeholder="Enter password">
+
+          <div class="button-row">
+            <button class="blue" id="signupBtn">Sign Up</button>
+            <button id="loginBtn">Log In</button>
+            <button class="gray" id="logoutBtn">Log Out</button>
+          </div>
+
+          <div class="button-row">
+            <button class="orange" id="verifyBtn">Resend Verification Email</button>
+          </div>
+
+          <div class="account-status" id="authStatus">Not signed in.</div>
+          <div class="account-status" id="verifyStatus">Verification status: --</div>
+        </div>
+
+        <div class="card">
+          <h3>Saved User Info</h3>
+          <div class="profile-grid">
+            <div class="profile-item">
+              <div class="label">Signed In User</div>
+              <div id="accountEmail">--</div>
+            </div>
+            <div class="profile-item">
+              <div class="label">Cloud Mode</div>
+              <div id="accountMode">--</div>
+            </div>
+            <div class="profile-item">
+              <div class="label">Saved Fish</div>
+              <div id="accountFish">--</div>
+            </div>
+            <div class="profile-item">
+              <div class="label">Temp Range</div>
+              <div id="accountTempRange">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="about" class="page">
       <div class="about-block">
         <h2>About EcoGuard</h2>
@@ -895,25 +955,12 @@
         <div class="muted">
           Estimates water cloudiness. Higher turbidity may suggest suspended waste, poor clarity, or declining water conditions.
         </div>
-        <div class="range-box">
-          <div class="range-row"><span class="dot green"></span><span><strong>Good:</strong> below 1800</span></div>
-          <div class="range-row"><span class="dot yellow"></span><span><strong>Mild:</strong> 1800 to 2199</span></div>
-          <div class="range-row"><span class="dot orange"></span><span><strong>Bad:</strong> 2200 to 2999</span></div>
-          <div class="range-row"><span class="dot red"></span><span><strong>Critical:</strong> 3000 and above</span></div>
-        </div>
       </div>
 
       <div class="about-block">
         <h3>Fish Profile System</h3>
         <div class="muted">
           The dashboard compares live conditions against popular tropical and monster fish temperature preferences. Logged-in users can save their fish preferences and custom ranges to Firebase.
-        </div>
-      </div>
-
-      <div class="about-block">
-        <h3>Verification and Saved Profiles</h3>
-        <div class="muted">
-          Users can create accounts, receive verification emails, log in, and reload their fish profile and cloud mode preferences later on other devices.
         </div>
       </div>
     </div>
@@ -1003,7 +1050,6 @@
     const els = {
       sidebar: document.getElementById("sidebar"),
       overlay: document.getElementById("overlay"),
-      accountPanel: document.getElementById("accountPanel"),
       pages: document.querySelectorAll(".page"),
       onlineDot: document.getElementById("onlineDot"),
       connectionText: document.getElementById("connectionText"),
@@ -1015,6 +1061,10 @@
       alertBanner: document.getElementById("alertBanner"),
       authStatus: document.getElementById("authStatus"),
       verifyStatus: document.getElementById("verifyStatus"),
+      accountEmail: document.getElementById("accountEmail"),
+      accountMode: document.getElementById("accountMode"),
+      accountFish: document.getElementById("accountFish"),
+      accountTempRange: document.getElementById("accountTempRange"),
       emailInput: document.getElementById("emailInput"),
       passwordInput: document.getElementById("passwordInput"),
       notifyStatus: document.getElementById("notifyStatus"),
@@ -1029,6 +1079,13 @@
       profileTurbView: document.getElementById("profileTurbView"),
       profileBestFor: document.getElementById("profileBestFor"),
       profileSuitability: document.getElementById("profileSuitability"),
+      prefsActiveProfileName: document.getElementById("prefsActiveProfileName"),
+      prefsActiveProfileDesc: document.getElementById("prefsActiveProfileDesc"),
+      prefsProfileTempRange: document.getElementById("prefsProfileTempRange"),
+      prefsProfileCurrentTemp: document.getElementById("prefsProfileCurrentTemp"),
+      prefsProfileTurbView: document.getElementById("prefsProfileTurbView"),
+      prefsProfileBestFor: document.getElementById("prefsProfileBestFor"),
+      prefsProfileSuitability: document.getElementById("prefsProfileSuitability"),
       modeWidgetVal: document.getElementById("modeWidgetVal"),
       modeSaveStatus: document.getElementById("modeSaveStatus"),
       tempVal: document.getElementById("tempVal"),
@@ -1062,18 +1119,10 @@
     function toggleSidebar() {
       els.sidebar.classList.toggle("open");
       els.overlay.classList.toggle("show");
-      els.accountPanel.classList.remove("open");
-    }
-
-    function toggleAccountPanel() {
-      els.accountPanel.classList.toggle("open");
-      els.overlay.classList.toggle("show");
-      els.sidebar.classList.remove("open");
     }
 
     function closeAllPanels() {
       els.sidebar.classList.remove("open");
-      els.accountPanel.classList.remove("open");
       els.overlay.classList.remove("show");
     }
 
@@ -1084,7 +1133,6 @@
     }
 
     window.toggleSidebar = toggleSidebar;
-    window.toggleAccountPanel = toggleAccountPanel;
     window.closeAllPanels = closeAllPanels;
     window.showPage = showPage;
 
@@ -1209,26 +1257,52 @@
     }
 
     function updateFishProfileUI() {
-      if (!activeFishProfile) {
-        els.activeProfileName.textContent = "No fish profile selected";
-        els.activeProfileDesc.textContent = "Choose a tropical or monster fish to compare your live water conditions against ideal requirements.";
-        els.profileTempRange.textContent = "--";
-        els.profileCurrentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
-        els.profileTurbView.textContent = latestData ? `${latestData.turbidity ?? "--"}` : "--";
-        els.profileBestFor.textContent = "--";
-        els.profileSuitability.innerHTML = `<span class="dot yellow"></span><span>No active profile</span>`;
-        return;
-      }
+      const targets = [
+        {
+          name: els.activeProfileName,
+          desc: els.activeProfileDesc,
+          tempRange: els.profileTempRange,
+          currentTemp: els.profileCurrentTemp,
+          turbView: els.profileTurbView,
+          bestFor: els.profileBestFor,
+          fit: els.profileSuitability
+        },
+        {
+          name: els.prefsActiveProfileName,
+          desc: els.prefsActiveProfileDesc,
+          tempRange: els.prefsProfileTempRange,
+          currentTemp: els.prefsProfileCurrentTemp,
+          turbView: els.prefsProfileTurbView,
+          bestFor: els.prefsProfileBestFor,
+          fit: els.prefsProfileSuitability
+        }
+      ];
 
-      els.activeProfileName.textContent = `${activeFishProfile.name} (${activeFishProfile.category})`;
-      els.activeProfileDesc.textContent = activeFishProfile.desc;
-      els.profileTempRange.textContent = `${activeFishProfile.tempMin}–${activeFishProfile.tempMax} °C`;
-      els.profileCurrentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
-      els.profileTurbView.textContent = latestData ? `${latestData.turbidity ?? "--"} (${getTurbidityInfo(latestData.turbidity).label})` : "--";
-      els.profileBestFor.textContent = activeFishProfile.bestFor;
+      targets.forEach(target => {
+        if (!activeFishProfile) {
+          target.name.textContent = "No fish profile selected";
+          target.desc.textContent = "Choose a fish to compare live water conditions against ideal requirements.";
+          target.tempRange.textContent = "--";
+          target.currentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
+          target.turbView.textContent = latestData ? `${latestData.turbidity ?? "--"}` : "--";
+          target.bestFor.textContent = "--";
+          target.fit.innerHTML = `<span class="dot yellow"></span><span>No active profile</span>`;
+          return;
+        }
 
-      const suitability = getFishSuitability(activeFishProfile, latestData);
-      els.profileSuitability.innerHTML = `<span class="dot ${suitability.color}"></span><span>${suitability.label} — ${suitability.message}</span>`;
+        target.name.textContent = `${activeFishProfile.name} (${activeFishProfile.category})`;
+        target.desc.textContent = activeFishProfile.desc;
+        target.tempRange.textContent = `${activeFishProfile.tempMin}–${activeFishProfile.tempMax} °C`;
+        target.currentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
+        target.turbView.textContent = latestData ? `${latestData.turbidity ?? "--"} (${getTurbidityInfo(latestData.turbidity).label})` : "--";
+        target.bestFor.textContent = activeFishProfile.bestFor;
+
+        const suitability = getFishSuitability(activeFishProfile, latestData);
+        target.fit.innerHTML = `<span class="dot ${suitability.color}"></span><span>${suitability.label} — ${suitability.message}</span>`;
+      });
+
+      els.accountFish.textContent = activeFishProfile ? activeFishProfile.name : "--";
+      els.accountTempRange.textContent = activeFishProfile ? `${activeFishProfile.tempMin}–${activeFishProfile.tempMax} °C` : "--";
     }
 
     function drawGraph(canvasId, values, color, xLabel, yLabel, unit = "") {
@@ -1243,7 +1317,6 @@
       const rightPad = 20;
       const topPad = 25;
       const bottomPad = 50;
-
       const plotW = w - leftPad - rightPad;
       const plotH = h - topPad - bottomPad;
 
@@ -1366,7 +1439,6 @@
       }
 
       const newAlerts = [];
-
       if (previousData.waterDetected && !data.waterDetected) newAlerts.push({ title: "EcoGuard Alert", body: "Water level is low or not detected." });
       if (Number(previousData.temperature) < 30 && Number(data.temperature) >= 30) newAlerts.push({ title: "EcoGuard Alert", body: `Temperature is high: ${Number(data.temperature).toFixed(1)} °C` });
       if (Number(previousData.temperature) < 32 && Number(data.temperature) >= 32) newAlerts.push({ title: "EcoGuard Critical Alert", body: `Critical temperature reached: ${Number(data.temperature).toFixed(1)} °C` });
@@ -1432,6 +1504,7 @@
 
       updateFishProfileUI();
       els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+      els.accountMode.innerText = selectedMode.toUpperCase();
     }
 
     function updateAI(data) {
@@ -1594,6 +1667,7 @@
       a.click();
       URL.revokeObjectURL(url);
     }
+    window.exportCSV = exportCSV;
 
     function printPage() {
       showPage("analytics");
@@ -1675,12 +1749,14 @@
       }
       els.modeWidgetVal.innerText = selectedMode.toUpperCase();
       els.modeSaveStatus.innerText = `Current cloud mode: ${selectedMode.toUpperCase()}`;
+      els.accountMode.innerText = selectedMode.toUpperCase();
     }
 
     async function saveCloudMode() {
       try {
         await set(ref(db, "ecoguard/control/mode"), selectedMode);
         els.modeSaveStatus.innerText = `Saved cloud mode: ${selectedMode.toUpperCase()}`;
+        els.accountMode.innerText = selectedMode.toUpperCase();
       } catch (err) {
         els.modeSaveStatus.innerText = `Failed to save mode: ${err.message}`;
       }
@@ -1736,6 +1812,7 @@
         updateFishProfileUI();
         els.modeWidgetVal.innerText = selectedMode.toUpperCase();
         els.modeSaveStatus.innerText = `Loaded cloud mode: ${selectedMode.toUpperCase()}`;
+        els.accountMode.innerText = selectedMode.toUpperCase();
       } catch (err) {
         els.authStatus.innerText = `Failed to load preferences: ${err.message}`;
       }
@@ -1744,8 +1821,11 @@
     function updateVerificationUI(user) {
       if (!user) {
         els.verifyStatus.innerHTML = `Verification status: <span class="not-verified">Not signed in</span>`;
+        els.accountEmail.textContent = "--";
         return;
       }
+
+      els.accountEmail.textContent = user.email || "--";
 
       if (user.emailVerified) {
         els.verifyStatus.innerHTML = `Verification status: <span class="verified">Verified</span>`;
@@ -1830,11 +1910,6 @@
     }
     window.clearFishProfile = clearFishProfile;
 
-    async function refreshAll() {
-      await Promise.all([fetchLiveData(), fetchLogs(), loadCloudMode()]);
-      updateLogs();
-    }
-
     function bindEvents() {
       document.getElementById("signupBtn").addEventListener("click", async () => {
         const email = els.emailInput.value.trim();
@@ -1876,6 +1951,7 @@
           await signOut(auth);
           els.authStatus.innerText = "Logged out.";
           updateVerificationUI(null);
+          els.accountEmail.innerText = "--";
         } catch (err) {
           els.authStatus.innerText = `Logout failed: ${err.message}`;
         }
@@ -1883,6 +1959,11 @@
 
       document.getElementById("verifyBtn").addEventListener("click", resendVerificationEmail);
       document.getElementById("savePrefsBtn").addEventListener("click", saveUserPreferences);
+      document.getElementById("enableNotifyBtn").addEventListener("click", enableBrowserNotifications);
+      document.getElementById("testNotifyBtn").addEventListener("click", () => {
+        sendBrowserNotification("EcoGuard Test Alert", "Browser alerts are working.");
+      });
+      document.getElementById("askAIBtn").addEventListener("click", askAI);
 
       document.getElementById("setAutoBtn").addEventListener("click", () => {
         selectedMode = "auto";
@@ -1897,11 +1978,6 @@
       });
 
       document.getElementById("saveModeBtn").addEventListener("click", saveCloudMode);
-      document.getElementById("enableNotifyBtn").addEventListener("click", enableBrowserNotifications);
-      document.getElementById("testNotifyBtn").addEventListener("click", () => {
-        sendBrowserNotification("EcoGuard Test Alert", "Browser alerts are working.");
-      });
-      document.getElementById("askAIBtn").addEventListener("click", askAI);
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -1915,9 +1991,15 @@
       } else {
         els.authStatus.innerText = "Not signed in.";
         updateVerificationUI(null);
+        els.accountMode.innerText = selectedMode.toUpperCase();
       }
       updateFishProfileUI();
     });
+
+    async function refreshAll() {
+      await Promise.all([fetchLiveData(), fetchLogs(), loadCloudMode()]);
+      updateLogs();
+    }
 
     populateFishDropdowns();
     bindEvents();
