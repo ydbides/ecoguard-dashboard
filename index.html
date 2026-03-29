@@ -2058,6 +2058,33 @@
         }
       }
     }
+      function updateFishProfileUI() {
+  ...
+}
+
+function getLiveDataWithDemo(rawData) {
+  const data = JSON.parse(JSON.stringify(rawData));
+
+  if (demoMode === "temp_high") data.temperature = 33.5;
+  if (demoMode === "temp_low") data.temperature = 21.5;
+  if (demoMode === "water_low") data.waterDetected = 0;
+  if (demoMode === "turb_bad") data.turbidity = 2800;
+
+  data.autoMode = selectedMode === "auto";
+  return data;
+}
+
+function drawGraph(canvasId, values, color, xLabel, yLabel, unit = "") {
+  ...
+}
+
+function rebuildGraphs() {
+  ...
+}
+
+function updateLogs() {
+  ...
+}
           function updateLogs() {
       if (!logsData.length) {
         els.logList.innerHTML = "No logs yet.";
