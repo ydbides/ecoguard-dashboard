@@ -1003,49 +1003,171 @@
         </div>
       </div>
     </div>
+<div id="about" class="page">
 
-    <div id="about" class="page">
-      <div class="about-block">
-        <h2>About EcoGuard</h2>
-        <div class="muted">
-          EcoGuard is an autonomous aquatic monitoring and control system designed to detect instability in a water environment and respond automatically. This cloud dashboard reads live data from Firebase, supports user accounts, verification emails, saved preferences, demo mode, tank size checks, and unit switching.
-        </div>
-      </div>
+  <div class="about-block">
+    <h2>EcoGuard Intelligent Aquatic Monitoring System</h2>
+    <div class="muted">
+      EcoGuard is a smart, cloud-connected aquatic monitoring and automation system designed to maintain optimal water conditions in real time. It integrates embedded electronics, environmental sensors, cloud databases, and a responsive web interface to deliver a fully autonomous and remotely accessible solution for aquarium management.
 
-      <div class="about-block">
-        <h3>DS18B20 Temperature Sensor</h3>
-        <div class="muted">
-          Measures water temperature and supports automatic heater control and overheating detection.
-        </div>
-      </div>
-
-      <div class="about-block">
-        <h3>Non-Contact Water Sensor</h3>
-        <div class="muted">
-          Detects whether water is present at the correct level without direct contact, helping prevent unsafe operation.
-        </div>
-      </div>
-
-      <div class="about-block">
-        <h3>Turbidity Sensor</h3>
-        <div class="muted">
-          Estimates water cloudiness. Higher turbidity may suggest suspended waste, poor clarity, or declining water conditions.
-        </div>
-      </div>
-
-      <div class="about-block">
-        <h3>Fish Profile System</h3>
-        <div class="muted">
-          The dashboard compares live conditions against tropical fish, monster fish, cichlids, and coldwater fish preferences. Logged-in users can save species, tank size, and custom ranges to Firebase.
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-note">
-      EcoGuard Cloud Dashboard • GitHub Pages + Firebase
+      The system continuously collects environmental data, evaluates system stability, and automatically responds to unsafe conditions. By combining IoT (Internet of Things) technology with intelligent monitoring, EcoGuard reduces human error, prevents system failures, and improves aquatic life sustainability.
     </div>
   </div>
 
+  <div class="about-block">
+    <h3>Problem Statement</h3>
+    <div class="muted">
+      Maintaining stable water conditions in aquariums is a complex and time-sensitive task. Many fish species require precise environmental parameters, and small changes in temperature, water level, or clarity can lead to stress, disease, or death.
+
+      Traditional aquarium systems rely heavily on manual monitoring, which introduces several risks:
+      • Delayed detection of dangerous conditions  
+      • Inconsistent maintenance routines  
+      • Lack of real-time data visibility  
+      • No remote monitoring capability  
+
+      EcoGuard addresses these challenges by providing continuous monitoring, automated responses, and global accessibility.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>System Overview</h3>
+    <div class="muted">
+      EcoGuard operates as a distributed IoT system consisting of three main components:
+
+      • Hardware Layer – ESP32 microcontroller connected to multiple sensors  
+      • Cloud Layer – Firebase Realtime Database for data storage and synchronization  
+      • Application Layer – Web-based dashboard hosted on GitHub Pages  
+
+      This architecture enables seamless communication between the physical system and the user interface, ensuring real-time updates and global access.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>Sensor-Based Monitoring</h3>
+    <div class="muted">
+      The system utilizes multiple sensors to monitor key environmental parameters:
+
+      • Temperature Monitoring (DS18B20)  
+        Provides precise digital readings of water temperature, enabling automatic heater control and thermal stability.
+
+      • Turbidity Monitoring  
+        Measures water clarity and detects suspended particles, waste buildup, and declining water quality.
+
+      • Water Level Detection  
+        Uses non-contact sensing to determine whether water is present at safe levels, preventing dry-run conditions and equipment damage.
+
+      These sensors work together to provide a comprehensive, real-time view of the aquatic environment.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>Automation & Control Logic</h3>
+    <div class="muted">
+      EcoGuard includes an intelligent automation system that responds dynamically to environmental conditions:
+
+      • Heater Activation – Automatically turns on when temperature drops below threshold  
+      • Pump Control – Activates circulation when turbidity increases  
+      • Light Management – Controls lighting based on system state and configuration  
+
+      The system primarily operates in automatic mode, ensuring stability without requiring constant user intervention. This reduces risk and ensures consistent environmental control.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>Cloud Integration & Remote Access</h3>
+    <div class="muted">
+      EcoGuard leverages Firebase Realtime Database to synchronize live data between the device and the dashboard.
+
+      This enables:
+      • Real-time monitoring from anywhere in the world  
+      • Instant updates across multiple devices  
+      • Reliable cloud-based data storage  
+
+      Users are no longer restricted to local network access, allowing full control and visibility remotely.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>Data Analytics & Visualization</h3>
+    <div class="muted">
+      The system provides advanced data visualization tools to support decision-making:
+
+      • Live sensor readings with status indicators  
+      • Historical trend graphs for temperature, turbidity, and water levels  
+      • Exportable datasets (CSV format)  
+      • Printable analytics reports  
+
+      These features allow users to identify patterns, detect anomalies, and make informed adjustments to their systems.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>Fish Profile Intelligence</h3>
+    <div class="muted">
+      EcoGuard includes an intelligent fish profiling system that adapts monitoring based on species-specific requirements.
+
+      Users can select from:
+      • Tropical fish  
+      • Monster fish  
+      • Cichlids  
+      • Coldwater species  
+
+      Each profile includes:
+      • Ideal temperature ranges  
+      • Environmental suitability criteria  
+      • Usage recommendations  
+
+      The system compares live data against these profiles and provides real-time feedback on suitability, helping users maintain optimal conditions for specific species.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>User Personalization</h3>
+    <div class="muted">
+      EcoGuard supports customizable user preferences, allowing the system to adapt to individual setups:
+
+      • Custom temperature ranges  
+      • Tank size configuration (litres)  
+      • Unit selection (°C / °F)  
+      • Saved fish profiles  
+
+      This ensures that the system is flexible and applicable to a wide range of aquarium environments.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>System Benefits</h3>
+    <div class="muted">
+      EcoGuard provides several key advantages:
+
+      • Improved fish health and survival rates  
+      • Reduced manual monitoring effort  
+      • Early detection of environmental issues  
+      • Automated corrective actions  
+      • Global remote access  
+      • Data-driven decision making  
+
+      These benefits make EcoGuard a practical and scalable solution for both hobbyists and advanced users.
+    </div>
+  </div>
+
+  <div class="about-block">
+    <h3>Future Enhancements</h3>
+    <div class="muted">
+      Future development of EcoGuard includes:
+
+      • AI-driven predictive analytics for water quality  
+      • Integration of chemical sensors (pH, ammonia, nitrate)  
+      • Mobile application development  
+      • Smart alert notifications (push/email)  
+      • Machine learning for behavioral pattern detection  
+
+      These enhancements will further improve system intelligence, automation, and user experience.
+    </div>
+  </div>
+
+</div>
+    
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
