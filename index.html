@@ -692,7 +692,7 @@
         <div class="card">
           <h3>Control Mode</h3>
           <div class="small">
-            This writes the selected mode to Firebase. The ESP32 can then follow the selected cloud mode after reading the updated value.
+            In AUTO mode the ESP32 controls outputs automatically. In MANUAL mode you can switch heater, pump, and light on or off from this dashboard.
           </div>
 
           <div class="value" id="modeWidgetVal">AUTO</div>
@@ -706,7 +706,45 @@
           <div class="small" id="modeSaveStatus" style="margin-top:10px;">Current cloud mode: loading...</div>
 
           <div class="why-matters">
-            In AUTO mode, EcoGuard can react to changing water conditions faster and more consistently than manual monitoring alone.
+            Manual controls only work when cloud mode is set to MANUAL and your ESP32 code is reading the manual control values from Firebase.
+          </div>
+
+          <hr style="border-color:#30363d; margin:16px 0;">
+
+          <h3 style="margin-top:0;">Manual Output Control</h3>
+
+          <div class="profile-grid">
+            <div class="profile-item">
+              <div class="label">Heater Manual State</div>
+              <div id="heaterManualState">--</div>
+              <div class="button-row">
+                <button class="red" id="heaterOffBtn">OFF</button>
+                <button class="blue" id="heaterOnBtn">ON</button>
+              </div>
+            </div>
+
+            <div class="profile-item">
+              <div class="label">Pump Manual State</div>
+              <div id="pumpManualState">--</div>
+              <div class="button-row">
+                <button class="red" id="pumpOffBtn">OFF</button>
+                <button class="blue" id="pumpOnBtn">ON</button>
+              </div>
+            </div>
+
+            <div class="profile-item">
+              <div class="label">Light Manual State</div>
+              <div id="lightManualState">--</div>
+              <div class="button-row">
+                <button class="red" id="lightOffBtn">OFF</button>
+                <button class="blue" id="lightOnBtn">ON</button>
+              </div>
+            </div>
+
+            <div class="profile-item">
+              <div class="label">Manual Control Status</div>
+              <div id="manualControlStatus">Waiting...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -840,72 +878,42 @@
         <div class="card">
           <div>Temperature Sensor</div>
           <div class="value" id="sensorTempVal">--</div>
-
-          <div class="pill" id="sensorTempStatus">
-            <span class="dot yellow"></span>
-            <span>Checking...</span>
-          </div>
-
+          <div class="pill" id="sensorTempStatus"><span class="dot yellow"></span><span>Checking...</span></div>
           <div class="small" id="sensorTempMeaning">Waiting for temperature analysis...</div>
         </div>
 
         <div class="card">
           <div>Turbidity Sensor</div>
           <div class="value" id="sensorTurbVal">--</div>
-
-          <div class="pill" id="sensorTurbStatus">
-            <span class="dot yellow"></span>
-            <span>Checking...</span>
-          </div>
-
+          <div class="pill" id="sensorTurbStatus"><span class="dot yellow"></span><span>Checking...</span></div>
           <div class="small" id="sensorTurbMeaning">Waiting for turbidity analysis...</div>
         </div>
 
         <div class="card">
           <div>Water Level Sensor</div>
           <div class="value" id="sensorWaterVal">--</div>
-
-          <div class="pill" id="sensorWaterStatus">
-            <span class="dot yellow"></span>
-            <span>Checking...</span>
-          </div>
-
+          <div class="pill" id="sensorWaterStatus"><span class="dot yellow"></span><span>Checking...</span></div>
           <div class="small" id="sensorWaterMeaning">Waiting for water level analysis...</div>
         </div>
 
         <div class="card">
           <div>Heater Status</div>
           <div class="value" id="sensorHeaterVal">--</div>
-
-          <div class="pill" id="sensorHeaterStatus">
-            <span class="dot yellow"></span>
-            <span>Checking...</span>
-          </div>
-
+          <div class="pill" id="sensorHeaterStatus"><span class="dot yellow"></span><span>Checking...</span></div>
           <div class="small">Runtime: <span id="sensorHeaterRun">--</span></div>
         </div>
 
         <div class="card">
           <div>Pump Status</div>
           <div class="value" id="sensorPumpVal">--</div>
-
-          <div class="pill" id="sensorPumpStatus">
-            <span class="dot yellow"></span>
-            <span>Checking...</span>
-          </div>
-
+          <div class="pill" id="sensorPumpStatus"><span class="dot yellow"></span><span>Checking...</span></div>
           <div class="small">Runtime: <span id="sensorPumpRun">--</span></div>
         </div>
 
         <div class="card">
           <div>Light Status</div>
           <div class="value" id="sensorLightVal">--</div>
-
-          <div class="pill" id="sensorLightStatus">
-            <span class="dot yellow"></span>
-            <span>Checking...</span>
-          </div>
-
+          <div class="pill" id="sensorLightStatus"><span class="dot yellow"></span><span>Checking...</span></div>
           <div class="small">Runtime: <span id="sensorLightRun">--</span></div>
         </div>
 
@@ -926,45 +934,14 @@
       </div>
 
       <div class="profile-grid">
-        <div class="profile-item">
-          <div class="label">Source Device</div>
-          <div id="deviceSourcePageVal">ESP32 Controller</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Access Type</div>
-          <div id="deviceAccessPageVal">Cloud Dashboard</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Connection State</div>
-          <div id="deviceConnectionPageVal">Checking...</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Device IP</div>
-          <div id="deviceIpPageVal">--</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Last Updated</div>
-          <div id="deviceLastUpdatedPageVal">--</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Cloud Mode</div>
-          <div id="deviceModePageVal">--</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Connection Quality</div>
-          <div id="deviceConnectionQualityPageVal">--</div>
-        </div>
-
-        <div class="profile-item">
-          <div class="label">Refresh Age</div>
-          <div id="deviceRefreshAgePageVal">--</div>
-        </div>
+        <div class="profile-item"><div class="label">Source Device</div><div id="deviceSourcePageVal">ESP32 Controller</div></div>
+        <div class="profile-item"><div class="label">Access Type</div><div id="deviceAccessPageVal">Cloud Dashboard</div></div>
+        <div class="profile-item"><div class="label">Connection State</div><div id="deviceConnectionPageVal">Checking...</div></div>
+        <div class="profile-item"><div class="label">Device IP</div><div id="deviceIpPageVal">--</div></div>
+        <div class="profile-item"><div class="label">Last Updated</div><div id="deviceLastUpdatedPageVal">--</div></div>
+        <div class="profile-item"><div class="label">Cloud Mode</div><div id="deviceModePageVal">--</div></div>
+        <div class="profile-item"><div class="label">Connection Quality</div><div id="deviceConnectionQualityPageVal">--</div></div>
+        <div class="profile-item"><div class="label">Refresh Age</div><div id="deviceRefreshAgePageVal">--</div></div>
       </div>
     </div>
 
@@ -1007,40 +984,16 @@
       <div class="summary-grid">
         <div class="card">
           <h3>System Summary</h3>
-
-          <div class="mini-stat">
-            <div class="mini-label">Current Status</div>
-            <div id="insightSummaryStatus" class="mini-value">--</div>
-          </div>
-
-          <div class="mini-stat" style="margin-top:10px;">
-            <div class="mini-label">Risk</div>
-            <div id="insightSummaryRisk" class="mini-value">--</div>
-          </div>
-
-          <div class="recommend-box">
-            <div class="mini-label">Recommended Action</div>
-            <div id="insightRecommendedAction" class="mini-value" style="font-size:18px;">--</div>
-          </div>
+          <div class="mini-stat"><div class="mini-label">Current Status</div><div id="insightSummaryStatus" class="mini-value">--</div></div>
+          <div class="mini-stat" style="margin-top:10px;"><div class="mini-label">Risk</div><div id="insightSummaryRisk" class="mini-value">--</div></div>
+          <div class="recommend-box"><div class="mini-label">Recommended Action</div><div id="insightRecommendedAction" class="mini-value" style="font-size:18px;">--</div></div>
         </div>
 
         <div class="card">
           <h3>Issue Tracking</h3>
-
-          <div class="mini-stat">
-            <div class="mini-label">System Stable For</div>
-            <div id="insightStableForVal" class="mini-value">--</div>
-          </div>
-
-          <div class="mini-stat" style="margin-top:10px;">
-            <div class="mini-label">Last Issue</div>
-            <div id="insightLastIssueVal" class="mini-value" style="font-size:18px;">--</div>
-          </div>
-
-          <div class="mini-stat" style="margin-top:10px;">
-            <div class="mini-label">Most Common Alert</div>
-            <div id="insightCommonAlertVal" class="mini-value" style="font-size:18px;">--</div>
-          </div>
+          <div class="mini-stat"><div class="mini-label">System Stable For</div><div id="insightStableForVal" class="mini-value">--</div></div>
+          <div class="mini-stat" style="margin-top:10px;"><div class="mini-label">Last Issue</div><div id="insightLastIssueVal" class="mini-value" style="font-size:18px;">--</div></div>
+          <div class="mini-stat" style="margin-top:10px;"><div class="mini-label">Most Common Alert</div><div id="insightCommonAlertVal" class="mini-value" style="font-size:18px;">--</div></div>
         </div>
       </div>
     </div>
@@ -1061,47 +1014,26 @@
         <div class="muted" id="analyticsSummary">Waiting for live data...</div>
 
         <div class="range-box">
-          <div class="range-row">
-            <span class="dot green"></span>
-            <span><strong>Good:</strong> below 1800 — cleaner / clearer water</span>
-          </div>
-
-          <div class="range-row">
-            <span class="dot yellow"></span>
-            <span><strong>Mild:</strong> 1800 to 2199 — slightly cloudy, monitor it</span>
-          </div>
-
-          <div class="range-row">
-            <span class="dot orange"></span>
-            <span><strong>Bad:</strong> 2200 to 2999 — poor quality, take action soon</span>
-          </div>
-
-          <div class="range-row">
-            <span class="dot red"></span>
-            <span><strong>Serious:</strong> 3000 and above — severe cloudiness / instability</span>
-          </div>
+          <div class="range-row"><span class="dot green"></span><span><strong>Good:</strong> below 1800 — cleaner / clearer water</span></div>
+          <div class="range-row"><span class="dot yellow"></span><span><strong>Mild:</strong> 1800 to 2199 — slightly cloudy, monitor it</span></div>
+          <div class="range-row"><span class="dot orange"></span><span><strong>Bad:</strong> 2200 to 2999 — poor quality, take action soon</span></div>
+          <div class="range-row"><span class="dot red"></span><span><strong>Serious:</strong> 3000 and above — severe cloudiness / instability</span></div>
         </div>
       </div>
 
       <div class="card chart-page" style="margin-bottom:16px;">
         <h3>Temperature Graph</h3>
-        <div class="chart-wrap">
-          <canvas id="tempChart" width="900" height="260"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="tempChart" width="900" height="260"></canvas></div>
       </div>
 
       <div class="card chart-page" style="margin-bottom:16px;">
         <h3>Turbidity Graph</h3>
-        <div class="chart-wrap">
-          <canvas id="turbChart" width="900" height="260"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="turbChart" width="900" height="260"></canvas></div>
       </div>
 
       <div class="card chart-page">
         <h3>Water Sensor Graph</h3>
-        <div class="chart-wrap">
-          <canvas id="waterChart" width="900" height="260"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="waterChart" width="900" height="260"></canvas></div>
       </div>
     </div>
 
@@ -1124,14 +1056,7 @@
 
       <div class="card">
         <h3>Ask EcoGuard AI</h3>
-
-        <input
-          id="aiPrompt"
-          class="prompt-box"
-          type="text"
-          placeholder="Ask: Is my tank stable? Why is the pump on? What should I do now?"
-        >
-
+        <input id="aiPrompt" class="prompt-box" type="text" placeholder="Ask: Is my tank stable? Why is the pump on? What should I do now?">
         <div class="button-row">
           <button class="blue" id="askAIBtn">Ask AI</button>
           <button class="gray" onclick="fillPrompt('Is my tank stable right now?')">Is my tank stable?</button>
@@ -1141,7 +1066,6 @@
           <button class="gray" onclick="fillPrompt('What does the turbidity mean?')">Turbidity meaning?</button>
           <button class="gray" onclick="fillPrompt('Is this water good for my selected fish?')">Good for selected fish?</button>
         </div>
-
         <div id="aiResponse" class="response-box">
           Ask a question and the dashboard will answer using the live Firebase data.
         </div>
@@ -1190,13 +1114,11 @@
         <div class="card">
           <h3>Custom Temperature Preference</h3>
           <div class="small">Optional custom preferred range</div>
-
           <div class="profile-grid">
             <div>
               <div class="label">Minimum</div>
               <input type="number" id="customTempMin" step="0.1" placeholder="e.g. 26">
             </div>
-
             <div>
               <div class="label">Maximum</div>
               <input type="number" id="customTempMax" step="0.1" placeholder="e.g. 28">
@@ -1212,7 +1134,6 @@
         <div class="card">
           <h3>Demo Mode</h3>
           <div class="small">Simulate issues for judging and testing</div>
-
           <div class="demo-grid">
             <button class="orange" onclick="setDemoMode('temp_high')">High Temp</button>
             <button class="blue" onclick="setDemoMode('temp_low')">Low Temp</button>
@@ -1220,7 +1141,6 @@
             <button class="orange" onclick="setDemoMode('turb_bad')">Bad Turbidity</button>
             <button class="gray" onclick="setDemoMode('normal')">Reset Demo</button>
           </div>
-
           <div class="small" id="demoStatus" style="margin-top:10px;">Demo mode: Normal</div>
         </div>
 
@@ -1262,25 +1182,10 @@
           </div>
 
           <div class="profile-grid">
-            <div class="profile-item">
-              <div class="label">Preferred Temperature</div>
-              <div id="prefsProfileTempRange">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Current Temperature</div>
-              <div id="prefsProfileCurrentTemp">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Turbidity View</div>
-              <div id="prefsProfileTurbView">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Best For</div>
-              <div id="prefsProfileBestFor">--</div>
-            </div>
+            <div class="profile-item"><div class="label">Preferred Temperature</div><div id="prefsProfileTempRange">--</div></div>
+            <div class="profile-item"><div class="label">Current Temperature</div><div id="prefsProfileCurrentTemp">--</div></div>
+            <div class="profile-item"><div class="label">Turbidity View</div><div id="prefsProfileTurbView">--</div></div>
+            <div class="profile-item"><div class="label">Best For</div><div id="prefsProfileBestFor">--</div></div>
           </div>
 
           <div id="prefsProfileSuitability" class="fit-badge">
@@ -1291,27 +1196,11 @@
 
         <div class="card">
           <h3>Tank Suitability</h3>
-
           <div class="profile-grid">
-            <div class="profile-item">
-              <div class="label">Tank Size</div>
-              <div id="tankSizeDisplay">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Minimum Suggested Size</div>
-              <div id="tankMinDisplay">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Size Result</div>
-              <div id="tankResultDisplay">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Care Level</div>
-              <div id="tankCareDisplay">--</div>
-            </div>
+            <div class="profile-item"><div class="label">Tank Size</div><div id="tankSizeDisplay">--</div></div>
+            <div class="profile-item"><div class="label">Minimum Suggested Size</div><div id="tankMinDisplay">--</div></div>
+            <div class="profile-item"><div class="label">Size Result</div><div id="tankResultDisplay">--</div></div>
+            <div class="profile-item"><div class="label">Care Level</div><div id="tankCareDisplay">--</div></div>
           </div>
 
           <div id="tankSuitabilityBadge" class="fit-badge">
@@ -1331,7 +1220,6 @@
       <div class="two-col">
         <div class="card">
           <h3>Login / Signup</h3>
-
           <div class="label">Email</div>
           <input type="email" id="emailInput" placeholder="Enter email">
 
@@ -1354,27 +1242,11 @@
 
         <div class="card">
           <h3>Saved User Info</h3>
-
           <div class="profile-grid">
-            <div class="profile-item">
-              <div class="label">Signed In User</div>
-              <div id="accountEmail">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Cloud Mode</div>
-              <div id="accountMode">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Saved Fish</div>
-              <div id="accountFish">--</div>
-            </div>
-
-            <div class="profile-item">
-              <div class="label">Temp Range</div>
-              <div id="accountTempRange">--</div>
-            </div>
+            <div class="profile-item"><div class="label">Signed In User</div><div id="accountEmail">--</div></div>
+            <div class="profile-item"><div class="label">Cloud Mode</div><div id="accountMode">--</div></div>
+            <div class="profile-item"><div class="label">Saved Fish</div><div id="accountFish">--</div></div>
+            <div class="profile-item"><div class="label">Temp Range</div><div id="accountTempRange">--</div></div>
           </div>
         </div>
       </div>
@@ -1405,7 +1277,7 @@
       <div class="about-block">
         <h3>Core Features</h3>
         <div class="muted">
-          EcoGuard includes live monitoring, health scoring, sensor status indicators, fish profile comparison, tank suitability logic, analytics graphs, AI interpretation, browser alerts, cloud mode control, and account-based preference saving.
+          EcoGuard includes live monitoring, health scoring, sensor status indicators, fish profile comparison, tank suitability logic, analytics graphs, AI interpretation, browser alerts, cloud mode control, account-based preference saving, and manual output control for heater, pump, and light.
         </div>
       </div>
 
@@ -1458,6 +1330,7 @@
 
     const LIVE_URL = `${firebaseConfig.databaseURL}/ecoguard/live.json`;
     const LOGS_URL = `${firebaseConfig.databaseURL}/ecoguard/logs.json`;
+    const CONTROL_URL = `${firebaseConfig.databaseURL}/ecoguard/control.json`;
 
     const fishProfiles = {
       tropical: {
@@ -1508,6 +1381,12 @@
     let demoMode = "normal";
     let lastFetchAt = null;
 
+    let manualStates = {
+      heater: false,
+      pump: false,
+      light: false
+    };
+
     let activeFishProfile = JSON.parse(localStorage.getItem("ecoguard_activeFishProfile") || "null");
     let temperatureUnit = localStorage.getItem("ecoguard_unit") || "C";
     let tankSizeL = Number(localStorage.getItem("ecoguard_tankSizeL") || "0");
@@ -1554,6 +1433,11 @@
       modeWidgetVal: document.getElementById("modeWidgetVal"),
       modeSaveStatus: document.getElementById("modeSaveStatus"),
       modeVal: document.getElementById("modeVal"),
+
+      heaterManualState: document.getElementById("heaterManualState"),
+      pumpManualState: document.getElementById("pumpManualState"),
+      lightManualState: document.getElementById("lightManualState"),
+      manualControlStatus: document.getElementById("manualControlStatus"),
 
       tempVal: document.getElementById("tempVal"),
       waterVal: document.getElementById("waterVal"),
@@ -1776,15 +1660,9 @@
     function getTemperatureInfo(temp) {
       temp = Number(temp || 0);
 
-      if (temp < 24) {
-        return { label: "LOW", color: "blue", meaning: "Temperature is below preferred range." };
-      }
-      if (temp <= 28) {
-        return { label: "GOOD", color: "green", meaning: "Temperature is in a healthy range." };
-      }
-      if (temp <= 31) {
-        return { label: "MILD", color: "yellow", meaning: "Temperature is slightly high. Monitor it." };
-      }
+      if (temp < 24) return { label: "LOW", color: "blue", meaning: "Temperature is below preferred range." };
+      if (temp <= 28) return { label: "GOOD", color: "green", meaning: "Temperature is in a healthy range." };
+      if (temp <= 31) return { label: "MILD", color: "yellow", meaning: "Temperature is slightly high. Monitor it." };
       return { label: "SERIOUS", color: "red", meaning: "Temperature is dangerously high." };
     }
 
@@ -1797,22 +1675,14 @@
     function getTurbidityInfo(value) {
       const turb = Number(value || 0);
 
-      if (turb < 1800) {
-        return { label: "GOOD", color: "green", meaning: "Water is cleaner and clearer. This is a good range." };
-      }
-      if (turb < 2200) {
-        return { label: "MILD", color: "yellow", meaning: "Water is slightly cloudy. Monitor conditions." };
-      }
-      if (turb < 3000) {
-        return { label: "BAD", color: "orange", meaning: "Water quality is poor. Action is recommended soon." };
-      }
+      if (turb < 1800) return { label: "GOOD", color: "green", meaning: "Water is cleaner and clearer. This is a good range." };
+      if (turb < 2200) return { label: "MILD", color: "yellow", meaning: "Water is slightly cloudy. Monitor conditions." };
+      if (turb < 3000) return { label: "BAD", color: "orange", meaning: "Water quality is poor. Action is recommended soon." };
       return { label: "SERIOUS", color: "red", meaning: "Severe cloudiness or instability detected. Immediate action needed." };
     }
 
     function getOnOffInfo(state) {
-      return state
-        ? { label: "ACTIVE", color: "blue" }
-        : { label: "IDLE", color: "green" };
+      return state ? { label: "ACTIVE", color: "blue" } : { label: "IDLE", color: "green" };
     }
 
     function updateBadge(el, info) {
@@ -1846,22 +1716,11 @@
       const waterOk = !!data?.waterDetected;
       const turb = Number(data?.turbidity ?? 0);
 
-      if (!waterOk) {
-        return { label: "NOT SUITABLE", color: "red", message: `${profile.name} is not suitable right now because the water sensor is reporting a low or missing water condition.` };
-      }
-      if (temp < profile.tempMin || temp > profile.tempMax) {
-        return { label: "WARNING", color: "yellow", message: `${profile.name} prefers ${formatTempRange(profile.tempMin, profile.tempMax)}, but the current temperature is ${formatTemp(temp)}.` };
-      }
-      if (turb >= 3000) {
-        return { label: "NOT SUITABLE", color: "red", message: `${profile.name} is not suitable right now because turbidity is in a serious range.` };
-      }
-      if (turb >= 2200) {
-        return { label: "CAUTION", color: "orange", message: `${profile.name} is within temperature range, but turbidity is poor and should be improved soon.` };
-      }
-      if (turb >= 1800) {
-        return { label: "GOOD WITH MONITORING", color: "yellow", message: `${profile.name} is within temperature range, but the water is slightly cloudy and should be monitored.` };
-      }
-
+      if (!waterOk) return { label: "NOT SUITABLE", color: "red", message: `${profile.name} is not suitable right now because the water sensor is reporting a low or missing water condition.` };
+      if (temp < profile.tempMin || temp > profile.tempMax) return { label: "WARNING", color: "yellow", message: `${profile.name} prefers ${formatTempRange(profile.tempMin, profile.tempMax)}, but the current temperature is ${formatTemp(temp)}.` };
+      if (turb >= 3000) return { label: "NOT SUITABLE", color: "red", message: `${profile.name} is not suitable right now because turbidity is in a serious range.` };
+      if (turb >= 2200) return { label: "CAUTION", color: "orange", message: `${profile.name} is within temperature range, but turbidity is poor and should be improved soon.` };
+      if (turb >= 1800) return { label: "GOOD WITH MONITORING", color: "yellow", message: `${profile.name} is within temperature range, but the water is slightly cloudy and should be monitored.` };
       return { label: "SUITABLE", color: "green", message: `${profile.name} is currently within the preferred temperature range and the water looks suitable.` };
     }
 
@@ -1951,6 +1810,13 @@
       if (demoMode === "turb_bad") data.turbidity = 2800;
 
       data.autoMode = selectedMode === "auto";
+
+      if (selectedMode === "manual") {
+        data.heater = manualStates.heater;
+        data.pump = manualStates.pump;
+        data.light = manualStates.light;
+      }
+
       return data;
     }
 
@@ -2197,29 +2063,12 @@
 
       const newAlerts = [];
 
-      if (previousData.waterDetected && !data.waterDetected) {
-        newAlerts.push("Water level is low or not detected.");
-      }
-
-      if (Number(previousData.temperature) < 30 && Number(data.temperature) >= 30) {
-        newAlerts.push(`Temperature is high: ${formatTemp(Number(data.temperature))}`);
-      }
-
-      if (Number(previousData.temperature) < 32 && Number(data.temperature) >= 32) {
-        newAlerts.push(`Critical temperature reached: ${formatTemp(Number(data.temperature))}`);
-      }
-
-      if (Number(previousData.turbidity) < 2200 && Number(data.turbidity) >= 2200) {
-        newAlerts.push(`Turbidity is now poor: ${data.turbidity}`);
-      }
-
-      if (Number(previousData.turbidity) < 3000 && Number(data.turbidity) >= 3000) {
-        newAlerts.push(`Critical turbidity detected: ${data.turbidity}`);
-      }
-
-      if (previousData.statusLabel !== data.statusLabel && data.statusLabel === "CRITICAL") {
-        newAlerts.push("System status has changed to CRITICAL.");
-      }
+      if (previousData.waterDetected && !data.waterDetected) newAlerts.push("Water level is low or not detected.");
+      if (Number(previousData.temperature) < 30 && Number(data.temperature) >= 30) newAlerts.push(`Temperature is high: ${formatTemp(Number(data.temperature))}`);
+      if (Number(previousData.temperature) < 32 && Number(data.temperature) >= 32) newAlerts.push(`Critical temperature reached: ${formatTemp(Number(data.temperature))}`);
+      if (Number(previousData.turbidity) < 2200 && Number(data.turbidity) >= 2200) newAlerts.push(`Turbidity is now poor: ${data.turbidity}`);
+      if (Number(previousData.turbidity) < 3000 && Number(data.turbidity) >= 3000) newAlerts.push(`Critical turbidity detected: ${data.turbidity}`);
+      if (previousData.statusLabel !== data.statusLabel && data.statusLabel === "CRITICAL") newAlerts.push("System status has changed to CRITICAL.");
 
       if (newAlerts.length) {
         newAlerts.forEach(msg => sendBrowserNotification("EcoGuard Alert", msg));
@@ -2427,6 +2276,7 @@
       els.analyticsSummary.innerText = summary;
 
       updateFishProfileUI();
+      updateManualControlUI();
       els.modeWidgetVal.innerText = selectedMode.toUpperCase();
       els.accountMode.innerText = selectedMode.toUpperCase();
     }
@@ -2482,9 +2332,7 @@
         color = "yellow";
       }
 
-      if (activeFishProfile) {
-        details += ` Active fish profile: ${activeFishProfile.name}. ${fishSuitability.message}`;
-      }
+      if (activeFishProfile) details += ` Active fish profile: ${activeFishProfile.name}. ${fishSuitability.message}`;
       details += ` Current cloud mode is ${selectedMode.toUpperCase()}.`;
 
       els.aiSummary.innerText = summary;
@@ -2517,19 +2365,13 @@
         else if (Number(data.temperature) < 24 || Number(data.temperature) > 30 || Number(data.turbidity) >= 2200) response = "The tank is not fully stable right now. One or more readings are outside the preferred range.";
         else response = "Yes. Based on temperature, water detection, and turbidity, the tank appears stable at the moment.";
       } else if (prompt.includes("pump")) {
-        response = data.pump
-          ? "The pump is currently ON. This is usually because turbidity is elevated or because the system previously triggered a response."
-          : "The pump is currently OFF. That suggests turbidity is within the acceptable range or the system is not demanding extra circulation.";
+        response = data.pump ? "The pump is currently ON. This is usually because turbidity is elevated or because the system previously triggered a response." : "The pump is currently OFF. That suggests turbidity is within the acceptable range or the system is not demanding extra circulation.";
       } else if (prompt.includes("heater")) {
-        response = data.heater
-          ? "The heater is ON because the system has detected temperature below the lower threshold or it was manually set."
-          : "The heater is OFF because the temperature is currently acceptable or above the threshold.";
+        response = data.heater ? "The heater is ON because the system has detected temperature below the lower threshold or it was manually set." : "The heater is OFF because the temperature is currently acceptable or above the threshold.";
       } else if (prompt.includes("tank size")) {
         response = tankResult.message;
       } else if (prompt.includes("light")) {
-        response = data.light
-          ? "The light is ON. It may be on because of schedule control or manual control."
-          : "The light is OFF. It may be outside the scheduled period or manually disabled.";
+        response = data.light ? "The light is ON. It may be on because of schedule control or manual control." : "The light is OFF. It may be outside the scheduled period or manually disabled.";
       } else if (prompt.includes("manual") || prompt.includes("auto mode") || prompt.includes("control mode")) {
         response = `The current cloud control mode is ${selectedMode.toUpperCase()}. The website is saving this to Firebase, and the ESP32 will follow it once the controller reads cloud mode.`;
       } else if (prompt.includes("ammonia") || prompt.includes("nitrate") || prompt.includes("nitrite")) {
@@ -2568,6 +2410,7 @@
       els.modeSaveStatus.innerText = `Current cloud mode: ${selectedMode.toUpperCase()}`;
       els.accountMode.innerText = selectedMode.toUpperCase();
       els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+      updateManualControlUI();
     }
 
     async function saveCloudMode() {
@@ -2576,8 +2419,63 @@
         els.modeSaveStatus.innerText = `Saved cloud mode: ${selectedMode.toUpperCase()}`;
         els.accountMode.innerText = selectedMode.toUpperCase();
         els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+        updateManualControlUI();
       } catch (err) {
         els.modeSaveStatus.innerText = `Failed to save mode: ${err.message}`;
+      }
+    }
+
+    async function loadManualStates() {
+      try {
+        const snap = await get(ref(db, "ecoguard/control/manual"));
+        if (snap.exists()) {
+          const val = snap.val() || {};
+          manualStates.heater = !!val.heater;
+          manualStates.pump = !!val.pump;
+          manualStates.light = !!val.light;
+        } else {
+          manualStates = { heater: false, pump: false, light: false };
+        }
+      } catch {
+        manualStates = { heater: false, pump: false, light: false };
+      }
+
+      updateManualControlUI();
+    }
+
+    function updateManualControlUI() {
+      if (els.heaterManualState) els.heaterManualState.innerText = manualStates.heater ? "ON" : "OFF";
+      if (els.pumpManualState) els.pumpManualState.innerText = manualStates.pump ? "ON" : "OFF";
+      if (els.lightManualState) els.lightManualState.innerText = manualStates.light ? "ON" : "OFF";
+
+      if (!els.manualControlStatus) return;
+
+      if (selectedMode !== "manual") {
+        els.manualControlStatus.innerText = "Manual outputs are disabled until MANUAL mode is saved.";
+      } else {
+        els.manualControlStatus.innerText = "Manual outputs are active.";
+      }
+    }
+
+    async function saveManualOutput(device, state) {
+      if (selectedMode !== "manual") {
+        els.manualControlStatus.innerText = "Switch to MANUAL mode first, then click Save Mode.";
+        return;
+      }
+
+      try {
+        await set(ref(db, `ecoguard/control/manual/${device}`), state);
+        manualStates[device] = state;
+        updateManualControlUI();
+        els.manualControlStatus.innerText = `${device} manually set to ${state ? "ON" : "OFF"}.`;
+
+        if (latestData) {
+          const data = getLiveDataWithDemo(latestData);
+          updateHome(data);
+          updateAI(data);
+        }
+      } catch (err) {
+        els.manualControlStatus.innerText = `Failed to update ${device}: ${err.message}`;
       }
     }
 
@@ -2796,6 +2694,7 @@
         els.modeWidgetVal.innerText = "AUTO";
         els.modeSaveStatus.innerText = "AUTO selected. Click Save Mode to write it to Firebase.";
         els.deviceModePageVal.innerText = "AUTO";
+        updateManualControlUI();
       });
 
       document.getElementById("setManualBtn").addEventListener("click", () => {
@@ -2803,9 +2702,19 @@
         els.modeWidgetVal.innerText = "MANUAL";
         els.modeSaveStatus.innerText = "MANUAL selected. Click Save Mode to write it to Firebase.";
         els.deviceModePageVal.innerText = "MANUAL";
+        updateManualControlUI();
       });
 
       document.getElementById("saveModeBtn").addEventListener("click", saveCloudMode);
+
+      document.getElementById("heaterOnBtn").addEventListener("click", () => saveManualOutput("heater", true));
+      document.getElementById("heaterOffBtn").addEventListener("click", () => saveManualOutput("heater", false));
+
+      document.getElementById("pumpOnBtn").addEventListener("click", () => saveManualOutput("pump", true));
+      document.getElementById("pumpOffBtn").addEventListener("click", () => saveManualOutput("pump", false));
+
+      document.getElementById("lightOnBtn").addEventListener("click", () => saveManualOutput("light", true));
+      document.getElementById("lightOffBtn").addEventListener("click", () => saveManualOutput("light", false));
 
       els.tankSizeInput.addEventListener("input", () => {
         tankSizeL = Number(els.tankSizeInput.value || 0);
@@ -2833,7 +2742,7 @@
     });
 
     async function refreshAll() {
-      await Promise.all([fetchLiveData(), fetchLogs(), loadCloudMode()]);
+      await Promise.all([fetchLogs(), loadCloudMode(), loadManualStates(), fetchLiveData()]);
       updateLogs();
       updateRefreshAge();
     }
@@ -2847,6 +2756,7 @@
     setUnit(temperatureUnit);
     rebuildGraphs();
     updateFishProfileUI();
+    updateManualControlUI();
     refreshAll();
 
     setInterval(refreshAll, 5000);
