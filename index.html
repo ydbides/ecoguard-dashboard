@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EcoGuard Cloud Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root{
       --bg:#0d1117;
@@ -36,11 +35,25 @@
       z-index:1000;
       display:flex;
       align-items:center;
+      justify-content:space-between;
       gap:12px;
       padding:14px 16px;
       background:rgba(22,27,34,.95);
       border-bottom:1px solid var(--border);
       backdrop-filter: blur(10px);
+    }
+
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
     }
 
     .logo{
@@ -52,6 +65,17 @@
       border:1px solid var(--border);
       padding:4px;
       flex-shrink:0;
+    }
+
+    .account-icon{
+      width:40px;
+      height:40px;
+      object-fit:cover;
+      border-radius:50%;
+      border:1px solid var(--border);
+      background:#0f141b;
+      cursor:pointer;
+      padding:4px;
     }
 
     .burger{
@@ -74,6 +98,7 @@
       display:flex;
       flex-direction:column;
       gap:2px;
+      min-width:0;
     }
 
     .title{
@@ -114,6 +139,25 @@
 
     .sidebar a:hover{
       background:#21262d;
+    }
+
+    .account-panel{
+      position:fixed;
+      top:70px;
+      right:16px;
+      width:340px;
+      max-width:calc(100vw - 32px);
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      z-index:2200;
+      display:none;
+      padding:16px;
+    }
+
+    .account-panel.open{
+      display:block;
     }
 
     .overlay{
@@ -253,13 +297,13 @@
       border:1px solid var(--border);
       border-radius:14px;
       background:#0f141b;
-      padding:12px;
-      min-height:320px;
+      padding:8px;
     }
 
     canvas{
       width:100%;
       max-width:100%;
+      height:auto;
       display:block;
       border-radius:10px;
     }
@@ -399,19 +443,28 @@
       flex-wrap:wrap;
     }
 
-    .account-box{
-      margin-top:10px;
-      padding:12px;
-      background:#0f141b;
-      border:1px solid var(--border);
-      border-radius:12px;
-    }
-
     .account-status{
       margin-top:10px;
       color:var(--muted);
       font-size:13px;
       line-height:1.5;
+    }
+
+    .verified{
+      color:#3fb950;
+      font-weight:700;
+    }
+
+    .not-verified{
+      color:#d29922;
+      font-weight:700;
+    }
+
+    .chart-minmax{
+      margin-top:10px;
+      font-size:17px;
+      font-weight:700;
+      color:#f0f6fc;
     }
 
     @keyframes pulse{
@@ -431,7 +484,7 @@
     }
 
     @media print {
-      .topbar, .sidebar, .overlay, .button-row, .footer-note, #alertBanner, .account-box, .notify-box {
+      .topbar, .sidebar, .overlay, .button-row, .footer-note, #alertBanner, .account-panel {
         display:none !important;
       }
       body{
@@ -455,9 +508,11 @@
       .chart-page{
         page-break-before: always;
       }
-      .chart-wrap{
-        min-height:auto;
+      canvas{
         background:white !important;
+      }
+      .chart-minmax{
+        color:black !important;
       }
     }
 
@@ -476,24 +531,31 @@
       }
       .title{font-size:18px}
       .logo{width:36px;height:36px}
+      .account-icon{width:36px;height:36px}
     }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="burger" onclick="toggleSidebar()">
-      <span></span><span></span><span></span>
+    <div class="topbar-left">
+      <div class="burger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </div>
+
+      <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
+
+      <div class="title-wrap">
+        <div class="title">EcoGuard Cloud Dashboard</div>
+        <div class="subtitle">Worldwide monitoring via Firebase</div>
+      </div>
     </div>
 
-    <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
-
-    <div class="title-wrap">
-      <div class="title">EcoGuard Cloud Dashboard</div>
-      <div class="subtitle">Worldwide monitoring via Firebase</div>
+    <div class="topbar-right">
+      <img src="account-icon.png" alt="Account" class="account-icon" onclick="toggleAccountPanel()" onerror="this.style.display='none'">
     </div>
   </div>
 
-  <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+  <div id="overlay" class="overlay" onclick="closeAllPanels()"></div>
 
   <div id="sidebar" class="sidebar">
     <a onclick="showPage('home')">Home</a>
@@ -501,6 +563,29 @@
     <a onclick="showPage('ai')">AI Analysis</a>
     <a onclick="showPage('logs')">Event Logs</a>
     <a onclick="showPage('about')">About</a>
+  </div>
+
+  <div id="accountPanel" class="account-panel">
+    <h3 style="margin-top:0;">Account</h3>
+
+    <div class="label">Email</div>
+    <input type="email" id="emailInput" placeholder="Enter email">
+
+    <div class="label" style="margin-top:10px;">Password</div>
+    <input type="password" id="passwordInput" placeholder="Enter password">
+
+    <div class="button-row">
+      <button class="blue" id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Log In</button>
+      <button class="gray" id="logoutBtn">Log Out</button>
+    </div>
+
+    <div class="button-row">
+      <button class="orange" id="verifyBtn">Resend Verification Email</button>
+    </div>
+
+    <div class="account-status" id="authStatus">Not signed in.</div>
+    <div class="account-status" id="verifyStatus">Verification status: --</div>
   </div>
 
   <div class="content">
@@ -513,7 +598,7 @@
         <div class="hero-card">
           <h2>EcoGuard Overview</h2>
           <div class="muted">
-            This is your hosted worldwide dashboard. It reads live system data from Firebase, supports user login, saves preferences per user, and can show live browser notifications while the site is open.
+            This dashboard reads live system data from Firebase, supports account login, email verification, saved fish preferences, and browser alerts while the site is open.
           </div>
 
           <div class="status-line">
@@ -535,31 +620,6 @@
       </div>
 
       <div class="card" style="margin-bottom:18px;">
-        <h3>Account</h3>
-        <div class="small">Log in to save fish profiles and cloud control mode.</div>
-        <div class="account-box">
-          <div class="profile-grid">
-            <div>
-              <div class="label">Email</div>
-              <input type="email" id="emailInput" placeholder="Enter email">
-            </div>
-            <div>
-              <div class="label">Password</div>
-              <input type="password" id="passwordInput" placeholder="Enter password">
-            </div>
-          </div>
-
-          <div class="button-row">
-            <button class="blue" id="signupBtn">Sign Up</button>
-            <button id="loginBtn">Log In</button>
-            <button class="gray" id="logoutBtn">Log Out</button>
-          </div>
-
-          <div class="account-status" id="authStatus">Not signed in. You can still view live data as a guest, but preferences save only when logged in.</div>
-        </div>
-      </div>
-
-      <div class="card notify-box" style="margin-bottom:18px;">
         <h3>Live Alerts</h3>
         <div class="small">These are browser notifications while the dashboard is open.</div>
         <div class="button-row">
@@ -573,7 +633,7 @@
         <div class="card">
           <h3>Tropical Fish</h3>
           <div class="small">Select a tropical species profile</div>
-          <select id="tropicalSelect">
+          <select id="tropicalSelect" onchange="handleFishSelection('tropical')">
             <option value="">Choose tropical fish...</option>
           </select>
         </div>
@@ -581,7 +641,7 @@
         <div class="card">
           <h3>Monster Fish</h3>
           <div class="small">Select a monster fish profile</div>
-          <select id="monsterSelect">
+          <select id="monsterSelect" onchange="handleFishSelection('monster')">
             <option value="">Choose monster fish...</option>
           </select>
         </div>
@@ -600,8 +660,8 @@
             </div>
           </div>
           <div class="button-row">
-            <button class="blue" id="useCustomBtn">Use Custom</button>
-            <button class="gray" id="clearProfileBtn">Clear Profile</button>
+            <button class="blue" onclick="applyCustomProfile()">Use Custom</button>
+            <button class="gray" onclick="clearFishProfile()">Clear Profile</button>
             <button id="savePrefsBtn">Save Preferences</button>
           </div>
         </div>
@@ -731,10 +791,10 @@
       <div class="card" style="margin-bottom:16px;">
         <h2>Analytics</h2>
         <div class="button-row">
-          <button class="blue" id="printBtn">Print</button>
-          <button class="gray" id="shareBtn">Share</button>
-          <button class="blue" id="exportBtn">Export CSV</button>
-          <button class="red" id="clearGraphBtn">Clear Graph History</button>
+          <button class="blue" onclick="printPage()">Print</button>
+          <button class="gray" onclick="shareSummary()">Share</button>
+          <button class="blue" onclick="exportCSV()">Export CSV</button>
+          <button class="red" onclick="clearGraphHistory()">Clear Graph History</button>
         </div>
       </div>
 
@@ -751,17 +811,23 @@
 
       <div class="card chart-page" style="margin-bottom:16px;">
         <h3>Temperature Graph</h3>
-        <div class="chart-wrap"><canvas id="tempChart"></canvas></div>
+        <div class="chart-wrap">
+          <canvas id="tempChart" width="900" height="260"></canvas>
+        </div>
       </div>
 
       <div class="card chart-page" style="margin-bottom:16px;">
         <h3>Turbidity Graph</h3>
-        <div class="chart-wrap"><canvas id="turbChart"></canvas></div>
+        <div class="chart-wrap">
+          <canvas id="turbChart" width="900" height="260"></canvas>
+        </div>
       </div>
 
       <div class="card chart-page">
         <h3>Water Sensor Graph</h3>
-        <div class="chart-wrap"><canvas id="waterChart"></canvas></div>
+        <div class="chart-wrap">
+          <canvas id="waterChart" width="900" height="260"></canvas>
+        </div>
       </div>
     </div>
 
@@ -784,12 +850,12 @@
         <input id="aiPrompt" class="prompt-box" type="text" placeholder="Ask: Is my tank stable? Why is the pump on? What should I do now?">
         <div class="button-row">
           <button class="blue" id="askAIBtn">Ask AI</button>
-          <button class="gray" data-fill="Is my tank stable right now?">Is my tank stable?</button>
-          <button class="gray" data-fill="Why is the pump on?">Why is the pump on?</button>
-          <button class="gray" data-fill="What should I do now?">What should I do?</button>
-          <button class="gray" data-fill="Is there ammonia or nitrate risk?">Ammonia/nitrate risk?</button>
-          <button class="gray" data-fill="What does the turbidity mean?">Turbidity meaning?</button>
-          <button class="gray" data-fill="Is this water good for my selected fish?">Good for selected fish?</button>
+          <button class="gray" onclick="fillPrompt('Is my tank stable right now?')">Is my tank stable?</button>
+          <button class="gray" onclick="fillPrompt('Why is the pump on?')">Why is the pump on?</button>
+          <button class="gray" onclick="fillPrompt('What should I do now?')">What should I do?</button>
+          <button class="gray" onclick="fillPrompt('Is there ammonia or nitrate risk?')">Ammonia/nitrate risk?</button>
+          <button class="gray" onclick="fillPrompt('What does the turbidity mean?')">Turbidity meaning?</button>
+          <button class="gray" onclick="fillPrompt('Is this water good for my selected fish?')">Good for selected fish?</button>
         </div>
         <div id="aiResponse" class="response-box">Ask a question and the dashboard will answer using the live Firebase data.</div>
       </div>
@@ -806,7 +872,7 @@
       <div class="about-block">
         <h2>About EcoGuard</h2>
         <div class="muted">
-          EcoGuard is an autonomous aquatic monitoring and control system designed to detect instability in a water environment and respond automatically. This cloud dashboard reads live data from Firebase, supports user accounts, browser alerts, and smarter charts.
+          EcoGuard is an autonomous aquatic monitoring and control system designed to detect instability in a water environment and respond automatically. This cloud dashboard reads live data from Firebase, supports user accounts, verification emails, saved preferences, and cleaner graphs.
         </div>
       </div>
 
@@ -840,14 +906,14 @@
       <div class="about-block">
         <h3>Fish Profile System</h3>
         <div class="muted">
-          The dashboard compares live conditions against popular tropical and monster fish temperature preferences. Logged-in users can save their preferences in Firebase.
+          The dashboard compares live conditions against popular tropical and monster fish temperature preferences. Logged-in users can save their fish preferences and custom ranges to Firebase.
         </div>
       </div>
 
       <div class="about-block">
-        <h3>Live Browser Alerts</h3>
+        <h3>Verification and Saved Profiles</h3>
         <div class="muted">
-          This version can show browser notifications when critical conditions appear while the dashboard is open. True background push notifications can be added later with Firebase Cloud Messaging.
+          Users can create accounts, receive verification emails, log in, and reload their fish profile and cloud mode preferences later on other devices.
         </div>
       </div>
     </div>
@@ -865,7 +931,8 @@
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       signOut,
-      onAuthStateChanged
+      onAuthStateChanged,
+      sendEmailVerification
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
     import {
       getDatabase,
@@ -933,11 +1000,10 @@
     let waterHistory = JSON.parse(localStorage.getItem("ecoguard_waterHistory") || "[]");
     let labelHistory = JSON.parse(localStorage.getItem("ecoguard_labelHistory") || "[]");
 
-    let tempChart, turbChart, waterChart;
-
     const els = {
       sidebar: document.getElementById("sidebar"),
       overlay: document.getElementById("overlay"),
+      accountPanel: document.getElementById("accountPanel"),
       pages: document.querySelectorAll(".page"),
       onlineDot: document.getElementById("onlineDot"),
       connectionText: document.getElementById("connectionText"),
@@ -948,6 +1014,7 @@
       healthScoreBig: document.getElementById("healthScoreBig"),
       alertBanner: document.getElementById("alertBanner"),
       authStatus: document.getElementById("authStatus"),
+      verifyStatus: document.getElementById("verifyStatus"),
       emailInput: document.getElementById("emailInput"),
       passwordInput: document.getElementById("passwordInput"),
       notifyStatus: document.getElementById("notifyStatus"),
@@ -995,28 +1062,30 @@
     function toggleSidebar() {
       els.sidebar.classList.toggle("open");
       els.overlay.classList.toggle("show");
+      els.accountPanel.classList.remove("open");
     }
 
-    function closeSidebar() {
+    function toggleAccountPanel() {
+      els.accountPanel.classList.toggle("open");
+      els.overlay.classList.toggle("show");
       els.sidebar.classList.remove("open");
+    }
+
+    function closeAllPanels() {
+      els.sidebar.classList.remove("open");
+      els.accountPanel.classList.remove("open");
       els.overlay.classList.remove("show");
     }
 
     function showPage(pageId) {
       els.pages.forEach(p => p.classList.remove("active"));
       document.getElementById(pageId).classList.add("active");
-      closeSidebar();
-      if (pageId === "analytics") {
-        setTimeout(() => {
-          tempChart?.resize();
-          turbChart?.resize();
-          waterChart?.resize();
-        }, 50);
-      }
+      closeAllPanels();
     }
 
     window.toggleSidebar = toggleSidebar;
-    window.closeSidebar = closeSidebar;
+    window.toggleAccountPanel = toggleAccountPanel;
+    window.closeAllPanels = closeAllPanels;
     window.showPage = showPage;
 
     function populateFishDropdowns() {
@@ -1098,9 +1167,10 @@
       waterHistory = [];
       labelHistory = [];
       saveLocalHistory();
-      rebuildCharts();
+      rebuildGraphs();
       alert("Graph history cleared.");
     }
+    window.clearGraphHistory = clearGraphHistory;
 
     function calculateTrend() {
       if (tempHistory.length < 2 || turbHistory.length < 2) return "Not enough data";
@@ -1146,7 +1216,7 @@
         els.profileCurrentTemp.textContent = latestData ? `${Number(latestData.temperature || 0).toFixed(1)} °C` : "--";
         els.profileTurbView.textContent = latestData ? `${latestData.turbidity ?? "--"}` : "--";
         els.profileBestFor.textContent = "--";
-        document.getElementById("profileSuitability").innerHTML = `<span class="dot yellow"></span><span>No active profile</span>`;
+        els.profileSuitability.innerHTML = `<span class="dot yellow"></span><span>No active profile</span>`;
         return;
       }
 
@@ -1158,97 +1228,115 @@
       els.profileBestFor.textContent = activeFishProfile.bestFor;
 
       const suitability = getFishSuitability(activeFishProfile, latestData);
-      document.getElementById("profileSuitability").innerHTML = `<span class="dot ${suitability.color}"></span><span>${suitability.label} — ${suitability.message}</span>`;
+      els.profileSuitability.innerHTML = `<span class="dot ${suitability.color}"></span><span>${suitability.label} — ${suitability.message}</span>`;
     }
 
-    function buildChart(canvasId, label, data, borderColor, yTitle) {
-      const ctx = document.getElementById(canvasId).getContext("2d");
-      return new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labelHistory,
-          datasets: [{
-            label,
-            data,
-            borderColor,
-            backgroundColor: "transparent",
-            pointRadius: 2,
-            pointHoverRadius: 4,
-            tension: 0.25,
-            borderWidth: 3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          plugins: {
-            legend: {
-              labels: { color: "#f0f6fc" }
-            },
-            tooltip: {
-              enabled: true
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#8b949e", maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
-              grid: { color: "#30363d" },
-              title: {
-                display: true,
-                text: "Time Samples",
-                color: "#f0f6fc",
-                font: { size: 14, weight: "bold" }
-              }
-            },
-            y: {
-              ticks: { color: "#8b949e" },
-              grid: { color: "#30363d" },
-              title: {
-                display: true,
-                text: yTitle,
-                color: "#f0f6fc",
-                font: { size: 14, weight: "bold" }
-              }
-            }
-          }
-        }
-      });
-    }
+    function drawGraph(canvasId, values, color, xLabel, yLabel, unit = "") {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
 
-    function rebuildCharts() {
-      tempChart?.destroy();
-      turbChart?.destroy();
-      waterChart?.destroy();
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
 
-      tempChart = buildChart("tempChart", "Temperature", tempHistory, "#58a6ff", "Temperature °C");
-      turbChart = buildChart("turbChart", "Turbidity", turbHistory, "#f0883e", "Raw Turbidity");
-      waterChart = buildChart("waterChart", "Water Sensor", waterHistory, "#3fb950", "0 = Low, 1 = OK");
+      const leftPad = 60;
+      const rightPad = 20;
+      const topPad = 25;
+      const bottomPad = 50;
 
-      updateMinMaxLabels();
-    }
+      const plotW = w - leftPad - rightPad;
+      const plotH = h - topPad - bottomPad;
 
-    function updateMinMaxLabels() {
-      document.querySelectorAll(".chart-wrap").forEach((wrap, idx) => {
-        const old = wrap.querySelector(".chart-minmax");
-        if (old) old.remove();
+      ctx.clearRect(0, 0, w, h);
 
-        let arr = tempHistory;
-        if (idx === 1) arr = turbHistory;
-        if (idx === 2) arr = waterHistory;
+      ctx.strokeStyle = "#30363d";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const y = topPad + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - rightPad, y);
+        ctx.stroke();
+      }
 
-        const min = arr.length ? Math.min(...arr) : "--";
-        const max = arr.length ? Math.max(...arr) : "--";
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, h - bottomPad);
+      ctx.lineTo(w - rightPad, h - bottomPad);
+      ctx.stroke();
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "14px Arial";
+      ctx.fillText(xLabel, w / 2 - 25, h - 15);
+
+      ctx.save();
+      ctx.translate(18, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      const wrap = canvas.parentElement;
+      const old = wrap.parentElement.querySelector(".chart-minmax");
+      if (old) old.remove();
+
+      if (!values || values.length < 2) {
+        ctx.fillStyle = "#8b949e";
+        ctx.font = "16px Arial";
+        ctx.fillText("Waiting for more data...", leftPad + 10, topPad + 25);
 
         const div = document.createElement("div");
         div.className = "chart-minmax";
-        div.style.marginTop = "10px";
-        div.style.fontSize = "16px";
-        div.style.fontWeight = "700";
-        div.style.color = "#f0f6fc";
-        div.textContent = `Min: ${min} | Max: ${max}`;
-        wrap.appendChild(div);
+        div.textContent = "Min: -- | Max: --";
+        wrap.parentElement.appendChild(div);
+        return;
+      }
+
+      let minVal = Math.min(...values);
+      let maxVal = Math.max(...values);
+
+      if (minVal === maxVal) {
+        minVal -= 1;
+        maxVal += 1;
+      }
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "12px Arial";
+      ctx.fillText(`${maxVal}${unit}`, 8, topPad + 5);
+      ctx.fillText(`${minVal}${unit}`, 8, h - bottomPad);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      values.forEach((val, i) => {
+        const x = leftPad + (i / (values.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
+
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      values.forEach((val, i) => {
+        const x = leftPad + (i / (values.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const div = document.createElement("div");
+      div.className = "chart-minmax";
+      div.textContent = `Min: ${minVal}${unit} | Max: ${maxVal}${unit}`;
+      wrap.parentElement.appendChild(div);
+    }
+
+    function rebuildGraphs() {
+      drawGraph("tempChart", tempHistory, "#58a6ff", "Samples", "Temperature", "°C");
+      drawGraph("turbChart", turbHistory, "#f0883e", "Samples", "Turbidity", "");
+      drawGraph("waterChart", waterHistory, "#3fb950", "Samples", "Water State", "");
     }
 
     async function enableBrowserNotifications() {
@@ -1268,10 +1356,7 @@
 
     function sendBrowserNotification(title, body) {
       if (!notificationEnabled || Notification.permission !== "granted") return;
-      new Notification(title, {
-        body,
-        icon: "logo.png"
-      });
+      new Notification(title, { body, icon: "logo.png" });
     }
 
     function checkForNotifications(data) {
@@ -1282,30 +1367,12 @@
 
       const newAlerts = [];
 
-      if (!previousData.waterDetected && data.waterDetected) {
-        newAlerts.push({ title: "EcoGuard Recovery", body: "Water detection is back to normal." });
-      }
-      if (previousData.waterDetected && !data.waterDetected) {
-        newAlerts.push({ title: "EcoGuard Alert", body: "Water level is low or not detected." });
-      }
-
-      if (Number(previousData.temperature) < 30 && Number(data.temperature) >= 30) {
-        newAlerts.push({ title: "EcoGuard Alert", body: `Temperature is high: ${Number(data.temperature).toFixed(1)} °C` });
-      }
-      if (Number(previousData.temperature) < 32 && Number(data.temperature) >= 32) {
-        newAlerts.push({ title: "EcoGuard Critical Alert", body: `Critical temperature reached: ${Number(data.temperature).toFixed(1)} °C` });
-      }
-
-      if (Number(previousData.turbidity) < 2200 && Number(data.turbidity) >= 2200) {
-        newAlerts.push({ title: "EcoGuard Alert", body: `Turbidity is now poor: ${data.turbidity}` });
-      }
-      if (Number(previousData.turbidity) < 3000 && Number(data.turbidity) >= 3000) {
-        newAlerts.push({ title: "EcoGuard Critical Alert", body: `Critical turbidity detected: ${data.turbidity}` });
-      }
-
-      if (previousData.statusLabel !== data.statusLabel && data.statusLabel === "CRITICAL") {
-        newAlerts.push({ title: "EcoGuard Critical", body: "System status has changed to CRITICAL." });
-      }
+      if (previousData.waterDetected && !data.waterDetected) newAlerts.push({ title: "EcoGuard Alert", body: "Water level is low or not detected." });
+      if (Number(previousData.temperature) < 30 && Number(data.temperature) >= 30) newAlerts.push({ title: "EcoGuard Alert", body: `Temperature is high: ${Number(data.temperature).toFixed(1)} °C` });
+      if (Number(previousData.temperature) < 32 && Number(data.temperature) >= 32) newAlerts.push({ title: "EcoGuard Critical Alert", body: `Critical temperature reached: ${Number(data.temperature).toFixed(1)} °C` });
+      if (Number(previousData.turbidity) < 2200 && Number(data.turbidity) >= 2200) newAlerts.push({ title: "EcoGuard Alert", body: `Turbidity is now poor: ${data.turbidity}` });
+      if (Number(previousData.turbidity) < 3000 && Number(data.turbidity) >= 3000) newAlerts.push({ title: "EcoGuard Critical Alert", body: `Critical turbidity detected: ${data.turbidity}` });
+      if (previousData.statusLabel !== data.statusLabel && data.statusLabel === "CRITICAL") newAlerts.push({ title: "EcoGuard Critical", body: "System status has changed to CRITICAL." });
 
       newAlerts.forEach(a => sendBrowserNotification(a.title, a.body));
       previousData = JSON.parse(JSON.stringify(data));
@@ -1313,7 +1380,7 @@
 
     function updateAlertBanner(data) {
       const critical = data.systemStopped || !data.waterDetected || data.statusLabel === "CRITICAL" || Number(data.turbidity) >= 3000;
-      document.getElementById("alertBanner").style.display = critical ? "block" : "none";
+      els.alertBanner.style.display = critical ? "block" : "none";
     }
 
     function updateConnectionState(ok) {
@@ -1364,7 +1431,7 @@
       els.analyticsSummary.innerText = summary;
 
       updateFishProfileUI();
-      document.getElementById("modeWidgetVal").innerText = selectedMode.toUpperCase();
+      els.modeWidgetVal.innerText = selectedMode.toUpperCase();
     }
 
     function updateAI(data) {
@@ -1532,6 +1599,7 @@
       showPage("analytics");
       setTimeout(() => window.print(), 250);
     }
+    window.printPage = printPage;
 
     async function shareSummary() {
       if (!latestData) return;
@@ -1557,6 +1625,7 @@
         alert("Summary copied to clipboard.");
       }
     }
+    window.shareSummary = shareSummary;
 
     async function fetchLogs() {
       try {
@@ -1588,7 +1657,7 @@
         updateHome(data);
         updateAI(data);
         updateAlertBanner(data);
-        rebuildCharts();
+        rebuildGraphs();
         checkForNotifications(data);
       } catch (e) {
         updateConnectionState(false);
@@ -1604,16 +1673,16 @@
       } catch {
         selectedMode = "auto";
       }
-      document.getElementById("modeWidgetVal").innerText = selectedMode.toUpperCase();
-      document.getElementById("modeSaveStatus").innerText = `Current cloud mode: ${selectedMode.toUpperCase()}`;
+      els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+      els.modeSaveStatus.innerText = `Current cloud mode: ${selectedMode.toUpperCase()}`;
     }
 
     async function saveCloudMode() {
       try {
         await set(ref(db, "ecoguard/control/mode"), selectedMode);
-        document.getElementById("modeSaveStatus").innerText = `Saved cloud mode: ${selectedMode.toUpperCase()}`;
+        els.modeSaveStatus.innerText = `Saved cloud mode: ${selectedMode.toUpperCase()}`;
       } catch (err) {
-        document.getElementById("modeSaveStatus").innerText = `Failed to save mode: ${err.message}`;
+        els.modeSaveStatus.innerText = `Failed to save mode: ${err.message}`;
       }
     }
 
@@ -1665,10 +1734,37 @@
         }
 
         updateFishProfileUI();
-        document.getElementById("modeWidgetVal").innerText = selectedMode.toUpperCase();
-        document.getElementById("modeSaveStatus").innerText = `Loaded cloud mode: ${selectedMode.toUpperCase()}`;
+        els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+        els.modeSaveStatus.innerText = `Loaded cloud mode: ${selectedMode.toUpperCase()}`;
       } catch (err) {
         els.authStatus.innerText = `Failed to load preferences: ${err.message}`;
+      }
+    }
+
+    function updateVerificationUI(user) {
+      if (!user) {
+        els.verifyStatus.innerHTML = `Verification status: <span class="not-verified">Not signed in</span>`;
+        return;
+      }
+
+      if (user.emailVerified) {
+        els.verifyStatus.innerHTML = `Verification status: <span class="verified">Verified</span>`;
+      } else {
+        els.verifyStatus.innerHTML = `Verification status: <span class="not-verified">Not verified</span>`;
+      }
+    }
+
+    async function resendVerificationEmail() {
+      if (!currentUser) {
+        els.authStatus.innerText = "Please log in first.";
+        return;
+      }
+
+      try {
+        await sendEmailVerification(currentUser);
+        els.authStatus.innerText = "Verification email sent.";
+      } catch (err) {
+        els.authStatus.innerText = `Could not send verification email: ${err.message}`;
       }
     }
 
@@ -1748,8 +1844,10 @@
           return;
         }
         try {
-          await createUserWithEmailAndPassword(auth, email, password);
-          els.authStatus.innerText = "Account created and signed in.";
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await sendEmailVerification(cred.user);
+          els.authStatus.innerText = "Account created. Verification email sent.";
+          updateVerificationUI(cred.user);
         } catch (err) {
           els.authStatus.innerText = `Sign up failed: ${err.message}`;
         }
@@ -1763,8 +1861,11 @@
           return;
         }
         try {
-          await signInWithEmailAndPassword(auth, email, password);
-          els.authStatus.innerText = "Logged in successfully.";
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          await cred.user.reload();
+          currentUser = auth.currentUser;
+          els.authStatus.innerText = `Logged in as ${currentUser.email}`;
+          updateVerificationUI(currentUser);
         } catch (err) {
           els.authStatus.innerText = `Login failed: ${err.message}`;
         }
@@ -1774,23 +1875,25 @@
         try {
           await signOut(auth);
           els.authStatus.innerText = "Logged out.";
+          updateVerificationUI(null);
         } catch (err) {
           els.authStatus.innerText = `Logout failed: ${err.message}`;
         }
       });
 
+      document.getElementById("verifyBtn").addEventListener("click", resendVerificationEmail);
       document.getElementById("savePrefsBtn").addEventListener("click", saveUserPreferences);
 
       document.getElementById("setAutoBtn").addEventListener("click", () => {
         selectedMode = "auto";
-        document.getElementById("modeWidgetVal").innerText = "AUTO";
-        document.getElementById("modeSaveStatus").innerText = "AUTO selected. Click Save Mode to write it to Firebase.";
+        els.modeWidgetVal.innerText = "AUTO";
+        els.modeSaveStatus.innerText = "AUTO selected. Click Save Mode to write it to Firebase.";
       });
 
       document.getElementById("setManualBtn").addEventListener("click", () => {
         selectedMode = "manual";
-        document.getElementById("modeWidgetVal").innerText = "MANUAL";
-        document.getElementById("modeSaveStatus").innerText = "MANUAL selected. Click Save Mode to write it to Firebase.";
+        els.modeWidgetVal.innerText = "MANUAL";
+        els.modeSaveStatus.innerText = "MANUAL selected. Click Save Mode to write it to Firebase.";
       });
 
       document.getElementById("saveModeBtn").addEventListener("click", saveCloudMode);
@@ -1798,34 +1901,27 @@
       document.getElementById("testNotifyBtn").addEventListener("click", () => {
         sendBrowserNotification("EcoGuard Test Alert", "Browser alerts are working.");
       });
-
-      document.getElementById("printBtn").addEventListener("click", printPage);
-      document.getElementById("shareBtn").addEventListener("click", shareSummary);
-      document.getElementById("exportBtn").addEventListener("click", exportCSV);
-      document.getElementById("clearGraphBtn").addEventListener("click", clearGraphHistory);
       document.getElementById("askAIBtn").addEventListener("click", askAI);
-
-      document.querySelectorAll("[data-fill]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          els.aiPrompt.value = btn.getAttribute("data-fill");
-        });
-      });
     }
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       if (user) {
-        els.authStatus.innerText = `Signed in as ${user.email}. Your preferences can be saved to the cloud.`;
-        await loadUserPreferences(user.uid);
+        await user.reload();
+        currentUser = auth.currentUser;
+        els.authStatus.innerText = `Signed in as ${currentUser.email}. Preferences can be saved to the cloud.`;
+        updateVerificationUI(currentUser);
+        await loadUserPreferences(currentUser.uid);
       } else {
-        els.authStatus.innerText = "Not signed in. You can still view live data as a guest, but preferences save only when logged in.";
+        els.authStatus.innerText = "Not signed in.";
+        updateVerificationUI(null);
       }
       updateFishProfileUI();
     });
 
     populateFishDropdowns();
     bindEvents();
-    rebuildCharts();
+    rebuildGraphs();
     updateFishProfileUI();
     refreshAll();
     setInterval(refreshAll, 5000);
