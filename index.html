@@ -520,6 +520,118 @@
       .title{font-size:18px}
       .logo{width:36px;height:36px}
     }
+        .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .mini-stat{
+      background:#121821;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+    }
+
+    .mini-label{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:4px;
+    }
+
+    .mini-value{
+      font-size:20px;
+      font-weight:700;
+    }
+
+    .trend-up{ color:#f0883e; font-weight:700; }
+    .trend-down{ color:#3fb950; font-weight:700; }
+    .trend-flat{ color:#8b949e; font-weight:700; }
+
+    .pulse-dot{
+      animation:statusPulse 1.5s infinite;
+    }
+
+    @keyframes statusPulse{
+      0%{transform:scale(1); opacity:1}
+      50%{transform:scale(1.25); opacity:.7}
+      100%{transform:scale(1); opacity:1}
+    }
+
+    .live-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#10151c;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .recommend-box{
+      margin-top:12px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#0f141b;
+    }
+
+    .system-glow{
+      animation:updateGlow 1s ease;
+    }
+
+    @keyframes updateGlow{
+      0%{box-shadow:0 0 0 rgba(31,111,235,0)}
+      40%{box-shadow:0 0 20px rgba(31,111,235,.25)}
+      100%{box-shadow:0 0 0 rgba(31,111,235,0)}
+    }
+
+    .soft-alert{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:#10151c;
+      font-size:13px;
+    }
+
+    .health-breakdown{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .health-box{
+      background:#121821;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+    }
+
+    .health-box .mini-value{
+      font-size:18px;
+    }
+
+    .why-matters{
+      margin-top:12px;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#0f141b;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    @media (max-width: 900px){
+      .health-breakdown{
+        grid-template-columns:1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -578,11 +690,88 @@
         <div class="hero-card">
           <h2>Health Score</h2>
           <div id="healthGauge" class="gauge">
+                      <div class="health-breakdown">
+            <div class="health-box">
+              <div class="mini-label">Temperature Score</div>
+              <div id="tempScoreVal" class="mini-value">--</div>
+            </div>
+            <div class="health-box">
+              <div class="mini-label">Turbidity Score</div>
+              <div id="turbScoreVal" class="mini-value">--</div>
+            </div>
+            <div class="health-box">
+              <div class="mini-label">Water Level Score</div>
+              <div id="waterScoreVal" class="mini-value">--</div>
+            </div>
+          </div>
             <div class="gauge-inner">
               <div id="healthScoreBig" class="gauge-score">--%</div>
               <div class="gauge-label">System health</div>
             </div>
           </div>
+        </div>
+      </div>
+
+            <div class="summary-grid">
+        <div class="card">
+          <h3>System Summary</h3>
+          <div class="mini-stat">
+            <div class="mini-label">Current Status</div>
+            <div id="summaryStatus" class="mini-value">--</div>
+          </div>
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Risk</div>
+            <div id="summaryRisk" class="mini-value">--</div>
+          </div>
+          <div class="recommend-box">
+            <div class="mini-label">Recommended Action</div>
+            <div id="recommendedAction" class="mini-value" style="font-size:18px;">--</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>System Insights</h3>
+          <div class="mini-stat">
+            <div class="mini-label">System Stable For</div>
+            <div id="stableForVal" class="mini-value">--</div>
+          </div>
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Last Issue</div>
+            <div id="lastIssueVal" class="mini-value" style="font-size:18px;">--</div>
+          </div>
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Most Common Alert</div>
+            <div id="commonAlertVal" class="mini-value" style="font-size:18px;">--</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Sensor Health</h3>
+          <div class="mini-stat">
+            <div class="mini-label">Sensor Status</div>
+            <div id="sensorHealthVal" class="mini-value">--</div>
+          </div>
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Last Refresh Age</div>
+            <div id="refreshAgeVal" class="mini-value">--</div>
+          </div>
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Connection Quality</div>
+            <div id="connectionQualityVal" class="mini-value">--</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Device Info</h3>
+          <div class="mini-stat">
+            <div class="mini-label">Source Device</div>
+            <div id="deviceSourceVal" class="mini-value" style="font-size:18px;">ESP32 Controller</div>
+          </div>
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Access Type</div>
+            <div id="accessTypeVal" class="mini-value" style="font-size:18px;">Cloud Dashboard</div>
+          </div>
+          <div class="soft-alert" id="softAlertBox">System soft alerts will appear here.</div>
         </div>
       </div>
 
@@ -620,7 +809,10 @@
               <div id="profileTankSuitability">--</div>
             </div>
           </div>
-
+<div id="fishCompatibilityBadge" class="fit-badge">
+  <span class="dot yellow"></span>
+  <span>Fish compatibility not checked yet</span>
+</div>
           <div id="profileSuitability" class="fit-badge"><span class="dot yellow"></span><span>No active profile</span></div>
         </div>
 
