@@ -22,9 +22,7 @@
       --shadow:0 10px 30px rgba(0,0,0,.25);
     }
 
-    *{
-      box-sizing:border-box;
-    }
+    *{ box-sizing:border-box; }
 
     html, body{
       margin:0;
@@ -34,9 +32,7 @@
       color:var(--text);
     }
 
-    body{
-      min-height:100vh;
-    }
+    body{ min-height:100vh; }
 
     .topbar{
       position:sticky;
@@ -147,9 +143,7 @@
       box-shadow:var(--shadow);
     }
 
-    .sidebar.open{
-      left:0;
-    }
+    .sidebar.open{ left:0; }
 
     .sidebar a{
       display:block;
@@ -160,9 +154,7 @@
       cursor:pointer;
     }
 
-    .sidebar a:hover{
-      background:#21262d;
-    }
+    .sidebar a:hover{ background:#21262d; }
 
     .overlay{
       display:none;
@@ -172,9 +164,7 @@
       z-index:1500;
     }
 
-    .overlay.show{
-      display:block;
-    }
+    .overlay.show{ display:block; }
 
     .content{
       padding:20px;
@@ -182,13 +172,8 @@
       margin:0 auto;
     }
 
-    .page{
-      display:none;
-    }
-
-    .page.active{
-      display:block;
-    }
+    .page{ display:none; }
+    .page.active{ display:block; }
 
     .hero{
       display:grid;
@@ -300,11 +285,11 @@
       display:inline-block;
     }
 
-    .green{background:var(--green)}
-    .yellow{background:var(--yellow)}
-    .orange{background:var(--orange)}
-    .red{background:var(--red)}
-    .blue{background:var(--blue)}
+    .green{ background:var(--green); }
+    .yellow{ background:var(--yellow); }
+    .orange{ background:var(--orange); }
+    .red{ background:var(--red); }
+    .blue{ background:var(--blue); }
 
     .button-row{
       display:flex;
@@ -323,10 +308,10 @@
       font-size:14px;
     }
 
-    button.gray{background:#30363d}
-    button.blue{background:var(--blue)}
-    button.orange{background:var(--orange)}
-    button.red{background:var(--red)}
+    button.gray{ background:#30363d; }
+    button.blue{ background:var(--blue); }
+    button.orange{ background:var(--orange); }
+    button.red{ background:var(--red); }
 
     .profile-grid{
       display:grid;
@@ -414,9 +399,7 @@
       color:var(--text);
     }
 
-    .range-row:last-child{
-      margin-bottom:0;
-    }
+    .range-row:last-child{ margin-bottom:0; }
 
     .gauge{
       width:170px;
@@ -431,9 +414,7 @@
       border:1px solid var(--border);
     }
 
-    .gauge-inner{
-      text-align:center;
-    }
+    .gauge-inner{ text-align:center; }
 
     .gauge-score{
       font-size:30px;
@@ -505,16 +486,23 @@
       gap:10px;
     }
 
+    .about-block{
+      margin-bottom:16px;
+      padding:16px;
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+
     @keyframes pulse{
-      0%{box-shadow:0 0 0 0 rgba(218,54,51,.28)}
-      70%{box-shadow:0 0 0 14px rgba(218,54,51,0)}
-      100%{box-shadow:0 0 0 0 rgba(218,54,51,0)}
+      0%{ box-shadow:0 0 0 0 rgba(218,54,51,.28); }
+      70%{ box-shadow:0 0 0 14px rgba(218,54,51,0); }
+      100%{ box-shadow:0 0 0 0 rgba(218,54,51,0); }
     }
 
     @media (max-width:1100px){
-      .three-col{
-        grid-template-columns:1fr;
-      }
+      .three-col{ grid-template-columns:1fr; }
     }
 
     @media (max-width:900px){
@@ -528,9 +516,7 @@
         grid-template-columns:1fr;
       }
 
-      .title{
-        font-size:18px;
-      }
+      .title{ font-size:18px; }
 
       .logo{
         width:36px;
@@ -542,9 +528,7 @@
         flex-direction:column;
       }
 
-      .unit-toggle{
-        align-self:flex-end;
-      }
+      .unit-toggle{ align-self:flex-end; }
     }
   </style>
 </head>
@@ -589,7 +573,8 @@
     <div id="alertBanner" class="alert-banner">
       <strong>Warning:</strong> Critical condition detected. Check temperature, water level, or turbidity.
     </div>
-        <div id="home" class="page active">
+
+    <div id="home" class="page active">
       <div class="hero">
         <div class="hero-card">
           <h2>EcoGuard Overview</h2>
@@ -842,7 +827,8 @@
         </div>
       </div>
     </div>
-        <div id="sensorhealth" class="page">
+
+    <div id="sensorhealth" class="page">
       <div class="card" style="margin-bottom:16px;">
         <h2>Sensor Health</h2>
         <div class="muted">
@@ -1058,7 +1044,8 @@
         </div>
       </div>
     </div>
-        <div id="analytics" class="page">
+
+    <div id="analytics" class="page">
       <div class="card" style="margin-bottom:16px;">
         <h2>Analytics</h2>
         <div class="button-row">
@@ -1160,7 +1147,8 @@
         </div>
       </div>
     </div>
-        <div id="fishprefs" class="page">
+
+    <div id="fishprefs" class="page">
       <div class="card" style="margin-bottom:16px;">
         <h2>Fish Preferences</h2>
         <div class="muted">
@@ -1433,7 +1421,8 @@
       EcoGuard Cloud Dashboard • GitHub Pages + Firebase
     </div>
   </div>
-    <script type="module">
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
     import {
@@ -1650,7 +1639,6 @@
       customTempMin: document.getElementById("customTempMin"),
       customTempMax: document.getElementById("customTempMax"),
       demoStatus: document.getElementById("demoStatus"),
-      savePrefsBtn: document.getElementById("savePrefsBtn"),
 
       prefsActiveProfileName: document.getElementById("prefsActiveProfileName"),
       prefsActiveProfileDesc: document.getElementById("prefsActiveProfileDesc"),
@@ -1677,7 +1665,8 @@
 
       logList: document.getElementById("logList")
     };
-          function toggleSidebar() {
+
+    function toggleSidebar() {
       els.sidebar.classList.toggle("open");
       els.overlay.classList.toggle("show");
     }
@@ -1710,22 +1699,6 @@
     function formatTempRange(minC, maxC) {
       return `${formatTemp(minC)} – ${formatTemp(maxC)}`;
     }
-
-    function setUnit(unit) {
-      temperatureUnit = unit;
-      localStorage.setItem("ecoguard_unit", unit);
-      els.unitCBtn.classList.toggle("active", unit === "C");
-      els.unitFBtn.classList.toggle("active", unit === "F");
-
-      updateFishProfileUI();
-
-      if (latestData) {
-        updateHome(getLiveDataWithDemo(latestData));
-        updateAI(getLiveDataWithDemo(latestData));
-        rebuildGraphs();
-      }
-    }
-    window.setUnit = setUnit;
 
     function formatSeconds(sec) {
       sec = Number(sec || 0);
@@ -1969,6 +1942,18 @@
     }
     window.clearFishProfile = clearFishProfile;
 
+    function getLiveDataWithDemo(rawData) {
+      const data = JSON.parse(JSON.stringify(rawData));
+
+      if (demoMode === "temp_high") data.temperature = 33.5;
+      if (demoMode === "temp_low") data.temperature = 21.5;
+      if (demoMode === "water_low") data.waterDetected = 0;
+      if (demoMode === "turb_bad") data.turbidity = 2800;
+
+      data.autoMode = selectedMode === "auto";
+      return data;
+    }
+
     function setDemoMode(mode) {
       demoMode = mode;
 
@@ -1983,8 +1968,10 @@
       els.demoStatus.textContent = `Demo mode: ${labels[mode] || "Normal"}`;
 
       if (latestData) {
-        updateHome(getLiveDataWithDemo(latestData));
-        updateAI(getLiveDataWithDemo(latestData));
+        const demoData = getLiveDataWithDemo(latestData);
+        updateHome(demoData);
+        updateAI(demoData);
+        updateAlertBanner(demoData);
       }
     }
     window.setDemoMode = setDemoMode;
@@ -2058,40 +2045,148 @@
         }
       }
     }
-      function updateFishProfileUI() {
-  ...
-}
 
-function getLiveDataWithDemo(rawData) {
-  const data = JSON.parse(JSON.stringify(rawData));
+    function drawGraph(canvasId, values, color, xLabel, yLabel, unit = "") {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
 
-  if (demoMode === "temp_high") data.temperature = 33.5;
-  if (demoMode === "temp_low") data.temperature = 21.5;
-  if (demoMode === "water_low") data.waterDetected = 0;
-  if (demoMode === "turb_bad") data.turbidity = 2800;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
 
-  data.autoMode = selectedMode === "auto";
-  return data;
-}
+      const leftPad = 60;
+      const rightPad = 20;
+      const topPad = 25;
+      const bottomPad = 50;
+      const plotW = w - leftPad - rightPad;
+      const plotH = h - topPad - bottomPad;
 
-function drawGraph(canvasId, values, color, xLabel, yLabel, unit = "") {
-  ...
-}
+      ctx.clearRect(0, 0, w, h);
 
-function rebuildGraphs() {
-  ...
-}
+      ctx.strokeStyle = "#30363d";
+      ctx.lineWidth = 1;
 
-function updateLogs() {
-  ...
-}
-          function updateLogs() {
+      for (let i = 0; i < 5; i++) {
+        const y = topPad + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - rightPad, y);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, h - bottomPad);
+      ctx.lineTo(w - rightPad, h - bottomPad);
+      ctx.stroke();
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "14px Arial";
+      ctx.fillText(xLabel, w / 2 - 25, h - 15);
+
+      ctx.save();
+      ctx.translate(18, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      const wrap = canvas.parentElement;
+      const old = wrap.parentElement.querySelector(".chart-minmax");
+      if (old) old.remove();
+
+      if (!values || values.length < 2) {
+        ctx.fillStyle = "#8b949e";
+        ctx.font = "16px Arial";
+        ctx.fillText("Waiting for more data...", leftPad + 10, topPad + 25);
+
+        const div = document.createElement("div");
+        div.className = "chart-minmax";
+        div.textContent = "Min: -- | Max: --";
+        wrap.parentElement.appendChild(div);
+        return;
+      }
+
+      let graphValues = [...values];
+      if (canvasId === "tempChart" && temperatureUnit === "F") {
+        graphValues = graphValues.map(c => cToF(c));
+      }
+
+      let minVal = Math.min(...graphValues);
+      let maxVal = Math.max(...graphValues);
+
+      if (minVal === maxVal) {
+        minVal -= 1;
+        maxVal += 1;
+      }
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "12px Arial";
+      ctx.fillText(`${maxVal.toFixed(1)}${unit}`, 8, topPad + 5);
+      ctx.fillText(`${minVal.toFixed(1)}${unit}`, 8, h - bottomPad);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      graphValues.forEach((val, i) => {
+        const x = leftPad + (i / (graphValues.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      graphValues.forEach((val, i) => {
+        const x = leftPad + (i / (graphValues.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const div = document.createElement("div");
+      div.className = "chart-minmax";
+      div.textContent = `Min: ${minVal.toFixed(1)}${unit} | Max: ${maxVal.toFixed(1)}${unit}`;
+      wrap.parentElement.appendChild(div);
+    }
+
+    function rebuildGraphs() {
+      const tempUnit = temperatureUnit === "F" ? "°F" : "°C";
+      const tempLabel = temperatureUnit === "F" ? "Temperature °F" : "Temperature °C";
+      drawGraph("tempChart", tempHistory, "#58a6ff", "Samples", tempLabel, tempUnit);
+      drawGraph("turbChart", turbHistory, "#f0883e", "Samples", "Turbidity", "");
+      drawGraph("waterChart", waterHistory, "#3fb950", "Samples", "Water State", "");
+    }
+
+    function updateLogs() {
       if (!logsData.length) {
         els.logList.innerHTML = "No logs yet.";
         return;
       }
 
       els.logList.innerHTML = "<ul>" + logsData.map(l => `<li>${l}</li>`).join("") + "</ul>";
+    }
+
+    async function enableBrowserNotifications() {
+      if (!("Notification" in window)) {
+        els.notifyStatus.textContent = "This browser does not support notifications.";
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        notificationEnabled = true;
+        els.notifyStatus.textContent = "Browser alerts enabled.";
+      } else {
+        els.notifyStatus.textContent = "Notification permission was not granted.";
+      }
+    }
+
+    function sendBrowserNotification(title, body) {
+      if (!notificationEnabled || Notification.permission !== "granted") return;
+      new Notification(title, { body, icon: "logo.png" });
     }
 
     function checkForNotifications(data) {
@@ -2137,14 +2232,14 @@ function updateLogs() {
 
     function exportCSV() {
       const len = Math.max(tempHistory.length, turbHistory.length, waterHistory.length);
-      let csv = "Sample,TemperatureC,Turbidity,WaterSensor\\n";
+      let csv = "Sample,TemperatureC,Turbidity,WaterSensor\n";
 
       for (let i = 0; i < len; i++) {
         const label = labelHistory[i] ?? i;
         const t = tempHistory[i] ?? "";
         const tb = turbHistory[i] ?? "";
         const w = waterHistory[i] ?? "";
-        csv += `${label},${t},${tb},${w}\\n`;
+        csv += `${label},${t},${tb},${w}\n`;
       }
 
       const blob = new Blob([csv], { type: "text/csv" });
@@ -2168,15 +2263,15 @@ function updateLogs() {
 
       const data = getLiveDataWithDemo(latestData);
       const turbidityInfo = getTurbidityInfo(data.turbidity);
-      const fishText = activeFishProfile ? `\\nActive Fish: ${activeFishProfile.name}` : "";
+      const fishText = activeFishProfile ? `\nActive Fish: ${activeFishProfile.name}` : "";
 
       const text =
-        `EcoGuard Cloud Dashboard\\n` +
-        `Temperature: ${formatTemp(Number(data.temperature || 0))}\\n` +
-        `Water: ${data.waterDetected ? "OK" : "LOW / NONE"}\\n` +
-        `Turbidity: ${data.turbidity} (${turbidityInfo.label})\\n` +
-        `Health Score: ${data.healthScore}%\\n` +
-        `Status: ${data.statusLabel}\\n` +
+        `EcoGuard Cloud Dashboard\n` +
+        `Temperature: ${formatTemp(Number(data.temperature || 0))}\n` +
+        `Water: ${data.waterDetected ? "OK" : "LOW / NONE"}\n` +
+        `Turbidity: ${data.turbidity} (${turbidityInfo.label})\n` +
+        `Health Score: ${data.healthScore}%\n` +
+        `Status: ${data.statusLabel}\n` +
         `Cloud Mode: ${selectedMode.toUpperCase()}` +
         fishText;
 
@@ -2190,6 +2285,272 @@ function updateLogs() {
       }
     }
     window.shareSummary = shareSummary;
+
+    function updateConnectionState(ok) {
+      if (ok) {
+        setDot(els.onlineDot, "green");
+        els.connectionText.innerText = "Firebase online";
+        els.deviceConnectionPageVal.innerText = "Connected";
+        els.deviceConnectionQualityPageVal.innerText = "Good";
+      } else {
+        setDot(els.onlineDot, "red");
+        els.connectionText.innerText = "Firebase offline";
+        els.deviceConnectionPageVal.innerText = "Offline";
+        els.deviceConnectionQualityPageVal.innerText = "Poor";
+      }
+    }
+
+    function updateLastUpdated() {
+      lastFetchAt = new Date();
+      els.lastUpdatedText.innerText = `Last updated: ${lastFetchAt.toLocaleTimeString()}`;
+      els.deviceLastUpdatedPageVal.innerText = lastFetchAt.toLocaleTimeString();
+      els.deviceRefreshAgePageVal.innerText = "0 sec";
+    }
+
+    function updateRefreshAge() {
+      if (!lastFetchAt) return;
+      const sec = Math.max(0, Math.floor((Date.now() - lastFetchAt.getTime()) / 1000));
+      els.deviceRefreshAgePageVal.innerText = `${sec} sec`;
+    }
+
+    function updateAlertBanner(data) {
+      const critical = data.systemStopped || !data.waterDetected || data.statusLabel === "CRITICAL" || Number(data.turbidity) >= 3000;
+      els.alertBanner.style.display = critical ? "block" : "none";
+    }
+
+    function getRecommendedAction(data) {
+      if (!data.waterDetected) return "Check water level immediately";
+      if (Number(data.temperature) >= 32) return "Cool the system immediately";
+      if (Number(data.temperature) >= 30) return "Monitor temperature closely";
+      if (Number(data.temperature) < 24) return "Allow heater to recover";
+      if (Number(data.turbidity) >= 3000) return "Inspect water urgently";
+      if (Number(data.turbidity) >= 2200) return "Clean filtration soon";
+      return "No action needed";
+    }
+
+    function updateHome(data) {
+      const tempInfo = getTemperatureInfo(data.temperature);
+      const waterInfo = getWaterInfo(data.waterDetected);
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const heaterInfo = getOnOffInfo(data.heater);
+      const pumpInfo = getOnOffInfo(data.pump);
+      const lightInfo = getOnOffInfo(data.light);
+
+      els.tempVal.innerText = formatTemp(Number(data.temperature || 0));
+      els.waterVal.innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
+      els.turbVal.innerText = data.turbidity ?? "--";
+      els.statusVal.innerText = data.statusLabel || "--";
+      els.modeVal.innerText = selectedMode.toUpperCase();
+      els.heaterVal.innerText = data.heater ? "ON" : "OFF";
+      els.pumpVal.innerText = data.pump ? "ON" : "OFF";
+      els.lightVal.innerText = data.light ? "ON" : "OFF";
+      els.ipVal.innerText = data.ip || "--";
+      els.stopVal.innerText = data.systemStopped ? "STOPPED" : "RUNNING";
+      els.heaterRun.innerText = formatSeconds(data.heaterRuntime || 0);
+      els.pumpRun.innerText = formatSeconds(data.pumpRuntime || 0);
+      els.lightRun.innerText = formatSeconds(data.lightRuntime || 0);
+      els.trendVal.innerText = calculateTrend();
+      els.lastLogVal.innerText = logsData[0] || "No logs";
+
+      els.healthScoreBig.innerText = `${data.healthScore ?? "--"}%`;
+      setGauge(Number(data.healthScore || 0));
+
+      setDot(els.statusDot, statusColor(data.statusLabel || "WARNING"));
+      els.statusTextHero.innerText = data.statusLabel || "Unknown";
+
+      updateBadge(els.tempStatus, tempInfo);
+      updateBadge(els.waterStatus, waterInfo);
+      updateBadge(els.turbStatus, turbidityInfo);
+      updateBadge(els.overallStatusBadge, { label: data.statusLabel || "UNKNOWN", color: statusColor(data.statusLabel || "WARNING") });
+      updateBadge(els.heaterStatus, heaterInfo);
+      updateBadge(els.pumpStatus, pumpInfo);
+      updateBadge(els.lightStatus, lightInfo);
+
+      els.tempMeaning.innerText = tempInfo.meaning;
+      els.waterMeaning.innerText = waterInfo.meaning;
+      els.turbMeaning.innerText = turbidityInfo.meaning;
+
+      els.summaryStatus.innerText = data.statusLabel || "--";
+      els.summaryRisk.innerText = data.statusLabel === "CRITICAL" ? "High" : data.statusLabel === "WARNING" ? "Medium" : "Low";
+      els.recommendedAction.innerText = getRecommendedAction(data);
+
+      els.tempScoreVal.innerText = tempInfo.label === "GOOD" ? "100%" : tempInfo.label === "MILD" ? "75%" : "40%";
+      els.turbScoreVal.innerText = turbidityInfo.label === "GOOD" ? "100%" : turbidityInfo.label === "MILD" ? "80%" : turbidityInfo.label === "BAD" ? "55%" : "20%";
+      els.waterScoreVal.innerText = data.waterDetected ? "100%" : "0%";
+
+      els.sensorTempVal.innerText = formatTemp(Number(data.temperature || 0));
+      updateBadge(els.sensorTempStatus, tempInfo);
+      els.sensorTempMeaning.innerText = tempInfo.meaning;
+
+      els.sensorTurbVal.innerText = data.turbidity ?? "--";
+      updateBadge(els.sensorTurbStatus, turbidityInfo);
+      els.sensorTurbMeaning.innerText = turbidityInfo.meaning;
+
+      els.sensorWaterVal.innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
+      updateBadge(els.sensorWaterStatus, waterInfo);
+      els.sensorWaterMeaning.innerText = waterInfo.meaning;
+
+      els.sensorHeaterVal.innerText = data.heater ? "ON" : "OFF";
+      updateBadge(els.sensorHeaterStatus, heaterInfo);
+      els.sensorHeaterRun.innerText = formatSeconds(data.heaterRuntime || 0);
+
+      els.sensorPumpVal.innerText = data.pump ? "ON" : "OFF";
+      updateBadge(els.sensorPumpStatus, pumpInfo);
+      els.sensorPumpRun.innerText = formatSeconds(data.pumpRuntime || 0);
+
+      els.sensorLightVal.innerText = data.light ? "ON" : "OFF";
+      updateBadge(els.sensorLightStatus, lightInfo);
+      els.sensorLightRun.innerText = formatSeconds(data.lightRuntime || 0);
+
+      els.overallSensorHealthVal.innerText =
+        tempInfo.label === "GOOD" && waterInfo.label === "GOOD" && turbidityInfo.label === "GOOD"
+          ? "Excellent"
+          : turbidityInfo.label === "SERIOUS" || waterInfo.label === "SERIOUS"
+          ? "Critical"
+          : "Monitor";
+
+      els.overallSensorHealthMeaning.innerText =
+        tempInfo.meaning + " " + waterInfo.meaning + " " + turbidityInfo.meaning;
+
+      els.deviceIpPageVal.innerText = data.ip || "--";
+      els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+
+      els.insightSummaryStatus.innerText = data.statusLabel || "--";
+      els.insightSummaryRisk.innerText = data.statusLabel === "CRITICAL" ? "High" : data.statusLabel === "WARNING" ? "Medium" : "Low";
+      els.insightRecommendedAction.innerText = getRecommendedAction(data);
+      els.insightStableForVal.innerText = data.statusLabel === "STABLE" ? "Stable now" : "Attention needed";
+      els.insightLastIssueVal.innerText = logsData[0] || "No issues logged";
+      els.insightCommonAlertVal.innerText = logsData.length ? logsData[0] : "No alerts";
+
+      let summary = `Temperature: ${formatTemp(Number(data.temperature || 0))} | Turbidity: ${data.turbidity} (${turbidityInfo.label}) | Water: ${data.waterDetected ? "OK" : "LOW / NONE"} | Status: ${data.statusLabel || "--"} | Cloud Mode: ${selectedMode.toUpperCase()}`;
+      if (activeFishProfile) summary += ` | Active Fish: ${activeFishProfile.name}`;
+      els.analyticsSummary.innerText = summary;
+
+      updateFishProfileUI();
+      els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+      els.accountMode.innerText = selectedMode.toUpperCase();
+    }
+
+    function updateAI(data) {
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const fishSuitability = getFishSuitability(activeFishProfile, data);
+
+      let summary = "System Stable";
+      let details = "All major readings are within expected operating conditions.";
+      let risk = "LOW RISK";
+      let color = "green";
+
+      if (data.systemStopped) {
+        summary = "System Stopped";
+        details = "The system has been manually stopped. Protection logic is currently disabled.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (!data.waterDetected) {
+        summary = "Critical Water Warning";
+        details = "Water is not being detected normally. This may indicate a low-water condition or unsafe operating state.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.temperature) >= 32) {
+        summary = "Critical High Temperature";
+        details = `The water temperature is critically high at ${formatTemp(Number(data.temperature))}. Immediate cooling intervention may be needed.`;
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.temperature) >= 30) {
+        summary = "High Temperature Detected";
+        details = `The water temperature is above the preferred range at ${formatTemp(Number(data.temperature))}.`;
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      } else if (Number(data.temperature) < 24) {
+        summary = "Low Temperature Detected";
+        details = `The water temperature is below the lower control threshold at ${formatTemp(Number(data.temperature))}.`;
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      } else if (turbidityInfo.label === "SERIOUS") {
+        summary = "Critical Turbidity Warning";
+        details = "The water appears extremely cloudy, suggesting severe waste suspension or instability.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (turbidityInfo.label === "BAD") {
+        summary = "Bad Turbidity Detected";
+        details = "The water is in a poor turbidity range. Action is recommended soon.";
+        risk = "HIGH RISK";
+        color = "orange";
+      } else if (turbidityInfo.label === "MILD") {
+        summary = "Mild Turbidity Detected";
+        details = "The water is slightly cloudy. Monitor the system closely.";
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      }
+
+      if (activeFishProfile) {
+        details += ` Active fish profile: ${activeFishProfile.name}. ${fishSuitability.message}`;
+      }
+      details += ` Current cloud mode is ${selectedMode.toUpperCase()}.`;
+
+      els.aiSummary.innerText = summary;
+      els.aiDetails.innerText = details;
+      els.riskText.innerText = risk;
+      els.riskBadge.innerHTML = `<span class="dot ${color}"></span><span>${risk}</span>`;
+    }
+
+    function fillPrompt(text) {
+      els.aiPrompt.value = text;
+    }
+    window.fillPrompt = fillPrompt;
+
+    function askAI() {
+      if (!latestData) {
+        els.aiResponse.innerText = "No live data available yet.";
+        return;
+      }
+
+      const data = getLiveDataWithDemo(latestData);
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const fishSuitability = getFishSuitability(activeFishProfile, data);
+      const tankResult = getTankSizeSuitability(activeFishProfile);
+      const prompt = els.aiPrompt.value.toLowerCase().trim();
+      let response = "";
+
+      if (prompt.includes("stable")) {
+        if (data.systemStopped) response = "The system is currently stopped, so it cannot actively maintain stability.";
+        else if (!data.waterDetected) response = "No. The tank is not fully stable because the water sensor is reporting a low or missing water condition.";
+        else if (Number(data.temperature) < 24 || Number(data.temperature) > 30 || Number(data.turbidity) >= 2200) response = "The tank is not fully stable right now. One or more readings are outside the preferred range.";
+        else response = "Yes. Based on temperature, water detection, and turbidity, the tank appears stable at the moment.";
+      } else if (prompt.includes("pump")) {
+        response = data.pump
+          ? "The pump is currently ON. This is usually because turbidity is elevated or because the system previously triggered a response."
+          : "The pump is currently OFF. That suggests turbidity is within the acceptable range or the system is not demanding extra circulation.";
+      } else if (prompt.includes("heater")) {
+        response = data.heater
+          ? "The heater is ON because the system has detected temperature below the lower threshold or it was manually set."
+          : "The heater is OFF because the temperature is currently acceptable or above the threshold.";
+      } else if (prompt.includes("tank size")) {
+        response = tankResult.message;
+      } else if (prompt.includes("light")) {
+        response = data.light
+          ? "The light is ON. It may be on because of schedule control or manual control."
+          : "The light is OFF. It may be outside the scheduled period or manually disabled.";
+      } else if (prompt.includes("manual") || prompt.includes("auto mode") || prompt.includes("control mode")) {
+        response = `The current cloud control mode is ${selectedMode.toUpperCase()}. The website is saving this to Firebase, and the ESP32 will follow it once the controller reads cloud mode.`;
+      } else if (prompt.includes("ammonia") || prompt.includes("nitrate") || prompt.includes("nitrite")) {
+        response = "This system does not directly measure ammonia, nitrate, or nitrite. However, elevated turbidity can suggest rising waste load and possible water quality decline if left unmanaged.";
+      } else if (prompt.includes("water quality")) {
+        response = Number(data.turbidity) >= 2200
+          ? `Water quality may be declining. The turbidity is currently in the ${turbidityInfo.label} range, which suggests cloudiness, suspended waste, or instability.`
+          : `Water quality appears acceptable at the moment. The turbidity is currently in the ${turbidityInfo.label} range.`;
+      } else if (prompt.includes("turbidity")) {
+        response = `The current turbidity is ${data.turbidity}, which is in the ${turbidityInfo.label} range. ${turbidityInfo.meaning}`;
+      } else if (prompt.includes("selected fish") || prompt.includes("my fish") || prompt.includes("good for")) {
+        if (!activeFishProfile) response = "No fish profile is currently selected. Choose a category and species first.";
+        else response = `${activeFishProfile.name}: ${fishSuitability.message} ${tankResult.message}`;
+      } else if (prompt.includes("what should i do")) {
+        response = getRecommendedAction(data);
+      } else {
+        response = "I can answer questions about stability, heater status, pump status, light status, water quality, turbidity meaning, control mode, tank size, and whether the current water suits your selected fish profile.";
+      }
+
+      els.aiResponse.innerText = response;
+    }
 
     async function loadCloudMode() {
       try {
@@ -2313,24 +2674,24 @@ function updateLogs() {
       }
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
-
-      if (user) {
-        await user.reload();
-        currentUser = auth.currentUser;
-        els.authStatus.innerText = `Signed in as ${currentUser.email}. Preferences can be saved to the cloud.`;
-        updateVerificationUI(currentUser);
-        await loadUserPreferences(currentUser.uid);
-      } else {
-        els.authStatus.innerText = "Not signed in.";
-        updateVerificationUI(null);
-        els.accountMode.innerText = selectedMode.toUpperCase();
-      }
+    function setUnit(unit) {
+      temperatureUnit = unit;
+      localStorage.setItem("ecoguard_unit", unit);
+      els.unitCBtn.classList.toggle("active", unit === "C");
+      els.unitFBtn.classList.toggle("active", unit === "F");
 
       updateFishProfileUI();
-    });
-          async function fetchLogs() {
+
+      if (latestData) {
+        const data = getLiveDataWithDemo(latestData);
+        updateHome(data);
+        updateAI(data);
+        rebuildGraphs();
+      }
+    }
+    window.setUnit = setUnit;
+
+    async function fetchLogs() {
       try {
         const res = await fetch(LOGS_URL, { cache: "no-store" });
         const data = await res.json();
@@ -2453,6 +2814,24 @@ function updateLogs() {
       });
     }
 
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+
+      if (user) {
+        await user.reload();
+        currentUser = auth.currentUser;
+        els.authStatus.innerText = `Signed in as ${currentUser.email}. Preferences can be saved to the cloud.`;
+        updateVerificationUI(currentUser);
+        await loadUserPreferences(currentUser.uid);
+      } else {
+        els.authStatus.innerText = "Not signed in.";
+        updateVerificationUI(null);
+        els.accountMode.innerText = selectedMode.toUpperCase();
+      }
+
+      updateFishProfileUI();
+    });
+
     async function refreshAll() {
       await Promise.all([fetchLiveData(), fetchLogs(), loadCloudMode()]);
       updateLogs();
@@ -2475,4 +2854,3 @@ function updateLogs() {
   </script>
 </body>
 </html>
-    
