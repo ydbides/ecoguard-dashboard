@@ -1,242 +1,2429 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EcoGuard PRO V2</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoGuard Cloud Dashboard</title>
 
-<style>
+  <style>
+    :root{
+  --bg:#0d1117;
+  --panel:#161b22;
+  --panel-2:#11161d;
+  --border:#30363d;
+  --text:#f0f6fc;
+  --muted:#8b949e;
+  --green:#2ea043;
+  --yellow:#d29922;
+  --orange:#f0883e;
+  --red:#da3633;
+  --blue:#1f6feb;
+
+  --card-radius:18px;
+  --shadow:0 15px 35px rgba(0,0,0,.35);
+}
+
 body{
   margin:0;
-  font-family:Arial;
-  background:#0d1117;
-  color:#f0f6fc;
+  font-family:Inter, Arial, sans-serif;
+  background:linear-gradient(180deg,#0d1117,#0b0f14);
+  color:var(--text);
 }
 
+/* ===== TOP BAR ===== */
 .topbar{
-  padding:15px;
-  background:#161b22;
-  border-bottom:1px solid #30363d;
-  font-size:20px;
-  font-weight:bold;
+  position:sticky;
+  top:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 20px;
+  background:rgba(22,27,34,.9);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
 }
 
-.content{
-  padding:20px;
+/* ===== CARDS ===== */
+.card, .hero-card{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border);
+  border-radius:var(--card-radius);
+  padding:18px;
+  box-shadow:var(--shadow);
+  transition:0.2s ease;
 }
 
+.card:hover{
+  transform:translateY(-3px);
+  border-color:#3a424c;
+}
+
+/* ===== VALUES ===== */
+.value{
+  font-size:32px;
+  font-weight:800;
+  margin-top:10px;
+}
+
+/* ===== GRID ===== */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:18px;
 }
 
-.card{
-  background:#161b22;
-  padding:15px;
-  border-radius:10px;
-  border:1px solid #30363d;
-}
-
-.value{
-  font-size:24px;
-  margin-top:10px;
-}
-
+/* ===== STATUS PILLS ===== */
 .pill{
   margin-top:10px;
-  padding:6px 12px;
-  border-radius:20px;
-  display:inline-block;
-  font-weight:bold;
-  color:white;
-  background:#30363d;
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#0f141b;
+  border:1px solid var(--border);
 }
 
-.alert{
-  display:none;
-  background:#da3633;
-  padding:15px;
+/* ===== DOTS ===== */
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+}
+
+.green{ background:#2ea043; }
+.yellow{ background:#d29922; }
+.orange{ background:#f0883e; }
+.red{ background:#da3633; }
+.blue{ background:#1f6feb; }
+
+/* ===== BUTTONS ===== */
+button{
+  padding:10px 14px;
+  border:none;
   border-radius:10px;
-  margin-bottom:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
 }
 
-canvas{
-  width:100%;
-  height:200px;
+button:hover{
+  transform:scale(1.05);
 }
-</style>
+
+button.blue{ background:var(--blue); color:white; }
+button.orange{ background:var(--orange); color:white; }
+button.red{ background:var(--red); color:white; }
+button.gray{ background:#30363d; color:white; }
+
+/* ===== CHARTS ===== */
+.chart-wrap{
+  background:#0b0f14;
+  border-radius:14px;
+  padding:10px;
+  border:1px solid var(--border);
+}
+
+/* ===== ALERT ===== */
+.alert-banner{
+  background:rgba(218,54,51,.15);
+  border:1px solid rgba(218,54,51,.4);
+  padding:14px;
+  border-radius:14px;
+  animation:pulse 1.5s infinite;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(218,54,51,.3);}
+  70%{ box-shadow:0 0 0 15px rgba(218,54,51,0);}
+  100%{ box-shadow:0 0 0 0 rgba(218,54,51,0);}
+}
+  </style>
 </head>
-
 <body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="burger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </div>
 
-<div class="topbar">EcoGuard PRO V2 Dashboard</div>
+      <img src="logo.png" alt="EcoGuard Logo" class="logo" onerror="this.style.display='none'">
 
-<div class="content">
+      <div class="title-wrap">
+        <div class="title">EcoGuard Cloud Dashboard</div>
+        <div class="subtitle">Worldwide monitoring via Firebase</div>
+      </div>
+    </div>
 
-<div id="alertBox" class="alert">⚠️ CRITICAL CONDITION DETECTED</div>
+    <div class="unit-toggle">
+      <button id="unitCBtn" class="active" onclick="setUnit('C')">°C</button>
+      <button id="unitFBtn" onclick="setUnit('F')">°F</button>
+    </div>
+  </div>
 
-<div class="card">
-  <b>Connection:</b> <span id="connection">Checking...</span> |
-  <b>Last Update:</b> <span id="lastUpdate">--</span>
-</div>
+  <div id="overlay" class="overlay" onclick="closeAllPanels()"></div>
 
-<br>
+  <div id="sidebar" class="sidebar">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('sensorhealth')">Sensor Health</a>
+    <a onclick="showPage('deviceinfo')">Device Info</a>
+    <a onclick="showPage('alerts')">Alerts</a>
+    <a onclick="showPage('insights')">System Insights</a>
+    <a onclick="showPage('analytics')">Analytics</a>
+    <a onclick="showPage('ai')">AI Analysis</a>
+    <a onclick="showPage('fishprefs')">Fish Preferences</a>
+    <a onclick="showPage('account')">Account</a>
+    <a onclick="showPage('logs')">Event Logs</a>
+    <a onclick="showPage('about')">About</a>
+  </div>
 
-<div class="grid">
-<div class="card"><div>Temperature</div><div class="value" id="temp">--</div><div class="pill" id="tempS"></div></div>
-<div class="card"><div>Water</div><div class="value" id="water">--</div><div class="pill" id="waterS"></div></div>
-<div class="card"><div>Turbidity</div><div class="value" id="turb">--</div><div class="pill" id="turbS"></div></div>
-<div class="card"><div>pH</div><div class="value" id="ph">--</div><div class="pill" id="phS"></div></div>
-<div class="card"><div>Voltage</div><div class="value">--</div></div>
-<div class="card"><div>System</div><div class="value" id="status">--</div><div class="pill" id="sysS"></div></div>
-</div>
+  <div class="content">
+    <div id="alertBanner" class="alert-banner">
+      <strong>Warning:</strong> Critical condition detected. Check temperature, water level, or turbidity.
+    </div>
 
-<br>
+    <div id="home" class="page active">
+      <div class="hero">
+        <div class="hero-card">
+          <h2>EcoGuard Overview</h2>
+          <div class="muted">
+            EcoGuard is a cloud-connected aquatic monitoring dashboard designed to help prevent fish loss by tracking water conditions in real time, highlighting risk levels, and supporting automatic control decisions through Firebase and an ESP32-based controller.
+          </div>
 
-<div class="grid">
-<div class="card"><canvas id="tempChart"></canvas></div>
-<div class="card"><canvas id="turbChart"></canvas></div>
-<div class="card"><canvas id="waterChart"></canvas></div>
-<div class="card"><canvas id="phChart"></canvas></div>
-</div>
+          <div class="status-line">
+            <div class="pill">
+              <span id="onlineDot" class="dot yellow"></span>
+              <span id="connectionText">Checking connection...</span>
+            </div>
 
-<br>
+            <div class="pill">
+              <span id="statusDot" class="dot yellow"></span>
+              <span id="statusTextHero">Waiting...</span>
+            </div>
 
-<div class="card">
-  <h3>AI Analysis</h3>
-  <div id="aiText">Analyzing...</div>
-  <br>
-  <b>Health Score:</b> <span id="health">--%</span><br>
-  <b>Risk:</b> <span id="risk">--</span>
-</div>
+            <div class="pill">
+              <span class="dot blue"></span>
+              <span id="lastUpdatedText">Last updated: --</span>
+            </div>
+          </div>
+        </div>
 
-</div>
+        <div class="hero-card">
+          <h2>Health Score</h2>
 
-<script>
-const URL = "https://ecoguard-11a04-default-rtdb.firebaseio.com/ecoguard/live.json";
+          <div id="healthGauge" class="gauge">
+            <div class="gauge-inner">
+              <div id="healthScoreBig" class="gauge-score">--%</div>
+              <div class="gauge-label">System health</div>
+            </div>
+          </div>
 
-let tempH=[], turbH=[], waterH=[], phH=[];
-let lastTime=null;
+          <div class="health-breakdown">
+            <div class="health-box">
+              <div class="mini-label">Temperature Score</div>
+              <div id="tempScoreVal" class="mini-value">--</div>
+            </div>
 
-// ===== COLOR =====
-function color(el,status){
- if(status=="GOOD") el.style.background="#238636";
- else if(status=="MILD") el.style.background="#d29922";
- else if(status=="BAD") el.style.background="#f0883e";
- else el.style.background="#da3633";
-}
+            <div class="health-box">
+              <div class="mini-label">Turbidity Score</div>
+              <div id="turbScoreVal" class="mini-value">--</div>
+            </div>
 
-// ===== GRAPH =====
-function draw(id,data){
- let c=document.getElementById(id);
- let ctx=c.getContext("2d");
- ctx.clearRect(0,0,c.width,c.height);
+            <div class="health-box">
+              <div class="mini-label">Water Level Score</div>
+              <div id="waterScoreVal" class="mini-value">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
- if(data.length<2)return;
+      <div class="summary-grid">
+        <div class="card">
+          <h3>System Summary</h3>
 
- let max=Math.max(...data);
- let min=Math.min(...data);
+          <div class="mini-stat">
+            <div class="mini-label">Current Status</div>
+            <div id="summaryStatus" class="mini-value">--</div>
+          </div>
 
- ctx.beginPath();
- data.forEach((v,i)=>{
-   let x=(i/(data.length-1))*c.width;
-   let y=c.height-((v-min)/(max-min||1))*c.height;
-   i?ctx.lineTo(x,y):ctx.moveTo(x,y);
- });
- ctx.strokeStyle="cyan";
- ctx.stroke();
-}
+          <div class="mini-stat" style="margin-top:10px;">
+            <div class="mini-label">Risk Level</div>
+            <div id="summaryRisk" class="mini-value">--</div>
+          </div>
 
-// ===== MAIN =====
-async function load(){
- try{
-  let r=await fetch(URL);
-  let d=await r.json();
+          <div class="recommend-box">
+            <div class="mini-label">Recommended Action</div>
+            <div id="recommendedAction" class="mini-value" style="font-size:18px;">--</div>
+          </div>
+        </div>
 
-  document.getElementById("connection").innerText="Online";
+        <div class="card">
+          <h3>Active Fish Profile</h3>
+          <div id="activeProfileName" class="fish-title">No fish profile selected</div>
+          <div id="activeProfileDesc" class="muted">
+            Go to Fish Preferences to choose a fish profile and compare live conditions against its ideal range.
+          </div>
 
-  lastTime=new Date();
+          <div class="profile-grid">
+            <div class="profile-item">
+              <div class="label">Preferred Temperature</div>
+              <div id="profileTempRange">--</div>
+            </div>
 
-  let t=+d.temperature||0;
-  let tb=+d.turbidity||0;
-  let w=d.waterDetected?1:0;
-  let p=+d.ph||0;
+            <div class="profile-item">
+              <div class="label">Current Temperature</div>
+              <div id="profileCurrentTemp">--</div>
+            </div>
 
-  temp.innerText=t.toFixed(1)+" °C";
-  turb.innerText=tb;
-  water.innerText=w?"OK":"LOW";
-  ph.innerText=p.toFixed(2);
-  status.innerText=d.status||"OK";
+            <div class="profile-item">
+              <div class="label">Turbidity View</div>
+              <div id="profileTurbView">--</div>
+            </div>
 
-  let ts=t<24?"LOW":t>30?"HIGH":"GOOD";
-  let ws=w?"GOOD":"CRITICAL";
-  let tbs=tb<1800?"GOOD":tb<2200?"MILD":tb<3000?"BAD":"CRITICAL";
-  let ps=p<6?"ACIDIC":p>8?"ALKALINE":"GOOD";
-  let sys=(!w||tb>3000)?"CRITICAL":"STABLE";
+            <div class="profile-item">
+              <div class="label">Tank Size Suitability</div>
+              <div id="profileTankSuitability">--</div>
+            </div>
+          </div>
 
-  tempS.innerText=ts;
-  waterS.innerText=ws;
-  turbS.innerText=tbs;
-  phS.innerText=ps;
-  sysS.innerText=sys;
+          <div id="fishCompatibilityBadge" class="fit-badge">
+            <span class="dot yellow"></span>
+            <span>Fish compatibility not checked yet</span>
+          </div>
 
-  color(tempS,ts);
-  color(waterS,ws);
-  color(turbS,tbs);
-  color(phS,ps);
-  color(sysS,sys);
+          <div id="profileSuitability" class="fit-badge">
+            <span class="dot yellow"></span>
+            <span>No active profile</span>
+          </div>
+        </div>
 
-  // ALERT
-  document.getElementById("alertBox").style.display=
-    sys=="CRITICAL"?"block":"none";
+        <div class="card">
+          <h3>Control Mode</h3>
+          <div class="small">
+            In AUTO mode the ESP32 controls outputs automatically. In MANUAL mode you can switch heater, pump, and light on or off from this dashboard.
+          </div>
 
-  // HISTORY
-  tempH.push(t); turbH.push(tb); waterH.push(w); phH.push(p);
-  if(tempH.length>30){tempH.shift();turbH.shift();waterH.shift();phH.shift();}
+          <div class="value" id="modeWidgetVal">AUTO</div>
 
-  draw("tempChart",tempH);
-  draw("turbChart",turbH);
-  draw("waterChart",waterH);
-  draw("phChart",phH);
+          <div class="button-row">
+            <button id="setAutoBtn">Set AUTO</button>
+            <button class="orange" id="setManualBtn">Set MANUAL</button>
+            <button class="gray" id="saveModeBtn">Save Mode</button>
+          </div>
 
-  // AI
-  let health=100;
-  if(ts!="GOOD") health-=20;
-  if(ws!="GOOD") health-=40;
-  if(tbs!="GOOD") health-=30;
-  if(ps!="GOOD") health-=10;
+          <div class="small" id="modeSaveStatus" style="margin-top:10px;">Current cloud mode: loading...</div>
 
-  health=Math.max(0,health);
+          <div class="why-matters">
+            Manual controls only work when cloud mode is set to MANUAL and your ESP32 code is reading the manual control values from Firebase.
+          </div>
 
-  let risk=health>80?"LOW":health>50?"MEDIUM":"HIGH";
+          <hr style="border-color:#30363d; margin:16px 0;">
 
-  document.getElementById("health").innerText=health+"%";
-  document.getElementById("risk").innerText=risk;
+          <h3 style="margin-top:0;">Manual Output Control</h3>
 
-  let ai="System stable.";
-  if(sys=="CRITICAL") ai="Immediate attention required!";
-  else if(tbs!="GOOD") ai="Water quality declining.";
-  else if(ts!="GOOD") ai="Temperature issue detected.";
+          <div class="profile-grid">
+            <div class="profile-item">
+              <div class="label">Heater Manual State</div>
+              <div id="heaterManualState">--</div>
+              <div class="button-row">
+                <button class="red" id="heaterOffBtn">OFF</button>
+                <button class="blue" id="heaterOnBtn">ON</button>
+              </div>
+            </div>
 
-  document.getElementById("aiText").innerText=ai;
+            <div class="profile-item">
+              <div class="label">Pump Manual State</div>
+              <div id="pumpManualState">--</div>
+              <div class="button-row">
+                <button class="red" id="pumpOffBtn">OFF</button>
+                <button class="blue" id="pumpOnBtn">ON</button>
+              </div>
+            </div>
 
- }catch{
-  document.getElementById("connection").innerText="Offline";
- }
-}
+            <div class="profile-item">
+              <div class="label">Light Manual State</div>
+              <div id="lightManualState">--</div>
+              <div class="button-row">
+                <button class="red" id="lightOffBtn">OFF</button>
+                <button class="blue" id="lightOnBtn">ON</button>
+              </div>
+            </div>
 
-// TIMER
-setInterval(()=>{
- if(!lastTime)return;
- let s=Math.floor((new Date()-lastTime)/1000);
- lastUpdate.innerText=s+" sec ago";
-},1000);
+            <div class="profile-item">
+              <div class="label">Manual Control Status</div>
+              <div id="manualControlStatus">Waiting...</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-// LOOP
-setInterval(load,3000);
-load();
-</script>
+      <div class="grid">
+        <div class="card">
+          <div>Temperature</div>
+          <div class="value" id="tempVal">--</div>
+          <div class="pill" id="tempStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small" id="tempMeaning">Temperature status pending...</div>
+        </div>
 
+        <div class="card">
+          <div>Water Sensor</div>
+          <div class="value" id="waterVal">--</div>
+          <div class="pill" id="waterStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small" id="waterMeaning">Water level status pending...</div>
+        </div>
+
+        <div class="card">
+          <div>Turbidity</div>
+          <div class="value" id="turbVal">--</div>
+          <div class="pill" id="turbStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small" id="turbMeaning">Waiting for turbidity quality analysis...</div>
+        </div>
+
+        <div class="card">
+          <div>System Status</div>
+          <div class="value" id="statusVal">--</div>
+          <div class="pill" id="overallStatusBadge"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Overall interpreted state of the system</div>
+        </div>
+
+        <div class="card">
+          <div>Auto Mode</div>
+          <div class="value" id="modeVal">--</div>
+          <div class="small">Reflects whether automation is active on the device</div>
+        </div>
+
+        <div class="card">
+          <div>System Stopped</div>
+          <div class="value" id="stopVal">--</div>
+          <div class="small">Emergency stop state from the controller</div>
+        </div>
+
+        <div class="card">
+          <div>Heater</div>
+          <div class="value" id="heaterVal">--</div>
+          <div class="pill" id="heaterStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Runtime: <span id="heaterRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Pump</div>
+          <div class="value" id="pumpVal">--</div>
+          <div class="pill" id="pumpStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Runtime: <span id="pumpRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Light</div>
+          <div class="value" id="lightVal">--</div>
+          <div class="pill" id="lightStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Runtime: <span id="lightRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Device IP</div>
+          <div class="value" id="ipVal">--</div>
+          <div class="small">Local controller address reported by ESP32</div>
+        </div>
+
+        <div class="card">
+          <div>Trend</div>
+          <div class="value" id="trendVal">--</div>
+          <div class="small">Direction based on recent history</div>
+        </div>
+
+        <div class="card">
+          <div>Last Log</div>
+          <div class="value" id="lastLogVal" style="font-size:18px;">--</div>
+          <div class="small">Most recent system event</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sensorhealth" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Sensor Health</h2>
+        <div class="muted">
+          Live sensor quality levels and operating states for the main EcoGuard monitoring components.
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div>Temperature Sensor</div>
+          <div class="value" id="sensorTempVal">--</div>
+          <div class="pill" id="sensorTempStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small" id="sensorTempMeaning">Waiting for temperature analysis...</div>
+        </div>
+
+        <div class="card">
+          <div>Turbidity Sensor</div>
+          <div class="value" id="sensorTurbVal">--</div>
+          <div class="pill" id="sensorTurbStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small" id="sensorTurbMeaning">Waiting for turbidity analysis...</div>
+        </div>
+
+        <div class="card">
+          <div>Water Level Sensor</div>
+          <div class="value" id="sensorWaterVal">--</div>
+          <div class="pill" id="sensorWaterStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small" id="sensorWaterMeaning">Waiting for water level analysis...</div>
+        </div>
+
+        <div class="card">
+          <div>Heater Status</div>
+          <div class="value" id="sensorHeaterVal">--</div>
+          <div class="pill" id="sensorHeaterStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Runtime: <span id="sensorHeaterRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Pump Status</div>
+          <div class="value" id="sensorPumpVal">--</div>
+          <div class="pill" id="sensorPumpStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Runtime: <span id="sensorPumpRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Light Status</div>
+          <div class="value" id="sensorLightVal">--</div>
+          <div class="pill" id="sensorLightStatus"><span class="dot yellow"></span><span>Checking...</span></div>
+          <div class="small">Runtime: <span id="sensorLightRun">--</span></div>
+        </div>
+
+        <div class="card">
+          <div>Overall Sensor Health</div>
+          <div class="value" id="overallSensorHealthVal">--</div>
+          <div class="small" id="overallSensorHealthMeaning">Waiting for sensor health summary...</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="deviceinfo" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Device Info</h2>
+        <div class="muted">
+          Hardware, access, and connection details for the EcoGuard cloud-connected controller.
+        </div>
+      </div>
+
+      <div class="profile-grid">
+        <div class="profile-item"><div class="label">Source Device</div><div id="deviceSourcePageVal">ESP32 Controller</div></div>
+        <div class="profile-item"><div class="label">Access Type</div><div id="deviceAccessPageVal">Cloud Dashboard</div></div>
+        <div class="profile-item"><div class="label">Connection State</div><div id="deviceConnectionPageVal">Checking...</div></div>
+        <div class="profile-item"><div class="label">Device IP</div><div id="deviceIpPageVal">--</div></div>
+        <div class="profile-item"><div class="label">Last Updated</div><div id="deviceLastUpdatedPageVal">--</div></div>
+        <div class="profile-item"><div class="label">Cloud Mode</div><div id="deviceModePageVal">--</div></div>
+        <div class="profile-item"><div class="label">Connection Quality</div><div id="deviceConnectionQualityPageVal">--</div></div>
+        <div class="profile-item"><div class="label">Refresh Age</div><div id="deviceRefreshAgePageVal">--</div></div>
+      </div>
+    </div>
+
+    <div id="alerts" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Alerts</h2>
+        <div class="muted">
+          Active warnings, critical conditions, and browser notification tools for real-time awareness.
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Browser Alerts</h3>
+        <div class="button-row">
+          <button class="orange" id="enableNotifyBtn">Enable Alerts</button>
+          <button class="gray" id="testNotifyBtn">Test Alert</button>
+        </div>
+        <div class="small" id="notifyStatus" style="margin-top:10px;">Browser alerts not enabled yet.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Soft Alert</h3>
+        <div class="soft-alert" id="softAlertBox">System soft alerts will appear here.</div>
+      </div>
+
+      <div class="card">
+        <h3>Current Alert Feed</h3>
+        <div id="alertsList" class="log-box">No alerts yet.</div>
+      </div>
+    </div>
+
+    <div id="insights" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>System Insights</h2>
+        <div class="muted">
+          High-level intelligence, recommended actions, issue tracking, and system behavior summaries.
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="card">
+          <h3>System Summary</h3>
+          <div class="mini-stat"><div class="mini-label">Current Status</div><div id="insightSummaryStatus" class="mini-value">--</div></div>
+          <div class="mini-stat" style="margin-top:10px;"><div class="mini-label">Risk</div><div id="insightSummaryRisk" class="mini-value">--</div></div>
+          <div class="recommend-box"><div class="mini-label">Recommended Action</div><div id="insightRecommendedAction" class="mini-value" style="font-size:18px;">--</div></div>
+        </div>
+
+        <div class="card">
+          <h3>Issue Tracking</h3>
+          <div class="mini-stat"><div class="mini-label">System Stable For</div><div id="insightStableForVal" class="mini-value">--</div></div>
+          <div class="mini-stat" style="margin-top:10px;"><div class="mini-label">Last Issue</div><div id="insightLastIssueVal" class="mini-value" style="font-size:18px;">--</div></div>
+          <div class="mini-stat" style="margin-top:10px;"><div class="mini-label">Most Common Alert</div><div id="insightCommonAlertVal" class="mini-value" style="font-size:18px;">--</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analytics" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Analytics</h2>
+        <div class="button-row">
+          <button class="blue" onclick="printPage()">Print</button>
+          <button class="gray" onclick="shareSummary()">Share</button>
+          <button class="blue" onclick="exportCSV()">Export CSV</button>
+          <button class="red" onclick="clearGraphHistory()">Clear Graph History</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Live Summary</h3>
+        <div class="muted" id="analyticsSummary">Waiting for live data...</div>
+
+        <div class="range-box">
+          <div class="range-row"><span class="dot green"></span><span><strong>Good:</strong> below 1800 — cleaner / clearer water</span></div>
+          <div class="range-row"><span class="dot yellow"></span><span><strong>Mild:</strong> 1800 to 2199 — slightly cloudy, monitor it</span></div>
+          <div class="range-row"><span class="dot orange"></span><span><strong>Bad:</strong> 2200 to 2999 — poor quality, take action soon</span></div>
+          <div class="range-row"><span class="dot red"></span><span><strong>Serious:</strong> 3000 and above — severe cloudiness / instability</span></div>
+        </div>
+      </div>
+
+      <div class="card chart-page" style="margin-bottom:16px;">
+        <h3>Temperature Graph</h3>
+        <div class="chart-wrap"><canvas id="tempChart" width="900" height="260"></canvas></div>
+      </div>
+
+      <div class="card chart-page" style="margin-bottom:16px;">
+        <h3>Turbidity Graph</h3>
+        <div class="chart-wrap"><canvas id="turbChart" width="900" height="260"></canvas></div>
+      </div>
+
+      <div class="card chart-page">
+        <h3>Water Sensor Graph</h3>
+        <div class="chart-wrap"><canvas id="waterChart" width="900" height="260"></canvas></div>
+      </div>
+    </div>
+
+    <div id="ai" class="page">
+      <div class="two-col">
+        <div class="card">
+          <h2>AI Interpretation</h2>
+          <div id="aiSummary" class="value" style="font-size:22px;">Analyzing...</div>
+          <div id="aiDetails" class="muted"></div>
+        </div>
+
+        <div class="card">
+          <h2>Risk Level</h2>
+          <div id="riskBadge" class="pill">
+            <span class="dot green"></span>
+            <span id="riskText">Low risk</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Ask EcoGuard AI</h3>
+        <input id="aiPrompt" class="prompt-box" type="text" placeholder="Ask: Is my tank stable? Why is the pump on? What should I do now?">
+        <div class="button-row">
+          <button class="blue" id="askAIBtn">Ask AI</button>
+          <button class="gray" onclick="fillPrompt('Is my tank stable right now?')">Is my tank stable?</button>
+          <button class="gray" onclick="fillPrompt('Why is the pump on?')">Why is the pump on?</button>
+          <button class="gray" onclick="fillPrompt('What should I do now?')">What should I do?</button>
+          <button class="gray" onclick="fillPrompt('Is there ammonia or nitrate risk?')">Ammonia/nitrate risk?</button>
+          <button class="gray" onclick="fillPrompt('What does the turbidity mean?')">Turbidity meaning?</button>
+          <button class="gray" onclick="fillPrompt('Is this water good for my selected fish?')">Good for selected fish?</button>
+        </div>
+        <div id="aiResponse" class="response-box">
+          Ask a question and the dashboard will answer using the live Firebase data.
+        </div>
+      </div>
+    </div>
+
+    <div id="fishprefs" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Fish Preferences</h2>
+        <div class="muted">
+          Choose a fish category and species, set your tank size in litres, and optionally use a custom preferred temperature range.
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>Fish Category</h3>
+          <div class="small">Choose a major category first</div>
+          <select id="categorySelect" onchange="populateSpeciesDropdown()">
+            <option value="tropical">Tropical Fish</option>
+            <option value="monster">Monster Fish</option>
+            <option value="cichlids">Cichlids</option>
+            <option value="coldwater">Coldwater Fish</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <h3>Species</h3>
+          <div class="small">Choose a fish species</div>
+          <select id="speciesSelect" onchange="handleSpeciesSelection()">
+            <option value="">Choose species...</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <h3>Tank Size</h3>
+          <div class="small">Enter your tank size in litres</div>
+          <input type="number" id="tankSizeInput" placeholder="e.g. 270">
+          <div class="button-row">
+            <button id="savePrefsBtn">Save Preferences</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>Custom Temperature Preference</h3>
+          <div class="small">Optional custom preferred range</div>
+          <div class="profile-grid">
+            <div>
+              <div class="label">Minimum</div>
+              <input type="number" id="customTempMin" step="0.1" placeholder="e.g. 26">
+            </div>
+            <div>
+              <div class="label">Maximum</div>
+              <input type="number" id="customTempMax" step="0.1" placeholder="e.g. 28">
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button class="blue" onclick="applyCustomProfile()">Use Custom</button>
+            <button class="gray" onclick="clearFishProfile()">Clear Profile</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Demo Mode</h3>
+          <div class="small">Simulate issues for judging and testing</div>
+          <div class="demo-grid">
+            <button class="orange" onclick="setDemoMode('temp_high')">High Temp</button>
+            <button class="blue" onclick="setDemoMode('temp_low')">Low Temp</button>
+            <button class="red" onclick="setDemoMode('water_low')">Low Water</button>
+            <button class="orange" onclick="setDemoMode('turb_bad')">Bad Turbidity</button>
+            <button class="gray" onclick="setDemoMode('normal')">Reset Demo</button>
+          </div>
+          <div class="small" id="demoStatus" style="margin-top:10px;">Demo mode: Normal</div>
+        </div>
+
+        <div class="card">
+          <h3>Recommended Range Cards</h3>
+
+          <div class="recommend-card" style="margin-bottom:10px;">
+            <div class="recommend-title">Tropical Community</div>
+            <div class="small">Recommended temperature: <strong>24–28 °C</strong></div>
+            <div class="small">Good for guppies, platys, mollies, tetras, gouramis, rasboras and similar community fish.</div>
+          </div>
+
+          <div class="recommend-card" style="margin-bottom:10px;">
+            <div class="recommend-title">Warm Premium Tropical</div>
+            <div class="small">Recommended temperature: <strong>27–31 °C</strong></div>
+            <div class="small">Good for discus, some angelfish systems, and other warmer tropical setups.</div>
+          </div>
+
+          <div class="recommend-card" style="margin-bottom:10px;">
+            <div class="recommend-title">Monster Fish Standard</div>
+            <div class="small">Recommended temperature: <strong>24–30 °C</strong></div>
+            <div class="small">Arowana, oscar, peacock bass, datnoid, bichir and similar large fish.</div>
+          </div>
+
+          <div class="recommend-card">
+            <div class="recommend-title">Coldwater</div>
+            <div class="small">Recommended temperature: <strong>16–24 °C</strong></div>
+            <div class="small">Good for goldfish, koi, and white cloud mountain minnows.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>Active Fish Profile</h3>
+          <div id="prefsActiveProfileName" class="fish-title">No fish profile selected</div>
+          <div id="prefsActiveProfileDesc" class="muted">
+            Choose a fish to compare live water conditions against ideal requirements.
+          </div>
+
+          <div class="profile-grid">
+            <div class="profile-item"><div class="label">Preferred Temperature</div><div id="prefsProfileTempRange">--</div></div>
+            <div class="profile-item"><div class="label">Current Temperature</div><div id="prefsProfileCurrentTemp">--</div></div>
+            <div class="profile-item"><div class="label">Turbidity View</div><div id="prefsProfileTurbView">--</div></div>
+            <div class="profile-item"><div class="label">Best For</div><div id="prefsProfileBestFor">--</div></div>
+          </div>
+
+          <div id="prefsProfileSuitability" class="fit-badge">
+            <span class="dot yellow"></span>
+            <span>No active profile</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Tank Suitability</h3>
+          <div class="profile-grid">
+            <div class="profile-item"><div class="label">Tank Size</div><div id="tankSizeDisplay">--</div></div>
+            <div class="profile-item"><div class="label">Minimum Suggested Size</div><div id="tankMinDisplay">--</div></div>
+            <div class="profile-item"><div class="label">Size Result</div><div id="tankResultDisplay">--</div></div>
+            <div class="profile-item"><div class="label">Care Level</div><div id="tankCareDisplay">--</div></div>
+          </div>
+
+          <div id="tankSuitabilityBadge" class="fit-badge">
+            <span class="dot yellow"></span>
+            <span>No tank size analysis yet</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="account" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Account</h2>
+        <div class="muted">Create an account, log in, verify your email, and save your preferences.</div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>Login / Signup</h3>
+          <div class="label">Email</div>
+          <input type="email" id="emailInput" placeholder="Enter email">
+
+          <div class="label" style="margin-top:10px;">Password</div>
+          <input type="password" id="passwordInput" placeholder="Enter password">
+
+          <div class="button-row">
+            <button class="blue" id="signupBtn">Sign Up</button>
+            <button id="loginBtn">Log In</button>
+            <button class="gray" id="logoutBtn">Log Out</button>
+          </div>
+
+          <div class="button-row">
+            <button class="orange" id="verifyBtn">Resend Verification Email</button>
+          </div>
+
+          <div class="account-status" id="authStatus">Not signed in.</div>
+          <div class="account-status" id="verifyStatus">Verification status: --</div>
+        </div>
+
+        <div class="card">
+          <h3>Saved User Info</h3>
+          <div class="profile-grid">
+            <div class="profile-item"><div class="label">Signed In User</div><div id="accountEmail">--</div></div>
+            <div class="profile-item"><div class="label">Cloud Mode</div><div id="accountMode">--</div></div>
+            <div class="profile-item"><div class="label">Saved Fish</div><div id="accountFish">--</div></div>
+            <div class="profile-item"><div class="label">Temp Range</div><div id="accountTempRange">--</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="logs" class="page">
+      <div class="card">
+        <h2>Event Logs</h2>
+        <div id="logList" class="log-box">Loading logs...</div>
+      </div>
+    </div>
+
+    <div id="about" class="page">
+      <div class="about-block">
+        <h2>EcoGuard Intelligent Aquatic Monitoring System</h2>
+        <div class="muted">
+          EcoGuard is a smart, cloud-connected aquatic monitoring and automation system designed to maintain optimal water conditions in real time. It combines environmental sensing, cloud connectivity, dashboard analytics, and fish-specific intelligence to reduce human error and improve aquarium stability.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>Problem Statement</h3>
+        <div class="muted">
+          Aquariums can become unstable very quickly. Small changes in temperature, water level, or water clarity can stress fish, damage equipment, or lead to sudden losses. EcoGuard helps detect these conditions early and makes the system easier to monitor from anywhere.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>Core Features</h3>
+        <div class="muted">
+          EcoGuard includes live monitoring, health scoring, sensor status indicators, fish profile comparison, tank suitability logic, analytics graphs, AI interpretation, browser alerts, cloud mode control, account-based preference saving, and manual output control for heater, pump, and light.
+        </div>
+      </div>
+
+      <div class="about-block">
+        <h3>Why It Matters</h3>
+        <div class="muted">
+          The goal of EcoGuard is not just to display numbers. It is built to help prevent fish deaths, reduce delayed reaction time, and make aquarium care smarter, clearer, and more reliable.
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      EcoGuard Cloud Dashboard • GitHub Pages + Firebase
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+      sendEmailVerification
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      set
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyADNfLml2yrjCRF3oiOU-j6NMcQ0rVHX-g",
+      authDomain: "ecoguard-11a04.firebaseapp.com",
+      databaseURL: "https://ecoguard-11a04-default-rtdb.firebaseio.com",
+      projectId: "ecoguard-11a04",
+      storageBucket: "ecoguard-11a04.firebasestorage.app",
+      messagingSenderId: "185018780967",
+      appId: "1:185018780967:web:2dad2d86c728a55fa8ad02",
+      measurementId: "G-K5KDZ9J08F"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    getAnalytics(app);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const LIVE_URL = `${firebaseConfig.databaseURL}/ecoguard/live.json`;
+    const LOGS_URL = `${firebaseConfig.databaseURL}/ecoguard/logs.json`;
+
+    const fishProfiles = {
+      tropical: {
+        guppy: { name:"Guppy", tempMin:24, tempMax:28, bestFor:"Community tanks", desc:"Hardy livebearer for warm community tanks.", minTank:40, care:"Easy" },
+        neon_tetra: { name:"Neon Tetra", tempMin:22, tempMax:27, bestFor:"Schooling tanks", desc:"Peaceful schooling tropical fish.", minTank:60, care:"Easy" },
+        cardinal_tetra: { name:"Cardinal Tetra", tempMin:24, tempMax:28, bestFor:"Soft warm aquariums", desc:"Bright schooling fish that likes stable warm water.", minTank:60, care:"Easy" },
+        angelfish: { name:"Angelfish", tempMin:26, tempMax:30, bestFor:"Tall planted tanks", desc:"Elegant tropical cichlid that likes warmer water.", minTank:120, care:"Moderate" },
+        discus: { name:"Discus", tempMin:28, tempMax:31, bestFor:"Warm premium aquariums", desc:"Sensitive premium fish needing very stable warm conditions.", minTank:200, care:"Advanced" },
+        betta: { name:"Betta", tempMin:25, tempMax:28, bestFor:"Calm warm tanks", desc:"Warm-water fish that prefers stable temperatures.", minTank:20, care:"Easy" },
+        molly: { name:"Molly", tempMin:24, tempMax:28, bestFor:"Community aquariums", desc:"Adaptable livebearer that likes clean water.", minTank:60, care:"Easy" },
+        platy: { name:"Platy", tempMin:22, tempMax:27, bestFor:"Beginner tanks", desc:"Peaceful beginner-friendly livebearer.", minTank:50, care:"Easy" },
+        swordtail: { name:"Swordtail", tempMin:22, tempMax:28, bestFor:"Active tropical tanks", desc:"Active livebearer that likes swimming room.", minTank:80, care:"Easy" },
+        gourami: { name:"Gourami", tempMin:24, tempMax:28, bestFor:"Peaceful aquariums", desc:"Labyrinth fish that prefers warm stable water.", minTank:70, care:"Moderate" }
+      },
+
+      monster: {
+        arowana: { name:"Arowana", tempMin:24, tempMax:30, bestFor:"Large predator tanks", desc:"Prize monster fish needing very large space.", minTank:700, care:"Advanced" },
+        oscar: { name:"Oscar", tempMin:24, tempMax:28, bestFor:"Large cichlid tanks", desc:"Intelligent large cichlid with big personality.", minTank:250, care:"Moderate" },
+        flowerhorn: { name:"Flowerhorn", tempMin:26, tempMax:30, bestFor:"Single showcase tanks", desc:"Warm-water hybrid cichlid for display.", minTank:250, care:"Moderate" },
+        red_tail_catfish: { name:"Red Tail Catfish", tempMin:24, tempMax:28, bestFor:"Very large predator systems", desc:"Huge catfish needing enormous volume.", minTank:1500, care:"Advanced" },
+        peacock_bass: { name:"Peacock Bass", tempMin:24, tempMax:30, bestFor:"Predator aquariums", desc:"Fast predator preferring warm oxygen-rich water.", minTank:600, care:"Advanced" },
+        datnoid: { name:"Datnoid", tempMin:24, tempMax:30, bestFor:"Premium predator tanks", desc:"Beautiful predator needing stability and space.", minTank:400, care:"Advanced" },
+        bichir: { name:"Bichir", tempMin:24, tempMax:28, bestFor:"Predator bottom-dweller tanks", desc:"Prehistoric fish that does well in warm stable tanks.", minTank:250, care:"Moderate" }
+      },
+
+      cichlids: {
+        malawi_peacock: { name:"Malawi Peacock", tempMin:24, tempMax:27, bestFor:"African cichlid tanks", desc:"Colorful Malawi cichlid needing stable alkaline water.", minTank:200, care:"Moderate" },
+        mbuna: { name:"Mbuna", tempMin:24, tempMax:27, bestFor:"Rocky African setups", desc:"Aggressive rock-dwelling Malawi cichlids.", minTank:200, care:"Moderate" },
+        green_terror: { name:"Green Terror", tempMin:23, tempMax:28, bestFor:"Large aggressive tanks", desc:"Powerful cichlid needing space and good filtration.", minTank:250, care:"Advanced" },
+        blood_parrot: { name:"Blood Parrot", tempMin:24, tempMax:28, bestFor:"Warm display tanks", desc:"Hybrid cichlid that likes warm stable water.", minTank:200, care:"Moderate" },
+        severum: { name:"Severum", tempMin:24, tempMax:28, bestFor:"Large peaceful cichlid tanks", desc:"Large but calmer South American cichlid.", minTank:250, care:"Moderate" }
+      },
+
+      coldwater: {
+        goldfish_common: { name:"Common Goldfish", tempMin:18, tempMax:24, bestFor:"Large coldwater tanks", desc:"Heavy-waste fish needing lots of space.", minTank:150, care:"Moderate" },
+        goldfish_fancy: { name:"Fancy Goldfish", tempMin:18, tempMax:24, bestFor:"Cool indoor tanks", desc:"Round-bodied goldfish that still need strong filtration.", minTank:100, care:"Moderate" },
+        koi: { name:"Koi", tempMin:16, tempMax:24, bestFor:"Ponds", desc:"Large pond fish not suitable for small indoor tanks.", minTank:1000, care:"Advanced" },
+        white_cloud: { name:"White Cloud Mountain Minnow", tempMin:18, tempMax:24, bestFor:"Cool community tanks", desc:"Peaceful schooling coldwater species.", minTank:50, care:"Easy" }
+      }
+    };
+
+    let latestData = null;
+    let previousData = null;
+    let logsData = [];
+    let currentUser = null;
+    let notificationEnabled = false;
+    let selectedMode = "auto";
+    let demoMode = "normal";
+    let lastFetchAt = null;
+
+    let manualStates = { heater: false, pump: false, light: false };
+
+    let runtimeCache = JSON.parse(localStorage.getItem("ecoguard_runtimeCache") || '{"heater":0,"pump":0,"light":0}');
+    let runtimeTicker = {
+      heaterRunning: false,
+      pumpRunning: false,
+      lightRunning: false,
+      lastTickMs: Date.now()
+    };
+
+    let activeFishProfile = JSON.parse(localStorage.getItem("ecoguard_activeFishProfile") || "null");
+    let temperatureUnit = localStorage.getItem("ecoguard_unit") || "C";
+    let tankSizeL = Number(localStorage.getItem("ecoguard_tankSizeL") || "0");
+
+    let tempHistory = JSON.parse(localStorage.getItem("ecoguard_tempHistory") || "[]");
+    let turbHistory = JSON.parse(localStorage.getItem("ecoguard_turbHistory") || "[]");
+    let waterHistory = JSON.parse(localStorage.getItem("ecoguard_waterHistory") || "[]");
+    let labelHistory = JSON.parse(localStorage.getItem("ecoguard_labelHistory") || "[]");
+
+    const els = {
+      sidebar: document.getElementById("sidebar"),
+      overlay: document.getElementById("overlay"),
+      pages: document.querySelectorAll(".page"),
+
+      unitCBtn: document.getElementById("unitCBtn"),
+      unitFBtn: document.getElementById("unitFBtn"),
+
+      onlineDot: document.getElementById("onlineDot"),
+      connectionText: document.getElementById("connectionText"),
+      statusDot: document.getElementById("statusDot"),
+      statusTextHero: document.getElementById("statusTextHero"),
+      lastUpdatedText: document.getElementById("lastUpdatedText"),
+      alertBanner: document.getElementById("alertBanner"),
+
+      healthGauge: document.getElementById("healthGauge"),
+      healthScoreBig: document.getElementById("healthScoreBig"),
+      tempScoreVal: document.getElementById("tempScoreVal"),
+      turbScoreVal: document.getElementById("turbScoreVal"),
+      waterScoreVal: document.getElementById("waterScoreVal"),
+
+      summaryStatus: document.getElementById("summaryStatus"),
+      summaryRisk: document.getElementById("summaryRisk"),
+      recommendedAction: document.getElementById("recommendedAction"),
+
+      activeProfileName: document.getElementById("activeProfileName"),
+      activeProfileDesc: document.getElementById("activeProfileDesc"),
+      profileTempRange: document.getElementById("profileTempRange"),
+      profileCurrentTemp: document.getElementById("profileCurrentTemp"),
+      profileTurbView: document.getElementById("profileTurbView"),
+      profileTankSuitability: document.getElementById("profileTankSuitability"),
+      profileSuitability: document.getElementById("profileSuitability"),
+      fishCompatibilityBadge: document.getElementById("fishCompatibilityBadge"),
+
+      modeWidgetVal: document.getElementById("modeWidgetVal"),
+      modeSaveStatus: document.getElementById("modeSaveStatus"),
+      modeVal: document.getElementById("modeVal"),
+
+      heaterManualState: document.getElementById("heaterManualState"),
+      pumpManualState: document.getElementById("pumpManualState"),
+      lightManualState: document.getElementById("lightManualState"),
+      manualControlStatus: document.getElementById("manualControlStatus"),
+
+      tempVal: document.getElementById("tempVal"),
+      waterVal: document.getElementById("waterVal"),
+      turbVal: document.getElementById("turbVal"),
+      statusVal: document.getElementById("statusVal"),
+      stopVal: document.getElementById("stopVal"),
+      heaterVal: document.getElementById("heaterVal"),
+      pumpVal: document.getElementById("pumpVal"),
+      lightVal: document.getElementById("lightVal"),
+      ipVal: document.getElementById("ipVal"),
+      heaterRun: document.getElementById("heaterRun"),
+      pumpRun: document.getElementById("pumpRun"),
+      lightRun: document.getElementById("lightRun"),
+      trendVal: document.getElementById("trendVal"),
+      lastLogVal: document.getElementById("lastLogVal"),
+
+      tempStatus: document.getElementById("tempStatus"),
+      waterStatus: document.getElementById("waterStatus"),
+      turbStatus: document.getElementById("turbStatus"),
+      overallStatusBadge: document.getElementById("overallStatusBadge"),
+      heaterStatus: document.getElementById("heaterStatus"),
+      pumpStatus: document.getElementById("pumpStatus"),
+      lightStatus: document.getElementById("lightStatus"),
+
+      tempMeaning: document.getElementById("tempMeaning"),
+      waterMeaning: document.getElementById("waterMeaning"),
+      turbMeaning: document.getElementById("turbMeaning"),
+
+      sensorTempVal: document.getElementById("sensorTempVal"),
+      sensorTempStatus: document.getElementById("sensorTempStatus"),
+      sensorTempMeaning: document.getElementById("sensorTempMeaning"),
+      sensorTurbVal: document.getElementById("sensorTurbVal"),
+      sensorTurbStatus: document.getElementById("sensorTurbStatus"),
+      sensorTurbMeaning: document.getElementById("sensorTurbMeaning"),
+      sensorWaterVal: document.getElementById("sensorWaterVal"),
+      sensorWaterStatus: document.getElementById("sensorWaterStatus"),
+      sensorWaterMeaning: document.getElementById("sensorWaterMeaning"),
+      sensorHeaterVal: document.getElementById("sensorHeaterVal"),
+      sensorHeaterStatus: document.getElementById("sensorHeaterStatus"),
+      sensorHeaterRun: document.getElementById("sensorHeaterRun"),
+      sensorPumpVal: document.getElementById("sensorPumpVal"),
+      sensorPumpStatus: document.getElementById("sensorPumpStatus"),
+      sensorPumpRun: document.getElementById("sensorPumpRun"),
+      sensorLightVal: document.getElementById("sensorLightVal"),
+      sensorLightStatus: document.getElementById("sensorLightStatus"),
+      sensorLightRun: document.getElementById("sensorLightRun"),
+      overallSensorHealthVal: document.getElementById("overallSensorHealthVal"),
+      overallSensorHealthMeaning: document.getElementById("overallSensorHealthMeaning"),
+
+      deviceSourcePageVal: document.getElementById("deviceSourcePageVal"),
+      deviceAccessPageVal: document.getElementById("deviceAccessPageVal"),
+      deviceConnectionPageVal: document.getElementById("deviceConnectionPageVal"),
+      deviceIpPageVal: document.getElementById("deviceIpPageVal"),
+      deviceLastUpdatedPageVal: document.getElementById("deviceLastUpdatedPageVal"),
+      deviceModePageVal: document.getElementById("deviceModePageVal"),
+      deviceConnectionQualityPageVal: document.getElementById("deviceConnectionQualityPageVal"),
+      deviceRefreshAgePageVal: document.getElementById("deviceRefreshAgePageVal"),
+
+      enableNotifyBtn: document.getElementById("enableNotifyBtn"),
+      testNotifyBtn: document.getElementById("testNotifyBtn"),
+      notifyStatus: document.getElementById("notifyStatus"),
+      softAlertBox: document.getElementById("softAlertBox"),
+      alertsList: document.getElementById("alertsList"),
+
+      insightSummaryStatus: document.getElementById("insightSummaryStatus"),
+      insightSummaryRisk: document.getElementById("insightSummaryRisk"),
+      insightRecommendedAction: document.getElementById("insightRecommendedAction"),
+      insightStableForVal: document.getElementById("insightStableForVal"),
+      insightLastIssueVal: document.getElementById("insightLastIssueVal"),
+      insightCommonAlertVal: document.getElementById("insightCommonAlertVal"),
+
+      analyticsSummary: document.getElementById("analyticsSummary"),
+      aiSummary: document.getElementById("aiSummary"),
+      aiDetails: document.getElementById("aiDetails"),
+      riskBadge: document.getElementById("riskBadge"),
+      riskText: document.getElementById("riskText"),
+      aiPrompt: document.getElementById("aiPrompt"),
+      aiResponse: document.getElementById("aiResponse"),
+
+      categorySelect: document.getElementById("categorySelect"),
+      speciesSelect: document.getElementById("speciesSelect"),
+      tankSizeInput: document.getElementById("tankSizeInput"),
+      customTempMin: document.getElementById("customTempMin"),
+      customTempMax: document.getElementById("customTempMax"),
+      demoStatus: document.getElementById("demoStatus"),
+
+      prefsActiveProfileName: document.getElementById("prefsActiveProfileName"),
+      prefsActiveProfileDesc: document.getElementById("prefsActiveProfileDesc"),
+      prefsProfileTempRange: document.getElementById("prefsProfileTempRange"),
+      prefsProfileCurrentTemp: document.getElementById("prefsProfileCurrentTemp"),
+      prefsProfileTurbView: document.getElementById("prefsProfileTurbView"),
+      prefsProfileBestFor: document.getElementById("prefsProfileBestFor"),
+      prefsProfileSuitability: document.getElementById("prefsProfileSuitability"),
+
+      tankSizeDisplay: document.getElementById("tankSizeDisplay"),
+      tankMinDisplay: document.getElementById("tankMinDisplay"),
+      tankResultDisplay: document.getElementById("tankResultDisplay"),
+      tankCareDisplay: document.getElementById("tankCareDisplay"),
+      tankSuitabilityBadge: document.getElementById("tankSuitabilityBadge"),
+
+      emailInput: document.getElementById("emailInput"),
+      passwordInput: document.getElementById("passwordInput"),
+      authStatus: document.getElementById("authStatus"),
+      verifyStatus: document.getElementById("verifyStatus"),
+      accountEmail: document.getElementById("accountEmail"),
+      accountMode: document.getElementById("accountMode"),
+      accountFish: document.getElementById("accountFish"),
+      accountTempRange: document.getElementById("accountTempRange"),
+
+      logList: document.getElementById("logList")
+    };
+
+    function saveRuntimeCache() {
+      localStorage.setItem("ecoguard_runtimeCache", JSON.stringify(runtimeCache));
+    }
+
+    function getBool(v) {
+      if (typeof v === "boolean") return v;
+      if (typeof v === "number") return v === 1;
+      if (typeof v === "string") {
+        const s = v.toLowerCase().trim();
+        return s === "1" || s === "true" || s === "on";
+      }
+      return false;
+    }
+
+    function pickRuntime(data, keys, fallback) {
+      for (const key of keys) {
+        if (data && data[key] !== undefined && data[key] !== null && data[key] !== "") {
+          return Number(data[key]) || 0;
+        }
+      }
+      return fallback;
+    }
+
+    function updateRuntimeAccumulator(data) {
+      const now = Date.now();
+      const deltaSec = Math.max(0, Math.floor((now - runtimeTicker.lastTickMs) / 1000));
+
+      if (deltaSec > 0) {
+        if (runtimeTicker.heaterRunning) runtimeCache.heater += deltaSec;
+        if (runtimeTicker.pumpRunning) runtimeCache.pump += deltaSec;
+        if (runtimeTicker.lightRunning) runtimeCache.light += deltaSec;
+        saveRuntimeCache();
+      }
+
+      runtimeTicker.lastTickMs = now;
+      runtimeTicker.heaterRunning = getBool(data.heater);
+      runtimeTicker.pumpRunning = getBool(data.pump);
+      runtimeTicker.lightRunning = getBool(data.light);
+
+      const heaterRuntime = pickRuntime(
+        data,
+        ["heaterRuntime", "heater_runtime", "heaterRunTime", "heaterSeconds", "heater_seconds", "heaterOnSeconds"],
+        runtimeCache.heater
+      );
+      const pumpRuntime = pickRuntime(
+        data,
+        ["pumpRuntime", "pump_runtime", "pumpRunTime", "pumpSeconds", "pump_seconds", "pumpOnSeconds"],
+        runtimeCache.pump
+      );
+      const lightRuntime = pickRuntime(
+        data,
+        ["lightRuntime", "light_runtime", "lightRunTime", "lightSeconds", "light_seconds", "lightOnSeconds"],
+        runtimeCache.light
+      );
+
+      runtimeCache.heater = heaterRuntime;
+      runtimeCache.pump = pumpRuntime;
+      runtimeCache.light = lightRuntime;
+      saveRuntimeCache();
+
+      data.heaterRuntimeResolved = heaterRuntime;
+      data.pumpRuntimeResolved = pumpRuntime;
+      data.lightRuntimeResolved = lightRuntime;
+    }
+
+    function tickDisplayedRuntime() {
+      const now = Date.now();
+      const deltaSec = Math.max(0, Math.floor((now - runtimeTicker.lastTickMs) / 1000));
+      if (deltaSec <= 0) return;
+
+      if (runtimeTicker.heaterRunning) runtimeCache.heater += deltaSec;
+      if (runtimeTicker.pumpRunning) runtimeCache.pump += deltaSec;
+      if (runtimeTicker.lightRunning) runtimeCache.light += deltaSec;
+      runtimeTicker.lastTickMs = now;
+      saveRuntimeCache();
+
+      if (els.heaterRun) els.heaterRun.innerText = formatSeconds(runtimeCache.heater);
+      if (els.pumpRun) els.pumpRun.innerText = formatSeconds(runtimeCache.pump);
+      if (els.lightRun) els.lightRun.innerText = formatSeconds(runtimeCache.light);
+
+      if (els.sensorHeaterRun) els.sensorHeaterRun.innerText = formatSeconds(runtimeCache.heater);
+      if (els.sensorPumpRun) els.sensorPumpRun.innerText = formatSeconds(runtimeCache.pump);
+      if (els.sensorLightRun) els.sensorLightRun.innerText = formatSeconds(runtimeCache.light);
+    }
+
+    function toggleSidebar() {
+      els.sidebar.classList.toggle("open");
+      els.overlay.classList.toggle("show");
+    }
+
+    function closeAllPanels() {
+      els.sidebar.classList.remove("open");
+      els.overlay.classList.remove("show");
+    }
+
+    function showPage(pageId) {
+      els.pages.forEach(p => p.classList.remove("active"));
+      document.getElementById(pageId).classList.add("active");
+      closeAllPanels();
+    }
+
+    window.toggleSidebar = toggleSidebar;
+    window.closeAllPanels = closeAllPanels;
+    window.showPage = showPage;
+
+    function formatTemp(valueC, withUnit = true) {
+      const val = temperatureUnit === "F" ? cToF(valueC) : valueC;
+      const suffix = temperatureUnit === "F" ? " °F" : " °C";
+      return `${Number(val).toFixed(1)}${withUnit ? suffix : ""}`;
+    }
+
+    function formatTempRange(minC, maxC) {
+      return `${formatTemp(minC)} – ${formatTemp(maxC)}`;
+    }
+
+    function formatSeconds(sec) {
+      sec = Number(sec || 0);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+
+      if (h > 0) return `${h}h ${m}m ${s}s`;
+      if (m > 0) return `${m}m ${s}s`;
+      return `${s}s`;
+    }
+
+    function statusColor(label) {
+      if (label === "STABLE") return "green";
+      if (label === "WARNING") return "yellow";
+      return "red";
+    }
+
+    function setDot(el, colorClass) {
+      if (!el) return;
+      el.className = `dot ${colorClass}`;
+    }
+
+    function setGauge(score) {
+      const deg = Math.max(0, Math.min(360, (Number(score) / 100) * 360));
+      els.healthGauge.style.background =
+        `radial-gradient(closest-side, var(--panel) 72%, transparent 73% 100%),
+         conic-gradient(var(--blue) 0deg, var(--blue) ${deg}deg, #232a33 ${deg}deg 360deg)`;
+    }
+
+    function saveLocalHistory() {
+      localStorage.setItem("ecoguard_tempHistory", JSON.stringify(tempHistory));
+      localStorage.setItem("ecoguard_turbHistory", JSON.stringify(turbHistory));
+      localStorage.setItem("ecoguard_waterHistory", JSON.stringify(waterHistory));
+      localStorage.setItem("ecoguard_labelHistory", JSON.stringify(labelHistory));
+    }
+
+    function pushHistory(valueSet, max = 60) {
+      tempHistory.push(valueSet.temp);
+      turbHistory.push(valueSet.turb);
+      waterHistory.push(valueSet.water);
+      labelHistory.push(valueSet.label);
+
+      if (tempHistory.length > max) tempHistory.shift();
+      if (turbHistory.length > max) turbHistory.shift();
+      if (waterHistory.length > max) waterHistory.shift();
+      if (labelHistory.length > max) labelHistory.shift();
+
+      saveLocalHistory();
+    }
+
+    function clearGraphHistory() {
+      tempHistory = [];
+      turbHistory = [];
+      waterHistory = [];
+      labelHistory = [];
+      saveLocalHistory();
+      rebuildGraphs();
+      alert("Graph history cleared.");
+    }
+    window.clearGraphHistory = clearGraphHistory;
+
+    function calculateTrend() {
+      if (tempHistory.length < 2 || turbHistory.length < 2) return "Not enough data";
+
+      const tempDiff = tempHistory[tempHistory.length - 1] - tempHistory[tempHistory.length - 2];
+      const turbDiff = turbHistory[turbHistory.length - 1] - turbHistory[turbHistory.length - 2];
+
+      if (turbDiff > 100) return "Water quality worsening";
+      if (tempDiff > 0.5) return "Temperature rising";
+      if (tempDiff < -0.5) return "Temperature falling";
+      return "Stable trend";
+    }
+
+    function getTemperatureInfo(temp) {
+      temp = Number(temp || 0);
+      if (temp < 24) return { label: "LOW", color: "blue", meaning: "Temperature is below preferred range." };
+      if (temp <= 28) return { label: "GOOD", color: "green", meaning: "Temperature is in a healthy range." };
+      if (temp <= 31) return { label: "MILD", color: "yellow", meaning: "Temperature is slightly high. Monitor it." };
+      return { label: "SERIOUS", color: "red", meaning: "Temperature is dangerously high." };
+    }
+
+    function getWaterInfo(waterDetected) {
+      return waterDetected
+        ? { label: "GOOD", color: "green", meaning: "Water is detected normally." }
+        : { label: "SERIOUS", color: "red", meaning: "Low or missing water detected." };
+    }
+
+    function getTurbidityInfo(value) {
+      const turb = Number(value || 0);
+      if (turb < 1800) return { label: "GOOD", color: "green", meaning: "Water is cleaner and clearer. This is a good range." };
+      if (turb < 2200) return { label: "MILD", color: "yellow", meaning: "Water is slightly cloudy. Monitor conditions." };
+      if (turb < 3000) return { label: "BAD", color: "orange", meaning: "Water quality is poor. Action is recommended soon." };
+      return { label: "SERIOUS", color: "red", meaning: "Severe cloudiness or instability detected. Immediate action needed." };
+    }
+
+    function getOnOffInfo(state) {
+      return getBool(state) ? { label: "ACTIVE", color: "blue" } : { label: "IDLE", color: "green" };
+    }
+
+    function updateBadge(el, info) {
+      if (!el) return;
+      el.innerHTML = `<span class="dot ${info.color}"></span><span>${info.label}</span>`;
+    }
+
+    function getTankSizeSuitability(profile) {
+      if (!profile || !tankSizeL) {
+        return { label: "No tank size set", color: "yellow", message: "Enter your tank size in litres for tank suitability." };
+      }
+
+      if (tankSizeL >= profile.minTank) {
+        return { label: "SUITABLE SIZE", color: "green", message: `${tankSizeL} L is suitable for ${profile.name}.` };
+      }
+
+      const ratio = tankSizeL / profile.minTank;
+      if (ratio >= 0.7) {
+        return { label: "SMALL / CAUTION", color: "yellow", message: `${tankSizeL} L is below the suggested ${profile.minTank} L for ${profile.name}.` };
+      }
+
+      return { label: "TOO SMALL", color: "red", message: `${tankSizeL} L is too small for ${profile.name}. Suggested minimum is ${profile.minTank} L.` };
+    }
+
+    function getFishSuitability(profile, data) {
+      if (!profile) {
+        return { label: "No active profile", color: "yellow", message: "Select a fish profile to compare live water conditions." };
+      }
+
+      const temp = Number(data?.temperature ?? 0);
+      const waterOk = !!data?.waterDetected;
+      const turb = Number(data?.turbidity ?? 0);
+
+      if (!waterOk) return { label: "NOT SUITABLE", color: "red", message: `${profile.name} is not suitable right now because the water sensor is reporting a low or missing water condition.` };
+      if (temp < profile.tempMin || temp > profile.tempMax) return { label: "WARNING", color: "yellow", message: `${profile.name} prefers ${formatTempRange(profile.tempMin, profile.tempMax)}, but the current temperature is ${formatTemp(temp)}.` };
+      if (turb >= 3000) return { label: "NOT SUITABLE", color: "red", message: `${profile.name} is not suitable right now because turbidity is in a serious range.` };
+      if (turb >= 2200) return { label: "CAUTION", color: "orange", message: `${profile.name} is within temperature range, but turbidity is poor and should be improved soon.` };
+      if (turb >= 1800) return { label: "GOOD WITH MONITORING", color: "yellow", message: `${profile.name} is within temperature range, but the water is slightly cloudy and should be monitored.` };
+      return { label: "SUITABLE", color: "green", message: `${profile.name} is currently within the preferred temperature range and the water looks suitable.` };
+    }
+
+    function populateSpeciesDropdown() {
+      const cat = els.categorySelect.value;
+      els.speciesSelect.innerHTML = `<option value="">Choose species...</option>`;
+
+      Object.entries(fishProfiles[cat]).forEach(([key, fish]) => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = fish.name;
+        els.speciesSelect.appendChild(option);
+      });
+
+      if (activeFishProfile && activeFishProfile.source === cat) {
+        els.speciesSelect.value = activeFishProfile.key || "";
+      } else {
+        els.speciesSelect.value = "";
+      }
+    }
+    window.populateSpeciesDropdown = populateSpeciesDropdown;
+
+    function handleSpeciesSelection() {
+      const cat = els.categorySelect.value;
+      const key = els.speciesSelect.value;
+
+      if (!key) {
+        clearFishProfile();
+        return;
+      }
+
+      activeFishProfile = {
+        source: cat,
+        key,
+        category: cat.charAt(0).toUpperCase() + cat.slice(1),
+        ...fishProfiles[cat][key]
+      };
+
+      localStorage.setItem("ecoguard_activeFishProfile", JSON.stringify(activeFishProfile));
+      updateFishProfileUI();
+    }
+    window.handleSpeciesSelection = handleSpeciesSelection;
+
+    function applyCustomProfile() {
+      const min = Number(els.customTempMin.value);
+      const max = Number(els.customTempMax.value);
+
+      if (Number.isNaN(min) || Number.isNaN(max) || min >= max) {
+        alert("Please enter a valid minimum and maximum temperature.");
+        return;
+      }
+
+      activeFishProfile = {
+        source: "custom",
+        key: "custom",
+        category: "Custom",
+        name: "Custom Profile",
+        tempMin: min,
+        tempMax: max,
+        bestFor: "Your preferred setup",
+        desc: "A custom profile based on your own preferred temperature range.",
+        minTank: Number(els.tankSizeInput.value || tankSizeL || 40),
+        care: "Custom"
+      };
+
+      localStorage.setItem("ecoguard_activeFishProfile", JSON.stringify(activeFishProfile));
+      updateFishProfileUI();
+    }
+    window.applyCustomProfile = applyCustomProfile;
+
+    function clearFishProfile() {
+      activeFishProfile = null;
+      localStorage.removeItem("ecoguard_activeFishProfile");
+      els.speciesSelect.value = "";
+      els.customTempMin.value = "";
+      els.customTempMax.value = "";
+      updateFishProfileUI();
+    }
+    window.clearFishProfile = clearFishProfile;
+
+    function getLiveDataWithDemo(rawData) {
+      const data = JSON.parse(JSON.stringify(rawData || {}));
+
+      if (demoMode === "temp_high") data.temperature = 33.5;
+      if (demoMode === "temp_low") data.temperature = 21.5;
+      if (demoMode === "water_low") data.waterDetected = 0;
+      if (demoMode === "turb_bad") data.turbidity = 2800;
+
+      data.autoMode = selectedMode === "auto";
+
+      if (selectedMode === "manual") {
+        data.heater = manualStates.heater;
+        data.pump = manualStates.pump;
+        data.light = manualStates.light;
+      }
+
+      data.heater = getBool(data.heater);
+      data.pump = getBool(data.pump);
+      data.light = getBool(data.light);
+      data.waterDetected = getBool(data.waterDetected);
+
+      updateRuntimeAccumulator(data);
+      return data;
+    }
+
+    function setDemoMode(mode) {
+      demoMode = mode;
+
+      const labels = {
+        normal: "Normal",
+        temp_high: "High Temperature",
+        temp_low: "Low Temperature",
+        water_low: "Low Water",
+        turb_bad: "Bad Turbidity"
+      };
+
+      els.demoStatus.textContent = `Demo mode: ${labels[mode] || "Normal"}`;
+
+      if (latestData) {
+        const demoData = getLiveDataWithDemo(latestData);
+        updateHome(demoData);
+        updateAI(demoData);
+        updateAlertBanner(demoData);
+      }
+    }
+    window.setDemoMode = setDemoMode;
+
+    function updateFishProfileUI() {
+      const targets = [
+        {
+          name: els.activeProfileName,
+          desc: els.activeProfileDesc,
+          tempRange: els.profileTempRange,
+          currentTemp: els.profileCurrentTemp,
+          turbView: els.profileTurbView,
+          extra: els.profileTankSuitability,
+          fit: els.profileSuitability
+        },
+        {
+          name: els.prefsActiveProfileName,
+          desc: els.prefsActiveProfileDesc,
+          tempRange: els.prefsProfileTempRange,
+          currentTemp: els.prefsProfileCurrentTemp,
+          turbView: els.prefsProfileTurbView,
+          bestFor: els.prefsProfileBestFor,
+          fit: els.prefsProfileSuitability
+        }
+      ];
+
+      targets.forEach(target => {
+        if (!activeFishProfile) {
+          target.name.textContent = "No fish profile selected";
+          target.desc.textContent = "Choose a fish to compare live water conditions against ideal requirements.";
+          target.tempRange.textContent = "--";
+          target.currentTemp.textContent = latestData ? formatTemp(Number(latestData.temperature || 0)) : "--";
+          target.turbView.textContent = latestData ? `${latestData.turbidity ?? "--"}` : "--";
+
+          if (target.bestFor) target.bestFor.textContent = "--";
+          if (target.extra) target.extra.textContent = "--";
+
+          target.fit.innerHTML = `<span class="dot yellow"></span><span>No active profile</span>`;
+          return;
+        }
+
+        target.name.textContent = `${activeFishProfile.name} (${activeFishProfile.category})`;
+        target.desc.textContent = activeFishProfile.desc;
+        target.tempRange.textContent = formatTempRange(activeFishProfile.tempMin, activeFishProfile.tempMax);
+        target.currentTemp.textContent = latestData ? formatTemp(Number(latestData.temperature || 0)) : "--";
+        target.turbView.textContent = latestData ? `${latestData.turbidity ?? "--"} (${getTurbidityInfo(latestData.turbidity).label})` : "--";
+
+        if (target.bestFor) target.bestFor.textContent = activeFishProfile.bestFor;
+        if (target.extra) target.extra.textContent = getTankSizeSuitability(activeFishProfile).label;
+
+        const suitability = getFishSuitability(activeFishProfile, latestData || {});
+        target.fit.innerHTML = `<span class="dot ${suitability.color}"></span><span>${suitability.label} — ${suitability.message}</span>`;
+      });
+
+      const tankResult = getTankSizeSuitability(activeFishProfile);
+      els.tankSizeDisplay.textContent = tankSizeL ? `${tankSizeL} L` : "--";
+      els.tankMinDisplay.textContent = activeFishProfile ? `${activeFishProfile.minTank} L` : "--";
+      els.tankResultDisplay.textContent = tankResult.label;
+      els.tankCareDisplay.textContent = activeFishProfile ? activeFishProfile.care : "--";
+      els.tankSuitabilityBadge.innerHTML = `<span class="dot ${tankResult.color}"></span><span>${tankResult.message}</span>`;
+
+      els.accountFish.textContent = activeFishProfile ? activeFishProfile.name : "--";
+      els.accountTempRange.textContent = activeFishProfile ? formatTempRange(activeFishProfile.tempMin, activeFishProfile.tempMax) : "--";
+
+      if (els.fishCompatibilityBadge) {
+        if (!activeFishProfile || !latestData) {
+          els.fishCompatibilityBadge.innerHTML = `<span class="dot yellow"></span><span>No compatibility data</span>`;
+        } else {
+          const result = getFishSuitability(activeFishProfile, latestData);
+          els.fishCompatibilityBadge.innerHTML = `<span class="dot ${result.color}"></span><span>${result.label}</span>`;
+        }
+      }
+    }
+
+    function drawGraph(canvasId, values, color, xLabel, yLabel, unit = "") {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const leftPad = 60;
+      const rightPad = 20;
+      const topPad = 25;
+      const bottomPad = 50;
+      const plotW = w - leftPad - rightPad;
+      const plotH = h - topPad - bottomPad;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = "#30363d";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i < 5; i++) {
+        const y = topPad + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - rightPad, y);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, h - bottomPad);
+      ctx.lineTo(w - rightPad, h - bottomPad);
+      ctx.stroke();
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "14px Arial";
+      ctx.fillText(xLabel, w / 2 - 25, h - 15);
+
+      ctx.save();
+      ctx.translate(18, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      const wrap = canvas.parentElement;
+      const old = wrap.parentElement.querySelector(".chart-minmax");
+      if (old) old.remove();
+
+      if (!values || values.length < 2) {
+        ctx.fillStyle = "#8b949e";
+        ctx.font = "16px Arial";
+        ctx.fillText("Waiting for more data...", leftPad + 10, topPad + 25);
+
+        const div = document.createElement("div");
+        div.className = "chart-minmax";
+        div.textContent = "Min: -- | Max: --";
+        wrap.parentElement.appendChild(div);
+        return;
+      }
+
+      let graphValues = [...values];
+      if (canvasId === "tempChart" && temperatureUnit === "F") {
+        graphValues = graphValues.map(c => cToF(c));
+      }
+
+      let minVal = Math.min(...graphValues);
+      let maxVal = Math.max(...graphValues);
+
+      if (minVal === maxVal) {
+        minVal -= 1;
+        maxVal += 1;
+      }
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "12px Arial";
+      ctx.fillText(`${maxVal.toFixed(1)}${unit}`, 8, topPad + 5);
+      ctx.fillText(`${minVal.toFixed(1)}${unit}`, 8, h - bottomPad);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      graphValues.forEach((val, i) => {
+        const x = leftPad + (i / (graphValues.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      graphValues.forEach((val, i) => {
+        const x = leftPad + (i / (graphValues.length - 1)) * plotW;
+        const y = topPad + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const div = document.createElement("div");
+      div.className = "chart-minmax";
+      div.textContent = `Min: ${minVal.toFixed(1)}${unit} | Max: ${maxVal.toFixed(1)}${unit}`;
+      wrap.parentElement.appendChild(div);
+    }
+
+    function rebuildGraphs() {
+      const tempUnit = temperatureUnit === "F" ? "°F" : "°C";
+      const tempLabel = temperatureUnit === "F" ? "Temperature °F" : "Temperature °C";
+      drawGraph("tempChart", tempHistory, "#58a6ff", "Samples", tempLabel, tempUnit);
+      drawGraph("turbChart", turbHistory, "#f0883e", "Samples", "Turbidity", "");
+      drawGraph("waterChart", waterHistory, "#3fb950", "Samples", "Water State", "");
+    }
+
+    function updateLogs() {
+      if (!logsData.length) {
+        els.logList.innerHTML = "No logs yet.";
+        return;
+      }
+      els.logList.innerHTML = "<ul>" + logsData.map(l => `<li>${l}</li>`).join("") + "</ul>";
+    }
+
+    async function enableBrowserNotifications() {
+      if (!("Notification" in window)) {
+        els.notifyStatus.textContent = "This browser does not support notifications.";
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        notificationEnabled = true;
+        els.notifyStatus.textContent = "Browser alerts enabled.";
+      } else {
+        els.notifyStatus.textContent = "Notification permission was not granted.";
+      }
+    }
+
+    function sendBrowserNotification(title, body) {
+      if (!notificationEnabled || Notification.permission !== "granted") return;
+      new Notification(title, { body, icon: "logo.png" });
+    }
+
+    function checkForNotifications(data) {
+      if (!previousData) {
+        previousData = JSON.parse(JSON.stringify(data));
+        return;
+      }
+
+      const newAlerts = [];
+
+      if (previousData.waterDetected && !data.waterDetected) newAlerts.push("Water level is low or not detected.");
+      if (Number(previousData.temperature) < 30 && Number(data.temperature) >= 30) newAlerts.push(`Temperature is high: ${formatTemp(Number(data.temperature))}`);
+      if (Number(previousData.temperature) < 32 && Number(data.temperature) >= 32) newAlerts.push(`Critical temperature reached: ${formatTemp(Number(data.temperature))}`);
+      if (Number(previousData.turbidity) < 2200 && Number(data.turbidity) >= 2200) newAlerts.push(`Turbidity is now poor: ${data.turbidity}`);
+      if (Number(previousData.turbidity) < 3000 && Number(data.turbidity) >= 3000) newAlerts.push(`Critical turbidity detected: ${data.turbidity}`);
+      if (previousData.statusLabel !== data.statusLabel && data.statusLabel === "CRITICAL") newAlerts.push("System status has changed to CRITICAL.");
+
+      if (newAlerts.length) {
+        newAlerts.forEach(msg => sendBrowserNotification("EcoGuard Alert", msg));
+        els.alertsList.innerHTML = "<ul>" + newAlerts.map(a => `<li>${a}</li>`).join("") + "</ul>";
+        els.softAlertBox.textContent = newAlerts[0];
+      }
+
+      previousData = JSON.parse(JSON.stringify(data));
+    }
+
+    function exportCSV() {
+      const len = Math.max(tempHistory.length, turbHistory.length, waterHistory.length);
+      let csv = "Sample,TemperatureC,Turbidity,WaterSensor\n";
+
+      for (let i = 0; i < len; i++) {
+        const label = labelHistory[i] ?? i;
+        const t = tempHistory[i] ?? "";
+        const tb = turbHistory[i] ?? "";
+        const w = waterHistory[i] ?? "";
+        csv += `${label},${t},${tb},${w}\n`;
+      }
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ecoguard_cloud_data.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    window.exportCSV = exportCSV;
+
+    function printPage() {
+      showPage("analytics");
+      setTimeout(() => window.print(), 250);
+    }
+    window.printPage = printPage;
+
+    async function shareSummary() {
+      if (!latestData) return;
+
+      const data = getLiveDataWithDemo(latestData);
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const fishText = activeFishProfile ? `\nActive Fish: ${activeFishProfile.name}` : "";
+
+      const text =
+        `EcoGuard Cloud Dashboard\n` +
+        `Temperature: ${formatTemp(Number(data.temperature || 0))}\n` +
+        `Water: ${data.waterDetected ? "OK" : "LOW / NONE"}\n` +
+        `Turbidity: ${data.turbidity} (${turbidityInfo.label})\n` +
+        `Health Score: ${data.healthScore}%\n` +
+        `Status: ${data.statusLabel}\n` +
+        `Cloud Mode: ${selectedMode.toUpperCase()}` +
+        fishText;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: "EcoGuard Summary", text });
+        } catch (_) {}
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        alert("Summary copied to clipboard.");
+      }
+    }
+    window.shareSummary = shareSummary;
+
+    function updateConnectionState(ok) {
+      if (ok) {
+        setDot(els.onlineDot, "green");
+        els.connectionText.innerText = "Firebase online";
+        els.deviceConnectionPageVal.innerText = "Connected";
+        els.deviceConnectionQualityPageVal.innerText = "Good";
+      } else {
+        setDot(els.onlineDot, "red");
+        els.connectionText.innerText = "Firebase offline";
+        els.deviceConnectionPageVal.innerText = "Offline";
+        els.deviceConnectionQualityPageVal.innerText = "Poor";
+      }
+    }
+
+    function updateLastUpdated() {
+      lastFetchAt = new Date();
+      els.lastUpdatedText.innerText = `Last updated: ${lastFetchAt.toLocaleTimeString()}`;
+      els.deviceLastUpdatedPageVal.innerText = lastFetchAt.toLocaleTimeString();
+      els.deviceRefreshAgePageVal.innerText = "0 sec";
+    }
+
+    function updateRefreshAge() {
+      if (!lastFetchAt) return;
+      const sec = Math.max(0, Math.floor((Date.now() - lastFetchAt.getTime()) / 1000));
+      els.deviceRefreshAgePageVal.innerText = `${sec} sec`;
+    }
+
+    function updateAlertBanner(data) {
+      const critical = data.systemStopped || !data.waterDetected || data.statusLabel === "CRITICAL" || Number(data.turbidity) >= 3000;
+      els.alertBanner.style.display = critical ? "block" : "none";
+    }
+
+    function getRecommendedAction(data) {
+      if (!data.waterDetected) return "Check water level immediately";
+      if (Number(data.temperature) >= 32) return "Cool the system immediately";
+      if (Number(data.temperature) >= 30) return "Monitor temperature closely";
+      if (Number(data.temperature) < 24) return "Allow heater to recover";
+      if (Number(data.turbidity) >= 3000) return "Inspect water urgently";
+      if (Number(data.turbidity) >= 2200) return "Clean filtration soon";
+      return "No action needed";
+    }
+
+    function updateHome(data) {
+      const tempInfo = getTemperatureInfo(data.temperature);
+      const waterInfo = getWaterInfo(data.waterDetected);
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const heaterInfo = getOnOffInfo(data.heater);
+      const pumpInfo = getOnOffInfo(data.pump);
+      const lightInfo = getOnOffInfo(data.light);
+
+      els.tempVal.innerText = formatTemp(Number(data.temperature || 0));
+      els.waterVal.innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
+      els.turbVal.innerText = data.turbidity ?? "--";
+      els.statusVal.innerText = data.statusLabel || "--";
+      els.modeVal.innerText = selectedMode.toUpperCase();
+      els.heaterVal.innerText = data.heater ? "ON" : "OFF";
+      els.pumpVal.innerText = data.pump ? "ON" : "OFF";
+      els.lightVal.innerText = data.light ? "ON" : "OFF";
+      els.ipVal.innerText = data.ip || "--";
+      els.stopVal.innerText = data.systemStopped ? "STOPPED" : "RUNNING";
+      els.heaterRun.innerText = formatSeconds(data.heaterRuntimeResolved || 0);
+      els.pumpRun.innerText = formatSeconds(data.pumpRuntimeResolved || 0);
+      els.lightRun.innerText = formatSeconds(data.lightRuntimeResolved || 0);
+      els.trendVal.innerText = calculateTrend();
+      els.lastLogVal.innerText = logsData[0] || "No logs";
+
+      els.healthScoreBig.innerText = `${data.healthScore ?? "--"}%`;
+      setGauge(Number(data.healthScore || 0));
+
+      setDot(els.statusDot, statusColor(data.statusLabel || "WARNING"));
+      els.statusTextHero.innerText = data.statusLabel || "Unknown";
+
+      updateBadge(els.tempStatus, tempInfo);
+      updateBadge(els.waterStatus, waterInfo);
+      updateBadge(els.turbStatus, turbidityInfo);
+      updateBadge(els.overallStatusBadge, { label: data.statusLabel || "UNKNOWN", color: statusColor(data.statusLabel || "WARNING") });
+      updateBadge(els.heaterStatus, heaterInfo);
+      updateBadge(els.pumpStatus, pumpInfo);
+      updateBadge(els.lightStatus, lightInfo);
+
+      els.tempMeaning.innerText = tempInfo.meaning;
+      els.waterMeaning.innerText = waterInfo.meaning;
+      els.turbMeaning.innerText = turbidityInfo.meaning;
+
+      els.summaryStatus.innerText = data.statusLabel || "--";
+      els.summaryRisk.innerText = data.statusLabel === "CRITICAL" ? "High" : data.statusLabel === "WARNING" ? "Medium" : "Low";
+      els.recommendedAction.innerText = getRecommendedAction(data);
+
+      els.tempScoreVal.innerText = tempInfo.label === "GOOD" ? "100%" : tempInfo.label === "MILD" ? "75%" : "40%";
+      els.turbScoreVal.innerText = turbidityInfo.label === "GOOD" ? "100%" : turbidityInfo.label === "MILD" ? "80%" : turbidityInfo.label === "BAD" ? "55%" : "20%";
+      els.waterScoreVal.innerText = data.waterDetected ? "100%" : "0%";
+
+      els.sensorTempVal.innerText = formatTemp(Number(data.temperature || 0));
+      updateBadge(els.sensorTempStatus, tempInfo);
+      els.sensorTempMeaning.innerText = tempInfo.meaning;
+
+      els.sensorTurbVal.innerText = data.turbidity ?? "--";
+      updateBadge(els.sensorTurbStatus, turbidityInfo);
+      els.sensorTurbMeaning.innerText = turbidityInfo.meaning;
+
+      els.sensorWaterVal.innerText = data.waterDetected ? "WATER OK" : "LOW / NONE";
+      updateBadge(els.sensorWaterStatus, waterInfo);
+      els.sensorWaterMeaning.innerText = waterInfo.meaning;
+
+      els.sensorHeaterVal.innerText = data.heater ? "ON" : "OFF";
+      updateBadge(els.sensorHeaterStatus, heaterInfo);
+      els.sensorHeaterRun.innerText = formatSeconds(data.heaterRuntimeResolved || 0);
+
+      els.sensorPumpVal.innerText = data.pump ? "ON" : "OFF";
+      updateBadge(els.sensorPumpStatus, pumpInfo);
+      els.sensorPumpRun.innerText = formatSeconds(data.pumpRuntimeResolved || 0);
+
+      els.sensorLightVal.innerText = data.light ? "ON" : "OFF";
+      updateBadge(els.sensorLightStatus, lightInfo);
+      els.sensorLightRun.innerText = formatSeconds(data.lightRuntimeResolved || 0);
+
+      els.overallSensorHealthVal.innerText =
+        tempInfo.label === "GOOD" && waterInfo.label === "GOOD" && turbidityInfo.label === "GOOD"
+          ? "Excellent"
+          : turbidityInfo.label === "SERIOUS" || waterInfo.label === "SERIOUS"
+          ? "Critical"
+          : "Monitor";
+
+      els.overallSensorHealthMeaning.innerText =
+        tempInfo.meaning + " " + waterInfo.meaning + " " + turbidityInfo.meaning;
+
+      els.deviceIpPageVal.innerText = data.ip || "--";
+      els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+
+      els.insightSummaryStatus.innerText = data.statusLabel || "--";
+      els.insightSummaryRisk.innerText = data.statusLabel === "CRITICAL" ? "High" : data.statusLabel === "WARNING" ? "Medium" : "Low";
+      els.insightRecommendedAction.innerText = getRecommendedAction(data);
+      els.insightStableForVal.innerText = data.statusLabel === "STABLE" ? "Stable now" : "Attention needed";
+      els.insightLastIssueVal.innerText = logsData[0] || "No issues logged";
+      els.insightCommonAlertVal.innerText = logsData.length ? logsData[0] : "No alerts";
+
+      let summary = `Temperature: ${formatTemp(Number(data.temperature || 0))} | Turbidity: ${data.turbidity} (${turbidityInfo.label}) | Water: ${data.waterDetected ? "OK" : "LOW / NONE"} | Status: ${data.statusLabel || "--"} | Cloud Mode: ${selectedMode.toUpperCase()}`;
+      if (activeFishProfile) summary += ` | Active Fish: ${activeFishProfile.name}`;
+      els.analyticsSummary.innerText = summary;
+
+      updateFishProfileUI();
+      updateManualControlUI();
+      els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+      els.accountMode.innerText = selectedMode.toUpperCase();
+    }
+
+    function updateAI(data) {
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const fishSuitability = getFishSuitability(activeFishProfile, data);
+
+      let summary = "System Stable";
+      let details = "All major readings are within expected operating conditions.";
+      let risk = "LOW RISK";
+      let color = "green";
+
+      if (data.systemStopped) {
+        summary = "System Stopped";
+        details = "The system has been manually stopped. Protection logic is currently disabled.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (!data.waterDetected) {
+        summary = "Critical Water Warning";
+        details = "Water is not being detected normally. This may indicate a low-water condition or unsafe operating state.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.temperature) >= 32) {
+        summary = "Critical High Temperature";
+        details = `The water temperature is critically high at ${formatTemp(Number(data.temperature))}. Immediate cooling intervention may be needed.`;
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (Number(data.temperature) >= 30) {
+        summary = "High Temperature Detected";
+        details = `The water temperature is above the preferred range at ${formatTemp(Number(data.temperature))}.`;
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      } else if (Number(data.temperature) < 24) {
+        summary = "Low Temperature Detected";
+        details = `The water temperature is below the lower control threshold at ${formatTemp(Number(data.temperature))}.`;
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      } else if (turbidityInfo.label === "SERIOUS") {
+        summary = "Critical Turbidity Warning";
+        details = "The water appears extremely cloudy, suggesting severe waste suspension or instability.";
+        risk = "HIGH RISK";
+        color = "red";
+      } else if (turbidityInfo.label === "BAD") {
+        summary = "Bad Turbidity Detected";
+        details = "The water is in a poor turbidity range. Action is recommended soon.";
+        risk = "HIGH RISK";
+        color = "orange";
+      } else if (turbidityInfo.label === "MILD") {
+        summary = "Mild Turbidity Detected";
+        details = "The water is slightly cloudy. Monitor the system closely.";
+        risk = "MEDIUM RISK";
+        color = "yellow";
+      }
+
+      if (activeFishProfile) details += ` Active fish profile: ${activeFishProfile.name}. ${fishSuitability.message}`;
+      details += ` Current cloud mode is ${selectedMode.toUpperCase()}.`;
+
+      els.aiSummary.innerText = summary;
+      els.aiDetails.innerText = details;
+      els.riskText.innerText = risk;
+      els.riskBadge.innerHTML = `<span class="dot ${color}"></span><span>${risk}</span>`;
+    }
+
+    function fillPrompt(text) {
+      els.aiPrompt.value = text;
+    }
+    window.fillPrompt = fillPrompt;
+
+    function askAI() {
+      if (!latestData) {
+        els.aiResponse.innerText = "No live data available yet.";
+        return;
+      }
+
+      const data = getLiveDataWithDemo(latestData);
+      const turbidityInfo = getTurbidityInfo(data.turbidity);
+      const fishSuitability = getFishSuitability(activeFishProfile, data);
+      const tankResult = getTankSizeSuitability(activeFishProfile);
+      const prompt = els.aiPrompt.value.toLowerCase().trim();
+      let response = "";
+
+      if (prompt.includes("stable")) {
+        if (data.systemStopped) response = "The system is currently stopped, so it cannot actively maintain stability.";
+        else if (!data.waterDetected) response = "No. The tank is not fully stable because the water sensor is reporting a low or missing water condition.";
+        else if (Number(data.temperature) < 24 || Number(data.temperature) > 30 || Number(data.turbidity) >= 2200) response = "The tank is not fully stable right now. One or more readings are outside the preferred range.";
+        else response = "Yes. Based on temperature, water detection, and turbidity, the tank appears stable at the moment.";
+      } else if (prompt.includes("pump")) {
+        response = data.pump ? "The pump is currently ON. This is usually because turbidity is elevated or because the system previously triggered a response." : "The pump is currently OFF. That suggests turbidity is within the acceptable range or the system is not demanding extra circulation.";
+      } else if (prompt.includes("heater")) {
+        response = data.heater ? "The heater is ON because the system has detected temperature below the lower threshold or it was manually set." : "The heater is OFF because the temperature is currently acceptable or above the threshold.";
+      } else if (prompt.includes("tank size")) {
+        response = tankResult.message;
+      } else if (prompt.includes("light")) {
+        response = data.light ? "The light is ON. It may be on because of schedule control or manual control." : "The light is OFF. It may be outside the scheduled period or manually disabled.";
+      } else if (prompt.includes("manual") || prompt.includes("auto mode") || prompt.includes("control mode")) {
+        response = `The current cloud control mode is ${selectedMode.toUpperCase()}. The website is saving this to Firebase, and the ESP32 will follow it once the controller reads cloud mode.`;
+      } else if (prompt.includes("ammonia") || prompt.includes("nitrate") || prompt.includes("nitrite")) {
+        response = "This system does not directly measure ammonia, nitrate, or nitrite. However, elevated turbidity can suggest rising waste load and possible water quality decline if left unmanaged.";
+      } else if (prompt.includes("water quality")) {
+        response = Number(data.turbidity) >= 2200
+          ? `Water quality may be declining. The turbidity is currently in the ${turbidityInfo.label} range, which suggests cloudiness, suspended waste, or instability.`
+          : `Water quality appears acceptable at the moment. The turbidity is currently in the ${turbidityInfo.label} range.`;
+      } else if (prompt.includes("turbidity")) {
+        response = `The current turbidity is ${data.turbidity}, which is in the ${turbidityInfo.label} range. ${turbidityInfo.meaning}`;
+      } else if (prompt.includes("selected fish") || prompt.includes("my fish") || prompt.includes("good for")) {
+        if (!activeFishProfile) response = "No fish profile is currently selected. Choose a category and species first.";
+        else response = `${activeFishProfile.name}: ${fishSuitability.message} ${tankResult.message}`;
+      } else if (prompt.includes("what should i do")) {
+        response = getRecommendedAction(data);
+      } else {
+        response = "I can answer questions about stability, heater status, pump status, light status, water quality, turbidity meaning, control mode, tank size, and whether the current water suits your selected fish profile.";
+      }
+
+      els.aiResponse.innerText = response;
+    }
+
+    async function loadCloudMode() {
+      try {
+        const snap = await get(ref(db, "ecoguard/control/mode"));
+        if (snap.exists()) {
+          selectedMode = String(snap.val()).toLowerCase() === "manual" ? "manual" : "auto";
+        } else {
+          selectedMode = "auto";
+        }
+      } catch {
+        selectedMode = "auto";
+      }
+
+      els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+      els.modeSaveStatus.innerText = `Current cloud mode: ${selectedMode.toUpperCase()}`;
+      els.accountMode.innerText = selectedMode.toUpperCase();
+      els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+      updateManualControlUI();
+    }
+
+    async function saveCloudMode() {
+      try {
+        await set(ref(db, "ecoguard/control/mode"), selectedMode);
+        els.modeSaveStatus.innerText = `Saved cloud mode: ${selectedMode.toUpperCase()}`;
+        els.accountMode.innerText = selectedMode.toUpperCase();
+        els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+        updateManualControlUI();
+      } catch (err) {
+        els.modeSaveStatus.innerText = `Failed to save mode: ${err.message}`;
+      }
+    }
+
+    async function loadManualStates() {
+      try {
+        const snap = await get(ref(db, "ecoguard/control/manual"));
+        if (snap.exists()) {
+          const val = snap.val() || {};
+          manualStates.heater = getBool(val.heater);
+          manualStates.pump = getBool(val.pump);
+          manualStates.light = getBool(val.light);
+        } else {
+          manualStates = { heater: false, pump: false, light: false };
+        }
+      } catch {
+        manualStates = { heater: false, pump: false, light: false };
+      }
+
+      updateManualControlUI();
+    }
+
+    function updateManualControlUI() {
+      if (els.heaterManualState) els.heaterManualState.innerText = manualStates.heater ? "ON" : "OFF";
+      if (els.pumpManualState) els.pumpManualState.innerText = manualStates.pump ? "ON" : "OFF";
+      if (els.lightManualState) els.lightManualState.innerText = manualStates.light ? "ON" : "OFF";
+
+      if (!els.manualControlStatus) return;
+
+      if (selectedMode !== "manual") {
+        els.manualControlStatus.innerText = "Manual outputs are disabled until MANUAL mode is saved.";
+      } else {
+        els.manualControlStatus.innerText = "Manual outputs are active.";
+      }
+    }
+
+    async function saveManualOutput(device, state) {
+      if (selectedMode !== "manual") {
+        els.manualControlStatus.innerText = "Switch to MANUAL mode first, then click Save Mode.";
+        return;
+      }
+
+      try {
+        await set(ref(db, `ecoguard/control/manual/${device}`), state);
+        manualStates[device] = state;
+        updateManualControlUI();
+        els.manualControlStatus.innerText = `${device} manually set to ${state ? "ON" : "OFF"}.`;
+
+        if (latestData) {
+          const data = getLiveDataWithDemo(latestData);
+          updateHome(data);
+          updateAI(data);
+        }
+      } catch (err) {
+        els.manualControlStatus.innerText = `Failed to update ${device}: ${err.message}`;
+      }
+    }
+
+    function getCurrentPreferencePayload() {
+      return {
+        selectedMode,
+        activeFishProfile: activeFishProfile || null,
+        tankSizeL,
+        temperatureUnit,
+        updatedAt: Date.now()
+      };
+    }
+
+    async function saveUserPreferences() {
+      tankSizeL = Number(els.tankSizeInput.value || tankSizeL || 0);
+      localStorage.setItem("ecoguard_tankSizeL", String(tankSizeL));
+
+      if (!currentUser) {
+        els.authStatus.innerText = "Please log in first to save preferences.";
+        updateFishProfileUI();
+        return;
+      }
+
+      try {
+        await set(ref(db, `users/${currentUser.uid}/preferences`), getCurrentPreferencePayload());
+        els.authStatus.innerText = `Preferences saved for ${currentUser.email}`;
+      } catch (err) {
+        els.authStatus.innerText = `Failed to save preferences: ${err.message}`;
+      }
+    }
+
+    async function loadUserPreferences(uid) {
+      try {
+        const snap = await get(ref(db, `users/${uid}/preferences`));
+        if (!snap.exists()) return;
+
+        const prefs = snap.val() || {};
+        selectedMode = prefs.selectedMode === "manual" ? "manual" : "auto";
+        tankSizeL = Number(prefs.tankSizeL || 0);
+
+        if (prefs.temperatureUnit === "F" || prefs.temperatureUnit === "C") {
+          temperatureUnit = prefs.temperatureUnit;
+        }
+
+        if (prefs.activeFishProfile) {
+          activeFishProfile = prefs.activeFishProfile;
+          localStorage.setItem("ecoguard_activeFishProfile", JSON.stringify(activeFishProfile));
+          els.categorySelect.value = activeFishProfile.source || "tropical";
+          populateSpeciesDropdown();
+          els.speciesSelect.value = activeFishProfile.key || "";
+        }
+
+        els.tankSizeInput.value = tankSizeL || "";
+        localStorage.setItem("ecoguard_tankSizeL", String(tankSizeL));
+        updateFishProfileUI();
+        setUnit(temperatureUnit);
+
+        els.modeWidgetVal.innerText = selectedMode.toUpperCase();
+        els.modeSaveStatus.innerText = `Loaded cloud mode: ${selectedMode.toUpperCase()}`;
+        els.accountMode.innerText = selectedMode.toUpperCase();
+        els.deviceModePageVal.innerText = selectedMode.toUpperCase();
+      } catch (err) {
+        els.authStatus.innerText = `Failed to load preferences: ${err.message}`;
+      }
+    }
+
+    function updateVerificationUI(user) {
+      if (!user) {
+        els.verifyStatus.innerHTML = `Verification status: <span class="not-verified">Not signed in</span>`;
+        els.accountEmail.textContent = "--";
+        return;
+      }
+
+      els.accountEmail.textContent = user.email || "--";
+
+      if (user.emailVerified) {
+        els.verifyStatus.innerHTML = `Verification status: <span class="verified">Verified</span>`;
+      } else {
+        els.verifyStatus.innerHTML = `Verification status: <span class="not-verified">Not verified</span>`;
+      }
+    }
+
+    async function resendVerificationEmail() {
+      if (!currentUser) {
+        els.authStatus.innerText = "Please log in first.";
+        return;
+      }
+
+      try {
+        await sendEmailVerification(currentUser);
+        els.authStatus.innerText = "Verification email sent.";
+      } catch (err) {
+        els.authStatus.innerText = `Could not send verification email: ${err.message}`;
+      }
+    }
+
+    function setUnit(unit) {
+      temperatureUnit = unit;
+      localStorage.setItem("ecoguard_unit", unit);
+      els.unitCBtn.classList.toggle("active", unit === "C");
+      els.unitFBtn.classList.toggle("active", unit === "F");
+
+      updateFishProfileUI();
+
+      if (latestData) {
+        const data = getLiveDataWithDemo(latestData);
+        updateHome(data);
+        updateAI(data);
+        rebuildGraphs();
+      }
+    }
+    window.setUnit = setUnit;
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch(LOGS_URL, { cache: "no-store" });
+        const data = await res.json();
+        logsData = data?.items || [];
+      } catch {
+        logsData = [];
+      }
+    }
+
+    async function fetchLiveData() {
+      try {
+        const res = await fetch(LIVE_URL, { cache: "no-store" });
+        const rawData = await res.json();
+        if (!rawData) throw new Error("No data");
+
+        latestData = rawData;
+        const data = getLiveDataWithDemo(rawData);
+
+        updateConnectionState(true);
+        updateLastUpdated();
+
+        pushHistory({
+          temp: Number(data.temperature || 0),
+          turb: Number(data.turbidity || 0),
+          water: data.waterDetected ? 1 : 0,
+          label: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        });
+
+        updateHome(data);
+        updateAI(data);
+        updateAlertBanner(data);
+        rebuildGraphs();
+        checkForNotifications(data);
+      } catch (e) {
+        updateConnectionState(false);
+        console.log("Firebase fetch error:", e);
+      }
+    }
+
+    function bindEvents() {
+      document.getElementById("signupBtn").addEventListener("click", async () => {
+        const email = els.emailInput.value.trim();
+        const password = els.passwordInput.value;
+
+        if (!email || !password) {
+          els.authStatus.innerText = "Enter email and password first.";
+          return;
+        }
+
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await sendEmailVerification(cred.user);
+          els.authStatus.innerText = "Account created. Verification email sent.";
+          updateVerificationUI(cred.user);
+        } catch (err) {
+          els.authStatus.innerText = `Sign up failed: ${err.message}`;
+        }
+      });
+
+      document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = els.emailInput.value.trim();
+        const password = els.passwordInput.value;
+
+        if (!email || !password) {
+          els.authStatus.innerText = "Enter email and password first.";
+          return;
+        }
+
+        try {
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          await cred.user.reload();
+          currentUser = auth.currentUser;
+          els.authStatus.innerText = `Logged in as ${currentUser.email}`;
+          updateVerificationUI(currentUser);
+        } catch (err) {
+          els.authStatus.innerText = `Login failed: ${err.message}`;
+        }
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        try {
+          await signOut(auth);
+          els.authStatus.innerText = "Logged out.";
+          updateVerificationUI(null);
+          els.accountEmail.innerText = "--";
+        } catch (err) {
+          els.authStatus.innerText = `Logout failed: ${err.message}`;
+        }
+      });
+
+      document.getElementById("verifyBtn").addEventListener("click", resendVerificationEmail);
+      document.getElementById("savePrefsBtn").addEventListener("click", saveUserPreferences);
+      document.getElementById("enableNotifyBtn").addEventListener("click", enableBrowserNotifications);
+      document.getElementById("testNotifyBtn").addEventListener("click", () => {
+        sendBrowserNotification("EcoGuard Test Alert", "Browser alerts are working.");
+      });
+      document.getElementById("askAIBtn").addEventListener("click", askAI);
+
+      document.getElementById("setAutoBtn").addEventListener("click", () => {
+        selectedMode = "auto";
+        els.modeWidgetVal.innerText = "AUTO";
+        els.modeSaveStatus.innerText = "AUTO selected. Click Save Mode to write it to Firebase.";
+        els.deviceModePageVal.innerText = "AUTO";
+        updateManualControlUI();
+      });
+
+      document.getElementById("setManualBtn").addEventListener("click", () => {
+        selectedMode = "manual";
+        els.modeWidgetVal.innerText = "MANUAL";
+        els.modeSaveStatus.innerText = "MANUAL selected. Click Save Mode to write it to Firebase.";
+        els.deviceModePageVal.innerText = "MANUAL";
+        updateManualControlUI();
+      });
+
+      document.getElementById("saveModeBtn").addEventListener("click", saveCloudMode);
+
+      document.getElementById("heaterOnBtn").addEventListener("click", () => saveManualOutput("heater", true));
+      document.getElementById("heaterOffBtn").addEventListener("click", () => saveManualOutput("heater", false));
+
+      document.getElementById("pumpOnBtn").addEventListener("click", () => saveManualOutput("pump", true));
+      document.getElementById("pumpOffBtn").addEventListener("click", () => saveManualOutput("pump", false));
+
+      document.getElementById("lightOnBtn").addEventListener("click", () => saveManualOutput("light", true));
+      document.getElementById("lightOffBtn").addEventListener("click", () => saveManualOutput("light", false));
+
+      els.tankSizeInput.addEventListener("input", () => {
+        tankSizeL = Number(els.tankSizeInput.value || 0);
+        localStorage.setItem("ecoguard_tankSizeL", String(tankSizeL));
+        updateFishProfileUI();
+      });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+
+      if (user) {
+        await user.reload();
+        currentUser = auth.currentUser;
+        els.authStatus.innerText = `Signed in as ${currentUser.email}. Preferences can be saved to the cloud.`;
+        updateVerificationUI(currentUser);
+        await loadUserPreferences(currentUser.uid);
+      } else {
+        els.authStatus.innerText = "Not signed in.";
+        updateVerificationUI(null);
+        els.accountMode.innerText = selectedMode.toUpperCase();
+      }
+
+      updateFishProfileUI();
+    });
+
+    async function refreshAll() {
+      await Promise.all([fetchLogs(), loadCloudMode(), loadManualStates(), fetchLiveData()]);
+      updateLogs();
+      updateRefreshAge();
+    }
+
+    if (tankSizeL) {
+      els.tankSizeInput.value = tankSizeL;
+    }
+
+    populateSpeciesDropdown();
+    bindEvents();
+    setUnit(temperatureUnit);
+    rebuildGraphs();
+    updateFishProfileUI();
+    updateManualControlUI();
+    refreshAll();
+
+    setInterval(refreshAll, 5000);
+    setInterval(updateRefreshAge, 1000);
+    setInterval(tickDisplayedRuntime, 1000);
+  </script>
 </body>
 </html>
