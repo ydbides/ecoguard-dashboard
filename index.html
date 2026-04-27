@@ -252,14 +252,21 @@ body::after{
 .tile-val{
   font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;
   color:var(--t0);line-height:1;margin-bottom:10px;
+  transition:color .6s ease, opacity .3s ease;
 }
 .tile-val.sm{font-size:18px;letter-spacing:0;}
+.tile-val.val-updating{opacity:0.5;}
+.tile-hint{transition:color .5s ease;}
+.badge{transition:background .4s ease, border-color .4s ease;}
+.sb-fill{transition:width 1.5s cubic-bezier(.4,0,.2,1),background 1s ease,box-shadow 1s ease;}
+.gauge-fill{transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1);}
 .tile-hint{font-size:11px;color:var(--t2);line-height:1.5;margin-top:8px;}
 
 /* Actuator tiles — subtle green/orange tint when active */
 .tile-act-on{background:rgba(0,230,118,0.04);border-color:rgba(0,230,118,0.15);}
 .tile-act-on::after{background:linear-gradient(90deg,transparent,rgba(0,230,118,0.25),transparent);}
 .tile-act-off{background:rgba(8,18,35,0.5);}
+.tile{transition:background .8s ease, border-color .8s ease;}
 
 /* ─── BADGES ─── */
 .badge{
@@ -943,7 +950,7 @@ select option{background:#060d18;}
         <span class="ilabel">Password</span><input type="password" id="passwordInput" placeholder="Enter password">
         <div class="btn-row"><button class="btn-c" id="signupBtn">+ Sign Up</button><button class="btn-g" id="loginBtn">→ Log In</button><button class="btn-dim" id="logoutBtn">Log Out</button></div>
         <div class="btn-row"><button class="btn-o" id="verifyBtn">📧 Resend Verification</button></div>
-        <div class="account-status" id="authStatus">Not signed in. (Simulated — Firebase auth disabled)</div>
+        <div class="account-status" id="authStatus">Not signed in.</div>
         <div class="account-status" id="verifyStatus">Verification: <span class="not-verified">Not signed in</span></div>
       </div>
       <div class="card"><div class="card-label">Saved User Info</div>
@@ -1089,6 +1096,8 @@ const app  = initializeApp(firebaseConfig);
 const db   = getDatabase(app);
 const auth = getAuth(app);
 try { getAnalytics(app); } catch(_) {}
+
+
 
 // ── FIREBASE PATHS ─────────────────────────────────────────────────
 const LIVE_PATH          = "ecoguard/live";
@@ -1667,12 +1676,118 @@ function computeHealth(data){
 }
 
 // ── MAIN UI UPDATE ─────────────────────────────────────────────────
+// ── DISPLAY STABILITY SYSTEM ──────────────────────────────────────────────────
+//
+// Problem: Firebase onValue fires TWICE per Pi write — once with stale local
+// cache, then again with the confirmed server value. This causes values to
+// flash old → new → old → new every 3 seconds.
+//
+// Solution — three layers:
+//   1. Ignore updates that arrive too close together (< 2s apart)
+//   2. Only update a displayed value if it changed by more than a threshold
+//   3. Keep a running average of the last few readings to smooth noise
+
+const _display = {
+  lastUpdateTime: 0,
+  minInterval:    2500,      // ms — ignore updates faster than this
+  buf:            {},        // rolling average buffers per key
+  bufSize:        5,         // readings to average
+  shown:          {},        // last value actually shown on screen
+  thresholds: {              // minimum change before updating display
+    temp:    0.2,            // °C — ignore changes smaller than 0.2°C
+    ph:      0.05,           // pH — ignore changes smaller than 0.05
+    voltage: 0.1,            // V
+    turbidity: 50,           // numeric — ignore small turb fluctuations
+    health:  2,              // % health score
+    default: 0,              // for text/boolean fields — any change shown
+  }
+};
+
+function _addToBuf(key, val){
+  if(!_display.buf[key]) _display.buf[key] = [];
+  _display.buf[key].push(val);
+  if(_display.buf[key].length > _display.bufSize) _display.buf[key].shift();
+  const arr = _display.buf[key];
+  return Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*1000)/1000;
+}
+
+function _hasChangedEnough(key, newVal){
+  const threshold = _display.thresholds[key] ?? _display.thresholds.default;
+  const oldVal    = _display.shown[key];
+  if(oldVal === undefined) return true;            // first reading — always show
+  if(typeof newVal !== 'number') return String(newVal) !== String(oldVal); // text
+  return Math.abs(newVal - oldVal) >= threshold;
+}
+
+// Smart DOM setter — only updates if value meaningfully changed
+const _lastVals = {};
+function s(id, v){
+  const el=$(id); if(!el) return;
+  const str = String(v ?? '');
+  if(_lastVals[id] === str) return;  // identical — skip entirely
+  _lastVals[id] = str;
+  el.classList.add('val-updating');
+  requestAnimationFrame(()=>{
+    el.textContent = str;
+    requestAnimationFrame(()=> el.classList.remove('val-updating'));
+  });
+}
+
+// Stable update gate — returns true if enough time has passed AND data changed
+function _shouldUpdate(data){
+  const now = Date.now();
+  // Allow the very first update through immediately
+  if(!_display.lastUpdateTime) return true;
+  // Block updates that arrive within minInterval (Firebase double-fire)
+  if(now - _display.lastUpdateTime < _display.minInterval) return false;
+  return true;
+}
+
 function updateUI(data){
+  // ── Gate: skip if too soon (Firebase fires twice per write) ──────────────
+  if(!_shouldUpdate(data)) return;
+  _display.lastUpdateTime = Date.now();
+
+  // ── Smooth analog values through rolling average ──────────────────────────
+  if(data.temperature != null){
+    const smoothed = _addToBuf('temp', data.temperature);
+    if(_hasChangedEnough('temp', smoothed)){
+      _display.shown.temp = smoothed;
+      data.temperature = smoothed;
+    } else {
+      data.temperature = _display.shown.temp ?? data.temperature;
+    }
+  }
+  if(data.ph != null){
+    const smoothed = _addToBuf('ph', data.ph);
+    if(_hasChangedEnough('ph', smoothed)){
+      _display.shown.ph = smoothed;
+      data.ph = smoothed;
+    } else {
+      data.ph = _display.shown.ph ?? data.ph;
+    }
+  }
+  if(data.voltage != null){
+    const smoothed = _addToBuf('voltage', data.voltage);
+    if(_hasChangedEnough('voltage', smoothed)){
+      _display.shown.voltage = smoothed;
+      data.voltage = smoothed;
+    } else {
+      data.voltage = _display.shown.voltage ?? data.voltage;
+    }
+  }
+  if(data.healthScore != null){
+    if(_hasChangedEnough('health', data.healthScore)){
+      _display.shown.health = data.healthScore;
+    } else {
+      data.healthScore = _display.shown.health ?? data.healthScore;
+    }
+  }
+
   const tI=getTempInfo(data.temperature), wI=getWaterInfo(data.waterDetected);
   const tbI=getTurbInfo(data.turbidity);
   const phI=data.ph!=null?getPhInfo(data.ph):{label:"NO SENSOR",cls:"dot-y",col:"var(--y)",sev:"none",meaning:"pH sensor not connected."};
   const hI=getOnOff(data.heater), pI=getOnOff(data.pump), lI=getOnOff(data.light);
-  const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
 
   // Sensor tiles
   s("tempVal",formatTemp(Number(data.temperature||0)));
