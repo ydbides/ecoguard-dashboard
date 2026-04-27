@@ -2108,6 +2108,19 @@ function startLiveListener(){
     setConnected(true);
     if(!snapshot.exists()){setConnected(false);return;}
     const raw=snapshot.val();
+
+    // ── STALENESS CHECK ────────────────────────────────────────────────────
+    // Firebase onValue fires twice per Pi write: first with stale local cache,
+    // then with the confirmed server value. The stale fire causes values to
+    // flicker back to old data. We ignore it by checking updatedAtMs —
+    // if the data is older than 30s and we already have data displayed,
+    // keep showing what we have until fresh data arrives.
+    const dataAge = raw.updatedAtMs ? Date.now() - Number(raw.updatedAtMs) : 0;
+    if(latestData && dataAge > 30000){
+      // Stale cache fire — silently ignore, keep current display
+      return;
+    }
+
     const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
     const turb=Number(raw.turbidity??0);
 
