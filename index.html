@@ -1073,7 +1073,7 @@ select option{background:#060d18;}
 // ═══════════════════════════════════════════════════════════════════
 
 import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, get, set, goOnline } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, onAuthStateChanged, sendEmailVerification
@@ -1095,6 +1095,10 @@ const app  = initializeApp(firebaseConfig);
 const db   = getDatabase(app);
 const auth = getAuth(app);
 try { getAnalytics(app); } catch(_) {}
+
+// Force online-only — prevents Firebase using stale IndexedDB cache
+// which is what causes values to flicker back to old data
+try { goOnline(db); } catch(_) {}
 
 
 
@@ -1153,6 +1157,7 @@ let waterHistory      = JSON.parse(localStorage.getItem("ecoguard_waterHistory")
 let phHistory         = JSON.parse(localStorage.getItem("ecoguard_phHistory")    || "[]");
 let labelHistory      = JSON.parse(localStorage.getItem("ecoguard_labelHistory") || "[]");
 let latestData        = null;
+let _lastUpdatedAtMs  = null;  // dedup Firebase double-fires
 let logsData          = [];
 let currentUser       = null;
 let lastFetchAt       = null;
@@ -2109,17 +2114,11 @@ function startLiveListener(){
     if(!snapshot.exists()){setConnected(false);return;}
     const raw=snapshot.val();
 
-    // ── STALENESS CHECK ────────────────────────────────────────────────────
-    // Firebase onValue fires twice per Pi write: first with stale local cache,
-    // then with the confirmed server value. The stale fire causes values to
-    // flicker back to old data. We ignore it by checking updatedAtMs —
-    // if the data is older than 30s and we already have data displayed,
-    // keep showing what we have until fresh data arrives.
-    const dataAge = raw.updatedAtMs ? Date.now() - Number(raw.updatedAtMs) : 0;
-    if(latestData && dataAge > 30000){
-      // Stale cache fire — silently ignore, keep current display
-      return;
-    }
+    // ── DEDUP: ignore repeat fires with identical timestamp ─────────────────
+    // Firebase can fire onValue multiple times with the same data.
+    // If updatedAtMs hasn't changed, we already processed this — skip.
+    if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
+    _lastUpdatedAtMs = raw.updatedAtMs ?? null;
 
     const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
     const turb=Number(raw.turbidity??0);
