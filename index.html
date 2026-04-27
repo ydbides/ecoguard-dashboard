@@ -252,14 +252,13 @@ body::after{
 .tile-val{
   font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;
   color:var(--t0);line-height:1;margin-bottom:10px;
-  transition:color .6s ease, opacity .3s ease;
+  transition:color 1s ease;
 }
 .tile-val.sm{font-size:18px;letter-spacing:0;}
-.tile-val.val-updating{opacity:0.5;}
-.tile-hint{transition:color .5s ease;}
-.badge{transition:background .4s ease, border-color .4s ease;}
-.sb-fill{transition:width 1.5s cubic-bezier(.4,0,.2,1),background 1s ease,box-shadow 1s ease;}
-.gauge-fill{transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1);}
+.tile-hint{transition:color .8s ease;}
+.badge{transition:background .6s ease, border-color .6s ease;}
+.sb-fill{transition:width 2s cubic-bezier(.4,0,.2,1),background 1.2s ease,box-shadow 1.2s ease;}
+.gauge-fill{transition:stroke-dashoffset 2.5s cubic-bezier(.4,0,.2,1);}
 .tile-hint{font-size:11px;color:var(--t2);line-height:1.5;margin-top:8px;}
 
 /* Actuator tiles — subtle green/orange tint when active */
@@ -1689,7 +1688,7 @@ function computeHealth(data){
 
 const _display = {
   lastUpdateTime: 0,
-  minInterval:    2500,      // ms — ignore updates faster than this
+  minInterval:    4000,      // ms — slightly less than Firebase write interval (5s)
   buf:            {},        // rolling average buffers per key
   bufSize:        5,         // readings to average
   shown:          {},        // last value actually shown on screen
@@ -1719,18 +1718,16 @@ function _hasChangedEnough(key, newVal){
   return Math.abs(newVal - oldVal) >= threshold;
 }
 
-// Smart DOM setter — only updates if value meaningfully changed
+// Smart DOM setter — only updates DOM when value actually changed
+// No flash, no opacity change — just silently updates the text
+// CSS transitions on .tile-val handle the smooth colour change
 const _lastVals = {};
 function s(id, v){
   const el=$(id); if(!el) return;
   const str = String(v ?? '');
-  if(_lastVals[id] === str) return;  // identical — skip entirely
+  if(_lastVals[id] === str) return;  // identical — skip DOM write entirely
   _lastVals[id] = str;
-  el.classList.add('val-updating');
-  requestAnimationFrame(()=>{
-    el.textContent = str;
-    requestAnimationFrame(()=> el.classList.remove('val-updating'));
-  });
+  el.textContent = str;              // direct update — CSS transition does the rest
 }
 
 // Stable update gate — returns true if enough time has passed AND data changed
