@@ -2212,6 +2212,21 @@ function processLiveData(raw){
   if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
   _lastUpdatedAtMs = raw.updatedAtMs ?? null;
 
+  // Pi just started — show connecting state, don't render reset values as real data
+  if(raw.statusLabel === "STARTING"){
+    const sd=$("statusDot");
+    if(sd){sd.style.background="var(--cyan)";sd.style.boxShadow="0 0 6px var(--cyan)";}
+    const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+    s("statusTextHero","STARTING");
+    s("statusVal","STARTING");
+    s("summaryStatus","Starting up...");
+    s("recommendedAction","Waiting for sensors to warm up...");
+    s("healthScoreBig","--");
+    setGauge(0);
+    console.log("Pi is starting up — holding display until real data arrives");
+    return;
+  }
+
   const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
   const turb=Number(raw.turbidity??0);
 
