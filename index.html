@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+]<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -2157,7 +2157,6 @@ async function fetchRootOnce(){
     rootWaterStr = waterSnap.exists() ? String(waterSnap.val()) : null;
     rootVoltage  = voltSnap.exists()  ? Number(voltSnap.val())  : null;
     const el=$("deviceVoltageVal"); if(el)el.textContent=rootVoltage!=null?`${rootVoltage}V`:"--";
-
     if(modeSnap.exists()){
       controlMode=String(modeSnap.val());
       syncControlPanel(controlMode);
@@ -2167,62 +2166,48 @@ async function fetchRootOnce(){
   } catch(e){ console.warn("Root fetch error:",e); }
 }
 
-// ── REAL CONNECTION STATE ─────────────────────────────────────────────────────
-// Firebase .info/connected is the only reliable way to detect disconnection.
-// When Firebase goes offline, get() returns stale cache — we must NOT show that.
-let _firebaseReallyConnected = false;
-
-onValue(ref(db, '.info/connected'), (snap) => {
-  _firebaseReallyConnected = !!snap.val();
-  setConnected(_firebaseReallyConnected);
-
-  if(!_firebaseReallyConnected){
-    // Freeze the display — show disconnected state, don't overwrite with cache
-    const dots=["onlineDot","onlineDotHero"];
-    dots.forEach(id=>{const e=$(id);if(e)e.className="dot dot-r";});
-    ["connectionText","connectionTextHero"].forEach(id=>{const e=$(id);if(e)e.textContent="Firebase Offline";});
-    // Show offline banner
-    const banner=$("alertBanner");
-    if(banner){
-      banner.style.display="flex";
-      banner.innerHTML='<span style="font-size:18px;">📡</span><div><strong>Firebase Offline</strong> — Showing last known values. Reconnecting...</div>';
-    }
-    console.warn("Firebase disconnected — display frozen");
-  } else {
-    // Reconnected — fetch fresh data immediately
-    console.log("Firebase reconnected — fetching fresh data");
-    fetchLiveOnce();
-    fetchRootOnce();
-  }
-});
-
 function startRootListeners(){
-  // onValue for instant updates on root fields
+  fetchRootOnce();
+  onValue(ref(db,"ecoguard/turbidity"), snap=>{ rootTurbStr=snap.exists()?String(snap.val()):null; });
+  onValue(ref(db,"ecoguard/water"),     snap=>{ rootWaterStr=snap.exists()?String(snap.val()):null; });
+  onValue(ref(db,"ecoguard/voltage"),   snap=>{
+    rootVoltage=snap.exists()?Number(snap.val()):null;
+    const el=$("deviceVoltageVal"); if(el)el.textContent=rootVoltage!=null?`${rootVoltage}V`:"--";
+  });
+  onValue(ref(db,"ecoguard/control/mode"), snap=>{
+    if(!snap.exists()) return;
+    controlMode=String(snap.val());
+    syncControlPanel(controlMode);
+    const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
+    const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
+  });
+  // Connection state monitor
+  onValue(ref(db,'.info/connected'), snap=>{
+    const connected = !!snap.val();
+    setConnected(connected);
+    if(!connected){
+      const banner=$("alertBanner");
+      if(banner){ banner.style.display="flex"; banner.innerHTML='<span style="font-size:18px;">📡</span><div><strong>Firebase Offline</strong> — Showing last known values. Reconnecting...</div>'; }
+    }
+  });
+}
 
-// ── FIREBASE LIVE LISTENER ─────────────────────────────────────────
-// Uses get() polling instead of onValue() to avoid the Firebase SDK
-// local cache double-fire that caused values to flicker back to old data.
-// get() always fetches directly from the server — no stale cache, ever.
 function processLiveData(raw){
   if(!raw){setConnected(false);return;}
   setConnected(true);
 
-  // Skip if timestamp hasn't changed — same data, no need to re-render
+  // Skip if timestamp hasn't changed
   if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
   _lastUpdatedAtMs = raw.updatedAtMs ?? null;
 
-  // Pi just started — show connecting state, don't render reset values as real data
+  // Pi just started — show connecting state
   if(raw.statusLabel === "STARTING"){
     const sd=$("statusDot");
     if(sd){sd.style.background="var(--cyan)";sd.style.boxShadow="0 0 6px var(--cyan)";}
-    const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
-    s("statusTextHero","STARTING");
-    s("statusVal","STARTING");
-    s("summaryStatus","Starting up...");
-    s("recommendedAction","Waiting for sensors to warm up...");
-    s("healthScoreBig","--");
-    setGauge(0);
-    console.log("Pi is starting up — holding display until real data arrives");
+    const s2=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+    s2("statusTextHero","STARTING"); s2("statusVal","STARTING");
+    s2("summaryStatus","Starting up..."); s2("recommendedAction","Waiting for sensors to warm up...");
+    s2("healthScoreBig","--"); setGauge(0);
     return;
   }
 
@@ -2257,22 +2242,20 @@ function processLiveData(raw){
   }
 
   latestData=data;
-  pushHist({temp:data.temperature,turb:data.turbidity,water:data.waterDetected?1:0,ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+  pushHist({temp:data.temperature??0,turb:data.turbidity,water:data.waterDetected?1:0,ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
   updateUI(data);
   updateAIStatusBar();
 }
 
 function startLiveListener(){
-  // onValue fires instantly the moment Pi writes new data to Firebase
-  onValue(ref(db, LIVE_PATH), snapshot => {
+  onValue(ref(db, LIVE_PATH), snapshot=>{
     processLiveData(snapshot.exists() ? snapshot.val() : null);
-  }, err => {
+  }, err=>{
     console.error("Firebase live error:", err);
     setConnected(false);
   });
 }
 
-// ── FIREBASE LOGS LISTENER ─────────────────────────────────────────
 function startLogsListener(){
   onValue(ref(db, LOGS_PATH), snap=>{
     if(!snap.exists())return;
@@ -2285,9 +2268,7 @@ function startLogsListener(){
   });
 }
 
-// ── FIREBASE AI LISTENER ───────────────────────────────────────────
 function startAIListener(){
-  // onValue fires the instant Pi 5 writes a new AI response
   onValue(ref(db, AI_PATH), snap=>{
     const aiData = snap.exists() ? snap.val() : null;
     if(aiData && aiData.updatedAt){ aiLastUpdated = Number(aiData.updatedAt); }
