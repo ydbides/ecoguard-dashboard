@@ -2092,93 +2092,133 @@ window.clearChat=clearChat;
 window.fillPrompt=q=>{const i=$("aiPrompt");if(i)i.value=q;};
 
 // ── FIREBASE ROOT LISTENERS ────────────────────────────────────────
-function startRootListeners(){
-  onValue(ref(db,"ecoguard/turbidity"),snap=>{rootTurbStr=snap.exists()?String(snap.val()):null;});
-  onValue(ref(db,"ecoguard/water"),    snap=>{rootWaterStr=snap.exists()?String(snap.val()):null;});
-  onValue(ref(db,"ecoguard/voltage"),  snap=>{rootVoltage=snap.exists()?Number(snap.val()):null;
+async function fetchRootOnce(){
+  try{
+    const [turbSnap, waterSnap, voltSnap, modeSnap] = await Promise.all([
+      get(ref(db,"ecoguard/turbidity")),
+      get(ref(db,"ecoguard/water")),
+      get(ref(db,"ecoguard/voltage")),
+      get(ref(db,"ecoguard/control/mode")),
+    ]);
+    rootTurbStr  = turbSnap.exists()  ? String(turbSnap.val())  : null;
+    rootWaterStr = waterSnap.exists() ? String(waterSnap.val()) : null;
+    rootVoltage  = voltSnap.exists()  ? Number(voltSnap.val())  : null;
     const el=$("deviceVoltageVal"); if(el)el.textContent=rootVoltage!=null?`${rootVoltage}V`:"--";
-  });
-  onValue(ref(db,"ecoguard/control/mode"),snap=>{
-    controlMode=snap.exists()?String(snap.val()):"auto";
-    if(latestData)latestData.controlMode=controlMode;
-    const mw=$("modeWidgetVal"); if(mw){mw.textContent=controlMode.toUpperCase();mw.className=`mode-big ${controlMode==="auto"?"auto":"manual"}`;}
-    const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
-    const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
-  });
+
+    if(modeSnap.exists()){
+      controlMode=String(modeSnap.val());
+      const mw=$("modeWidgetVal"); if(mw){mw.textContent=controlMode.toUpperCase();mw.className=`mode-big ${controlMode==="auto"?"auto":"manual"}`;}
+      const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
+      const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
+    }
+  } catch(e){ console.warn("Root fetch error:",e); }
+}
+
+function startRootListeners(){
+  // Poll root fields every 10s — these change rarely
+  fetchRootOnce();
+  setInterval(fetchRootOnce, 10000);
 }
 
 // ── FIREBASE LIVE LISTENER ─────────────────────────────────────────
+// Uses get() polling instead of onValue() to avoid the Firebase SDK
+// local cache double-fire that caused values to flicker back to old data.
+// get() always fetches directly from the server — no stale cache, ever.
+function processLiveData(raw){
+  if(!raw){setConnected(false);return;}
+  setConnected(true);
+
+  // Skip if timestamp hasn't changed — same data, no need to re-render
+  if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
+  _lastUpdatedAtMs = raw.updatedAtMs ?? null;
+
+  const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
+  const turb=Number(raw.turbidity??0);
+
+  const data={
+    temperature:   Number(raw.temperature??0),
+    turbidity:     turb,
+    turbidityStr:  raw.turbidityStr??rootTurbStr??null,
+    waterDetected: waterBool,
+    ph:            raw.ph!=null?Number(raw.ph):null,
+    heater:        Boolean(raw.heater??false),
+    pump:          Boolean(raw.pump??false),
+    light:         Boolean(raw.light??false),
+    heaterRuntime: Number(raw.heaterRuntime??0),
+    pumpRuntime:   Number(raw.pumpRuntime??0),
+    lightRuntime:  Number(raw.lightRuntime??0),
+    ip:            raw.ip??"--",
+    autoMode:      Boolean(raw.autoMode??true),
+    systemStopped: Boolean(raw.systemStopped??false),
+    voltage:       raw.voltage??rootVoltage??null,
+    controlMode:   controlMode,
+  };
+  data.statusLabel=raw.statusLabel??computeStatus(data);
+  data.healthScore=raw.healthScore??computeHealth(data);
+
+  if(Array.isArray(raw.logs)&&raw.logs.length){
+    logsData=[...raw.logs].reverse();
+    const ll=$("logList");
+    if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
+  }
+
+  latestData=data;
+  pushHist({temp:data.temperature,turb:data.turbidity,water:data.waterDetected?1:0,ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+  updateUI(data);
+  updateAIStatusBar();
+}
+
+async function fetchLiveOnce(){
+  try{
+    const snap = await get(ref(db, LIVE_PATH));
+    processLiveData(snap.exists() ? snap.val() : null);
+  } catch(e){
+    console.warn("Firebase fetch error:", e);
+    setConnected(false);
+  }
+}
+
 function startLiveListener(){
-  onValue(ref(db,LIVE_PATH),snapshot=>{
-    setConnected(true);
-    if(!snapshot.exists()){setConnected(false);return;}
-    const raw=snapshot.val();
-
-    // ── DEDUP: ignore repeat fires with identical timestamp ─────────────────
-    // Firebase can fire onValue multiple times with the same data.
-    // If updatedAtMs hasn't changed, we already processed this — skip.
-    if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
-    _lastUpdatedAtMs = raw.updatedAtMs ?? null;
-
-    const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
-    const turb=Number(raw.turbidity??0);
-
-    const data={
-      temperature:   Number(raw.temperature??0),
-      turbidity:     turb,
-      turbidityStr:  raw.turbidityStr??rootTurbStr??null,
-      waterDetected: waterBool,
-      ph:            raw.ph!=null?Number(raw.ph):null,
-      heater:        Boolean(raw.heater??false),
-      pump:          Boolean(raw.pump??false),
-      light:         Boolean(raw.light??false),
-      heaterRuntime: Number(raw.heaterRuntime??0),
-      pumpRuntime:   Number(raw.pumpRuntime??0),
-      lightRuntime:  Number(raw.lightRuntime??0),
-      ip:            raw.ip??"--",
-      autoMode:      Boolean(raw.autoMode??true),
-      systemStopped: Boolean(raw.systemStopped??false),
-      voltage:       raw.voltage??rootVoltage??null,
-      controlMode:   controlMode,
-    };
-    data.statusLabel=raw.statusLabel??computeStatus(data);
-    data.healthScore=raw.healthScore??computeHealth(data);
-
-    // Logs from live payload
-    if(Array.isArray(raw.logs)&&raw.logs.length){
-      logsData=[...raw.logs].reverse();
-      const ll=$("logList");
-      if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
-    }
-
-    latestData=data;
-    pushHist({temp:data.temperature,turb:data.turbidity,water:data.waterDetected?1:0,ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
-    updateUI(data);
-    updateAIStatusBar();
-  },err=>{console.error("Firebase error:",err);setConnected(false);});
+  // Poll every 5 seconds — matches Pi write interval
+  // get() is always a direct server fetch with zero local cache
+  fetchLiveOnce();
+  setInterval(fetchLiveOnce, 5000);
 }
 
 // ── FIREBASE LOGS LISTENER ─────────────────────────────────────────
-function startLogsListener(){
-  onValue(ref(db,LOGS_PATH),snapshot=>{
-    if(!snapshot.exists())return;
-    const raw=snapshot.val();
+async function fetchLogsOnce(){
+  try{
+    const snap = await get(ref(db, LOGS_PATH));
+    if(!snap.exists())return;
+    const raw=snap.val();
     if(Array.isArray(raw))logsData=[...raw].reverse();
     else if(typeof raw==="object"&&raw.items)logsData=Array.isArray(raw.items)?[...raw.items].reverse():[];
     else logsData=Object.values(raw).reverse().slice(0,30);
     const ll=$("logList");
     if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
-  });
+  } catch(e){ console.warn("Logs fetch error:",e); }
+}
+
+function startLogsListener(){
+  fetchLogsOnce();
+  setInterval(fetchLogsOnce, 30000);
 }
 
 // ── FIREBASE AI LISTENER ───────────────────────────────────────────
-function startAIListener(){
-  onValue(ref(db,AI_PATH),snapshot=>{
-    const aiData=snapshot.exists()?snapshot.val():null;
-    if(aiData&&aiData.updatedAt){aiLastUpdated=Number(aiData.updatedAt);}
+async function fetchAIOnce(){
+  try{
+    const snap = await get(ref(db, AI_PATH));
+    const aiData = snap.exists() ? snap.val() : null;
+    if(aiData && aiData.updatedAt){ aiLastUpdated = Number(aiData.updatedAt); }
     updateHomeAICard(aiData);
     updateAIStatusBar();
-  });
+  } catch(e){ console.warn("AI fetch error:",e); }
+}
+
+function startAIListener(){
+  // Poll every 15s — AI updates every 60s so this is plenty
+  fetchAIOnce();
+  setInterval(fetchAIOnce, 15000);
 }
 
 // ── FIREBASE AUTH ──────────────────────────────────────────────────
