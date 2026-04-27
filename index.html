@@ -2146,6 +2146,7 @@ window.fillPrompt=q=>{const i=$("aiPrompt");if(i)i.value=q;};
 
 // ── FIREBASE ROOT LISTENERS ────────────────────────────────────────
 async function fetchRootOnce(){
+  if(!_firebaseReallyConnected && latestData) return;  // offline — skip
   try{
     const [turbSnap, waterSnap, voltSnap, modeSnap] = await Promise.all([
       get(ref(db,"ecoguard/turbidity")),
@@ -2167,8 +2168,36 @@ async function fetchRootOnce(){
   } catch(e){ console.warn("Root fetch error:",e); }
 }
 
+// ── REAL CONNECTION STATE ─────────────────────────────────────────────────────
+// Firebase .info/connected is the only reliable way to detect disconnection.
+// When Firebase goes offline, get() returns stale cache — we must NOT show that.
+let _firebaseReallyConnected = false;
+
+onValue(ref(db, '.info/connected'), (snap) => {
+  _firebaseReallyConnected = !!snap.val();
+  setConnected(_firebaseReallyConnected);
+
+  if(!_firebaseReallyConnected){
+    // Freeze the display — show disconnected state, don't overwrite with cache
+    const dots=["onlineDot","onlineDotHero"];
+    dots.forEach(id=>{const e=$(id);if(e)e.className="dot dot-r";});
+    ["connectionText","connectionTextHero"].forEach(id=>{const e=$(id);if(e)e.textContent="Firebase Offline";});
+    // Show offline banner
+    const banner=$("alertBanner");
+    if(banner){
+      banner.style.display="flex";
+      banner.innerHTML='<span style="font-size:18px;">📡</span><div><strong>Firebase Offline</strong> — Showing last known values. Reconnecting...</div>';
+    }
+    console.warn("Firebase disconnected — display frozen");
+  } else {
+    // Reconnected — fetch fresh data immediately
+    console.log("Firebase reconnected — fetching fresh data");
+    fetchLiveOnce();
+    fetchRootOnce();
+  }
+});
+
 function startRootListeners(){
-  // Poll root fields every 10s — these change rarely
   fetchRootOnce();
   setInterval(fetchRootOnce, 10000);
 }
@@ -2222,6 +2251,11 @@ function processLiveData(raw){
 }
 
 async function fetchLiveOnce(){
+  // If Firebase is offline, skip — don't show stale cache as real data
+  if(!_firebaseReallyConnected && latestData){
+    console.log("Firebase offline — skipping fetch, keeping current display");
+    return;
+  }
   try{
     const snap = await get(ref(db, LIVE_PATH));
     processLiveData(snap.exists() ? snap.val() : null);
