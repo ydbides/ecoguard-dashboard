@@ -603,15 +603,66 @@ select option{background:#060d18;}
         </div>
         <div id="fishCompatibilityBadge" class="fit-badge"><span class="fit-dot" style="background:var(--y);box-shadow:0 0 5px var(--y);"></span><span>Not checked yet</span></div>
       </div>
-      <div class="card">
-        <div class="card-label">Pi 5 Operating Mode</div>
-        <div class="card-hint">Current mode reported by the Pi 5 controller. Read-only — no relay control from this dashboard.</div>
-        <div class="mode-big auto" id="modeWidgetVal">AUTO</div>
-        <div class="pgrid">
+      <div class="card" id="controlCard">
+        <div class="card-label">System Control</div>
+
+        <!-- Mode toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+          <div class="mode-big auto" id="modeWidgetVal" style="font-size:32px;margin:0;">AUTO</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-g" id="setAutoBtn" onclick="setMode('auto')">✓ AUTO</button>
+            <button class="btn-o" id="setManualBtn" onclick="setMode('manual')">⚡ MANUAL</button>
+          </div>
+        </div>
+
+        <!-- Manual relay controls — only active in MANUAL mode -->
+        <div id="manualControls" style="opacity:0.35;pointer-events:none;transition:opacity .4s;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);margin-bottom:10px;">Manual Relay Control</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+
+            <!-- Heater -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;">
+              <span style="font-size:18px;">🔥</span>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:600;color:var(--t0);">Heater</div>
+                <div style="font-size:10px;color:var(--t2);" id="heaterManualStatus">Current: --</div>
+              </div>
+              <button class="btn-g" onclick="setRelay('heater',true)"  style="padding:7px 12px;font-size:11px;">ON</button>
+              <button class="btn-r" onclick="setRelay('heater',false)" style="padding:7px 12px;font-size:11px;">OFF</button>
+            </div>
+
+            <!-- Pump -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;">
+              <span style="font-size:18px;">⚙️</span>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:600;color:var(--t0);">Pump</div>
+                <div style="font-size:10px;color:var(--t2);" id="pumpManualStatus">Current: --</div>
+              </div>
+              <button class="btn-g" onclick="setRelay('pump',true)"  style="padding:7px 12px;font-size:11px;">ON</button>
+              <button class="btn-r" onclick="setRelay('pump',false)" style="padding:7px 12px;font-size:11px;">OFF</button>
+            </div>
+
+            <!-- Light -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;">
+              <span style="font-size:18px;">💡</span>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:600;color:var(--t0);">Light</div>
+                <div style="font-size:10px;color:var(--t2);" id="lightManualStatus">Current: --</div>
+              </div>
+              <button class="btn-g" onclick="setRelay('light',true)"  style="padding:7px 12px;font-size:11px;">ON</button>
+              <button class="btn-r" onclick="setRelay('light',false)" style="padding:7px 12px;font-size:11px;">OFF</button>
+            </div>
+
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--t2);">⚠ In MANUAL mode the Pi follows your commands. Switch back to AUTO for automatic control.</div>
+        </div>
+
+        <!-- System info -->
+        <div class="pgrid" style="margin-top:12px;">
           <div class="pitem"><div class="pitem-lbl">System Stop</div><div class="pitem-val" id="stopValSummary">RUNNING</div></div>
           <div class="pitem"><div class="pitem-lbl">Device IP</div><div class="pitem-val" id="ipValSummary">--</div></div>
         </div>
-        <div class="why-box">Mode is set by the Pi 5 controller logic. Dashboard is monitor-only — no relay commands sent.</div>
+        <div id="controlSaveStatus" style="margin-top:8px;font-size:11px;color:var(--t2);"></div>
       </div>
     </div>
 
@@ -1755,6 +1806,8 @@ function updateUI(data){
   const mw=$("modeWidgetVal");
   if(mw){mw.textContent=data.autoMode?"AUTO":"MANUAL"; mw.className=`mode-big ${data.autoMode?"auto":"manual"}`;}
   s("stopValSummary",data.systemStopped?"STOPPED ⛔":"RUNNING ✓"); s("ipValSummary",data.ip||"--");
+  updateManualStatusLabels(data);
+  syncControlPanel(controlMode);
 
   // Sensor health page
   s("sensorTempVal",formatTemp(Number(data.temperature||0))); setBadge($("sensorTempStatus"),tI.cls,tI.label); s("sensorTempMeaning",tI.meaning);
@@ -2107,7 +2160,7 @@ async function fetchRootOnce(){
 
     if(modeSnap.exists()){
       controlMode=String(modeSnap.val());
-      const mw=$("modeWidgetVal"); if(mw){mw.textContent=controlMode.toUpperCase();mw.className=`mode-big ${controlMode==="auto"?"auto":"manual"}`;}
+      syncControlPanel(controlMode);
       const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
       const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
     }
