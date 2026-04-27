@@ -1682,104 +1682,19 @@ function computeHealth(data){
 // flash old → new → old → new every 3 seconds.
 //
 // Solution — three layers:
-//   1. Ignore updates that arrive too close together (< 2s apart)
-//   2. Only update a displayed value if it changed by more than a threshold
-//   3. Keep a running average of the last few readings to smooth noise
-
-const _display = {
-  lastUpdateTime: 0,
-  minInterval:    4000,      // ms — slightly less than Firebase write interval (5s)
-  buf:            {},        // rolling average buffers per key
-  bufSize:        5,         // readings to average
-  shown:          {},        // last value actually shown on screen
-  thresholds: {              // minimum change before updating display
-    temp:    0.2,            // °C — ignore changes smaller than 0.2°C
-    ph:      0.05,           // pH — ignore changes smaller than 0.05
-    voltage: 0.1,            // V
-    turbidity: 50,           // numeric — ignore small turb fluctuations
-    health:  2,              // % health score
-    default: 0,              // for text/boolean fields — any change shown
-  }
-};
-
-function _addToBuf(key, val){
-  if(!_display.buf[key]) _display.buf[key] = [];
-  _display.buf[key].push(val);
-  if(_display.buf[key].length > _display.bufSize) _display.buf[key].shift();
-  const arr = _display.buf[key];
-  return Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*1000)/1000;
-}
-
-function _hasChangedEnough(key, newVal){
-  const threshold = _display.thresholds[key] ?? _display.thresholds.default;
-  const oldVal    = _display.shown[key];
-  if(oldVal === undefined) return true;            // first reading — always show
-  if(typeof newVal !== 'number') return String(newVal) !== String(oldVal); // text
-  return Math.abs(newVal - oldVal) >= threshold;
-}
-
-// Smart DOM setter — only updates DOM when value actually changed
-// No flash, no opacity change — just silently updates the text
-// CSS transitions on .tile-val handle the smooth colour change
+// ── SIMPLE DOM SETTER ────────────────────────────────────────────────────────
+// Only writes to DOM if the value actually changed — no flashing, no gating.
+// CSS transitions handle all visual smoothness automatically.
 const _lastVals = {};
 function s(id, v){
   const el=$(id); if(!el) return;
   const str = String(v ?? '');
-  if(_lastVals[id] === str) return;  // identical — skip DOM write entirely
+  if(_lastVals[id] === str) return;
   _lastVals[id] = str;
-  el.textContent = str;              // direct update — CSS transition does the rest
-}
-
-// Stable update gate — returns true if enough time has passed AND data changed
-function _shouldUpdate(data){
-  const now = Date.now();
-  // Allow the very first update through immediately
-  if(!_display.lastUpdateTime) return true;
-  // Block updates that arrive within minInterval (Firebase double-fire)
-  if(now - _display.lastUpdateTime < _display.minInterval) return false;
-  return true;
+  el.textContent = str;
 }
 
 function updateUI(data){
-  // ── Gate: skip if too soon (Firebase fires twice per write) ──────────────
-  if(!_shouldUpdate(data)) return;
-  _display.lastUpdateTime = Date.now();
-
-  // ── Smooth analog values through rolling average ──────────────────────────
-  if(data.temperature != null){
-    const smoothed = _addToBuf('temp', data.temperature);
-    if(_hasChangedEnough('temp', smoothed)){
-      _display.shown.temp = smoothed;
-      data.temperature = smoothed;
-    } else {
-      data.temperature = _display.shown.temp ?? data.temperature;
-    }
-  }
-  if(data.ph != null){
-    const smoothed = _addToBuf('ph', data.ph);
-    if(_hasChangedEnough('ph', smoothed)){
-      _display.shown.ph = smoothed;
-      data.ph = smoothed;
-    } else {
-      data.ph = _display.shown.ph ?? data.ph;
-    }
-  }
-  if(data.voltage != null){
-    const smoothed = _addToBuf('voltage', data.voltage);
-    if(_hasChangedEnough('voltage', smoothed)){
-      _display.shown.voltage = smoothed;
-      data.voltage = smoothed;
-    } else {
-      data.voltage = _display.shown.voltage ?? data.voltage;
-    }
-  }
-  if(data.healthScore != null){
-    if(_hasChangedEnough('health', data.healthScore)){
-      _display.shown.health = data.healthScore;
-    } else {
-      data.healthScore = _display.shown.health ?? data.healthScore;
-    }
-  }
 
   const tI=getTempInfo(data.temperature), wI=getWaterInfo(data.waterDetected);
   const tbI=getTurbInfo(data.turbidity);
