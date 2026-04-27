@@ -2198,9 +2198,7 @@ onValue(ref(db, '.info/connected'), (snap) => {
 });
 
 function startRootListeners(){
-  fetchRootOnce();
-  setInterval(fetchRootOnce, 10000);
-}
+  // onValue for instant updates on root fields
 
 // ── FIREBASE LIVE LISTENER ─────────────────────────────────────────
 // Uses get() polling instead of onValue() to avoid the Firebase SDK
@@ -2250,32 +2248,26 @@ function processLiveData(raw){
   updateAIStatusBar();
 }
 
-async function fetchLiveOnce(){
-  // If Firebase is offline, skip — don't show stale cache as real data
-  if(!_firebaseReallyConnected && latestData){
-    console.log("Firebase offline — skipping fetch, keeping current display");
-    return;
-  }
-  try{
-    const snap = await get(ref(db, LIVE_PATH));
-    processLiveData(snap.exists() ? snap.val() : null);
-  } catch(e){
-    console.warn("Firebase fetch error:", e);
-    setConnected(false);
-  }
-}
-
 function startLiveListener(){
-  // Poll every 5 seconds — matches Pi write interval
-  // get() is always a direct server fetch with zero local cache
-  fetchLiveOnce();
-  setInterval(fetchLiveOnce, 5000);
+  // onValue fires instantly the moment Pi writes new data to Firebase —
+  // no polling delay. The .info/connected gate prevents stale cache from
+  // showing when Firebase is offline.
+  onValue(ref(db, LIVE_PATH), snapshot => {
+    // Block if offline and we already have real data displayed
+    if(!_firebaseReallyConnected && latestData){
+      console.log("Firebase offline — ignoring cache fire");
+      return;
+    }
+    processLiveData(snapshot.exists() ? snapshot.val() : null);
+  }, err => {
+    console.error("Firebase live error:", err);
+    setConnected(false);
+  });
 }
 
 // ── FIREBASE LOGS LISTENER ─────────────────────────────────────────
-async function fetchLogsOnce(){
-  try{
-    const snap = await get(ref(db, LOGS_PATH));
+function startLogsListener(){
+  onValue(ref(db, LOGS_PATH), snap=>{
     if(!snap.exists())return;
     const raw=snap.val();
     if(Array.isArray(raw))logsData=[...raw].reverse();
@@ -2283,29 +2275,18 @@ async function fetchLogsOnce(){
     else logsData=Object.values(raw).reverse().slice(0,30);
     const ll=$("logList");
     if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
-  } catch(e){ console.warn("Logs fetch error:",e); }
-}
-
-function startLogsListener(){
-  fetchLogsOnce();
-  setInterval(fetchLogsOnce, 30000);
+  });
 }
 
 // ── FIREBASE AI LISTENER ───────────────────────────────────────────
-async function fetchAIOnce(){
-  try{
-    const snap = await get(ref(db, AI_PATH));
+function startAIListener(){
+  // onValue fires the instant Pi 5 writes a new AI response
+  onValue(ref(db, AI_PATH), snap=>{
     const aiData = snap.exists() ? snap.val() : null;
     if(aiData && aiData.updatedAt){ aiLastUpdated = Number(aiData.updatedAt); }
     updateHomeAICard(aiData);
     updateAIStatusBar();
-  } catch(e){ console.warn("AI fetch error:",e); }
-}
-
-function startAIListener(){
-  // Poll every 15s — AI updates every 60s so this is plenty
-  fetchAIOnce();
-  setInterval(fetchAIOnce, 15000);
+  });
 }
 
 // ── FIREBASE AUTH ──────────────────────────────────────────────────
