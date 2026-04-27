@@ -2146,7 +2146,6 @@ window.fillPrompt=q=>{const i=$("aiPrompt");if(i)i.value=q;};
 
 // ── FIREBASE ROOT LISTENERS ────────────────────────────────────────
 async function fetchRootOnce(){
-  if(!_firebaseReallyConnected && latestData) return;  // offline — skip
   try{
     const [turbSnap, waterSnap, voltSnap, modeSnap] = await Promise.all([
       get(ref(db,"ecoguard/turbidity")),
@@ -2231,7 +2230,7 @@ function processLiveData(raw){
   const turb=Number(raw.turbidity??0);
 
   const data={
-    temperature:   Number(raw.temperature??0),
+    temperature:   raw.temperature!=null?Number(raw.temperature):null,
     turbidity:     turb,
     turbidityStr:  raw.turbidityStr??rootTurbStr??null,
     waterDetected: waterBool,
@@ -2245,7 +2244,7 @@ function processLiveData(raw){
     ip:            raw.ip??"--",
     autoMode:      Boolean(raw.autoMode??true),
     systemStopped: Boolean(raw.systemStopped??false),
-    voltage:       raw.voltage??rootVoltage??null,
+    voltage:       raw.voltage!=null?Number(raw.voltage):(rootVoltage??null),
     controlMode:   controlMode,
   };
   data.statusLabel=raw.statusLabel??computeStatus(data);
@@ -2264,15 +2263,8 @@ function processLiveData(raw){
 }
 
 function startLiveListener(){
-  // onValue fires instantly the moment Pi writes new data to Firebase —
-  // no polling delay. The .info/connected gate prevents stale cache from
-  // showing when Firebase is offline.
+  // onValue fires instantly the moment Pi writes new data to Firebase
   onValue(ref(db, LIVE_PATH), snapshot => {
-    // Block if offline and we already have real data displayed
-    if(!_firebaseReallyConnected && latestData){
-      console.log("Firebase offline — ignoring cache fire");
-      return;
-    }
     processLiveData(snapshot.exists() ? snapshot.val() : null);
   }, err => {
     console.error("Firebase live error:", err);
