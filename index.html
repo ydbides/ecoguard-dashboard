@@ -1,4 +1,4 @@
-]<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -603,66 +603,13 @@ select option{background:#060d18;}
         </div>
         <div id="fishCompatibilityBadge" class="fit-badge"><span class="fit-dot" style="background:var(--y);box-shadow:0 0 5px var(--y);"></span><span>Not checked yet</span></div>
       </div>
-      <div class="card" id="controlCard">
-        <div class="card-label">System Control</div>
-
-        <!-- Mode toggle -->
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-          <div class="mode-big auto" id="modeWidgetVal" style="font-size:32px;margin:0;">AUTO</div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-g" id="setAutoBtn" onclick="setMode('auto')">✓ AUTO</button>
-            <button class="btn-o" id="setManualBtn" onclick="setMode('manual')">⚡ MANUAL</button>
-          </div>
-        </div>
-
-        <!-- Manual relay controls — only active in MANUAL mode -->
-        <div id="manualControls" style="opacity:0.35;pointer-events:none;transition:opacity .4s;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);margin-bottom:10px;">Manual Relay Control</div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-
-            <!-- Heater -->
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;">
-              <span style="font-size:18px;">🔥</span>
-              <div style="flex:1;">
-                <div style="font-size:12px;font-weight:600;color:var(--t0);">Heater</div>
-                <div style="font-size:10px;color:var(--t2);" id="heaterManualStatus">Current: --</div>
-              </div>
-              <button class="btn-g" onclick="setRelay('heater',true)"  style="padding:7px 12px;font-size:11px;">ON</button>
-              <button class="btn-r" onclick="setRelay('heater',false)" style="padding:7px 12px;font-size:11px;">OFF</button>
-            </div>
-
-            <!-- Pump -->
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;">
-              <span style="font-size:18px;">⚙️</span>
-              <div style="flex:1;">
-                <div style="font-size:12px;font-weight:600;color:var(--t0);">Pump</div>
-                <div style="font-size:10px;color:var(--t2);" id="pumpManualStatus">Current: --</div>
-              </div>
-              <button class="btn-g" onclick="setRelay('pump',true)"  style="padding:7px 12px;font-size:11px;">ON</button>
-              <button class="btn-r" onclick="setRelay('pump',false)" style="padding:7px 12px;font-size:11px;">OFF</button>
-            </div>
-
-            <!-- Light -->
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;">
-              <span style="font-size:18px;">💡</span>
-              <div style="flex:1;">
-                <div style="font-size:12px;font-weight:600;color:var(--t0);">Light</div>
-                <div style="font-size:10px;color:var(--t2);" id="lightManualStatus">Current: --</div>
-              </div>
-              <button class="btn-g" onclick="setRelay('light',true)"  style="padding:7px 12px;font-size:11px;">ON</button>
-              <button class="btn-r" onclick="setRelay('light',false)" style="padding:7px 12px;font-size:11px;">OFF</button>
-            </div>
-
-          </div>
-          <div style="margin-top:8px;font-size:10px;color:var(--t2);">⚠ In MANUAL mode the Pi follows your commands. Switch back to AUTO for automatic control.</div>
-        </div>
-
-        <!-- System info -->
-        <div class="pgrid" style="margin-top:12px;">
+      <div class="card">
+        <div class="card-label">Pi 5 System Info</div>
+        <div class="pgrid">
           <div class="pitem"><div class="pitem-lbl">System Stop</div><div class="pitem-val" id="stopValSummary">RUNNING</div></div>
           <div class="pitem"><div class="pitem-lbl">Device IP</div><div class="pitem-val" id="ipValSummary">--</div></div>
         </div>
-        <div id="controlSaveStatus" style="margin-top:8px;font-size:11px;color:var(--t2);"></div>
+        <div class="why-box" style="margin-top:10px;">Pi 5 controls relays automatically based on sensor readings and your fish profile thresholds.</div>
       </div>
     </div>
 
@@ -2166,116 +2113,139 @@ async function fetchRootOnce(){
   } catch(e){ console.warn("Root fetch error:",e); }
 }
 
-function startRootListeners(){
-  fetchRootOnce();
-  onValue(ref(db,"ecoguard/turbidity"), snap=>{ rootTurbStr=snap.exists()?String(snap.val()):null; });
-  onValue(ref(db,"ecoguard/water"),     snap=>{ rootWaterStr=snap.exists()?String(snap.val()):null; });
-  onValue(ref(db,"ecoguard/voltage"),   snap=>{
-    rootVoltage=snap.exists()?Number(snap.val()):null;
-    const el=$("deviceVoltageVal"); if(el)el.textContent=rootVoltage!=null?`${rootVoltage}V`:"--";
-  });
-  onValue(ref(db,"ecoguard/control/mode"), snap=>{
-    if(!snap.exists()) return;
-    controlMode=String(snap.val());
-    syncControlPanel(controlMode);
-    const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
-    const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
-  });
-  // Connection state monitor
-  onValue(ref(db,'.info/connected'), snap=>{
-    const connected = !!snap.val();
-    setConnected(connected);
-    if(!connected){
-      const banner=$("alertBanner");
-      if(banner){ banner.style.display="flex"; banner.innerHTML='<span style="font-size:18px;">📡</span><div><strong>Firebase Offline</strong> — Showing last known values. Reconnecting...</div>'; }
+// ── FIREBASE REST FETCH ───────────────────────────────────────────────────────
+// Uses plain fetch() with cache:"no-store" instead of the Firebase SDK listeners
+// This completely bypasses the SDK local cache that caused values to flicker
+// back to stale data. Exactly the same approach used in the original ESP32 code.
+
+const DB_URL = "https://ecoguard-11a04-default-rtdb.firebaseio.com";
+
+async function restGet(path){
+  const res = await fetch(`${DB_URL}/${path}.json`, { cache: "no-store" });
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchAndUpdate(){
+  try{
+    const raw = await restGet("ecoguard/live");
+    if(!raw){ setConnected(false); return; }
+    setConnected(true);
+
+    // Skip if timestamp unchanged — same data
+    if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
+    _lastUpdatedAtMs = raw.updatedAtMs ?? null;
+
+    // Pi just started — show connecting state, don't render reset values
+    if(raw.statusLabel === "STARTING"){
+      const sd=$("statusDot");
+      if(sd){sd.style.background="var(--cyan)";sd.style.boxShadow="0 0 6px var(--cyan)";}
+      const s2=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+      s2("statusTextHero","STARTING"); s2("statusVal","STARTING");
+      s2("summaryStatus","Starting up..."); s2("recommendedAction","Waiting for sensors...");
+      s2("healthScoreBig","--"); setGauge(0);
+      return;
     }
-  });
-}
 
-function processLiveData(raw){
-  if(!raw){setConnected(false);return;}
-  setConnected(true);
+    // Fetch root fields alongside live data
+    const [turbRaw, waterRaw, voltRaw] = await Promise.all([
+      restGet("ecoguard/turbidity").catch(()=>null),
+      restGet("ecoguard/water").catch(()=>null),
+      restGet("ecoguard/voltage").catch(()=>null),
+    ]);
+    rootTurbStr  = turbRaw  ? String(turbRaw)  : null;
+    rootWaterStr = waterRaw ? String(waterRaw) : null;
+    rootVoltage  = voltRaw  ? Number(voltRaw)  : null;
 
-  // Skip if timestamp hasn't changed
-  if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
-  _lastUpdatedAtMs = raw.updatedAtMs ?? null;
+    const waterBool = raw.waterDetected!=null ? Boolean(raw.waterDetected)
+                    : (rootWaterStr ? rootWaterStr!=="DRY" : true);
 
-  // Pi just started — show connecting state
-  if(raw.statusLabel === "STARTING"){
-    const sd=$("statusDot");
-    if(sd){sd.style.background="var(--cyan)";sd.style.boxShadow="0 0 6px var(--cyan)";}
-    const s2=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
-    s2("statusTextHero","STARTING"); s2("statusVal","STARTING");
-    s2("summaryStatus","Starting up..."); s2("recommendedAction","Waiting for sensors to warm up...");
-    s2("healthScoreBig","--"); setGauge(0);
-    return;
-  }
+    const data={
+      temperature:   raw.temperature!=null ? Number(raw.temperature) : null,
+      turbidity:     Number(raw.turbidity??0),
+      turbidityStr:  raw.turbidityStr ?? rootTurbStr ?? null,
+      waterDetected: waterBool,
+      ph:            raw.ph!=null ? Number(raw.ph) : null,
+      heater:        Boolean(raw.heater??false),
+      pump:          Boolean(raw.pump??false),
+      light:         Boolean(raw.light??false),
+      heaterRuntime: Number(raw.heaterRuntime??0),
+      pumpRuntime:   Number(raw.pumpRuntime??0),
+      lightRuntime:  Number(raw.lightRuntime??0),
+      ip:            raw.ip??"--",
+      autoMode:      Boolean(raw.autoMode??true),
+      systemStopped: Boolean(raw.systemStopped??false),
+      voltage:       raw.voltage!=null ? Number(raw.voltage) : (rootVoltage??null),
+      controlMode:   controlMode,
+    };
+    data.statusLabel = raw.statusLabel ?? computeStatus(data);
+    data.healthScore = raw.healthScore ?? computeHealth(data);
 
-  const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
-  const turb=Number(raw.turbidity??0);
+    if(Array.isArray(raw.logs)&&raw.logs.length){
+      logsData=[...raw.logs].reverse();
+      const ll=$("logList");
+      if(ll)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
+    }
 
-  const data={
-    temperature:   raw.temperature!=null?Number(raw.temperature):null,
-    turbidity:     turb,
-    turbidityStr:  raw.turbidityStr??rootTurbStr??null,
-    waterDetected: waterBool,
-    ph:            raw.ph!=null?Number(raw.ph):null,
-    heater:        Boolean(raw.heater??false),
-    pump:          Boolean(raw.pump??false),
-    light:         Boolean(raw.light??false),
-    heaterRuntime: Number(raw.heaterRuntime??0),
-    pumpRuntime:   Number(raw.pumpRuntime??0),
-    lightRuntime:  Number(raw.lightRuntime??0),
-    ip:            raw.ip??"--",
-    autoMode:      Boolean(raw.autoMode??true),
-    systemStopped: Boolean(raw.systemStopped??false),
-    voltage:       raw.voltage!=null?Number(raw.voltage):(rootVoltage??null),
-    controlMode:   controlMode,
-  };
-  data.statusLabel=raw.statusLabel??computeStatus(data);
-  data.healthScore=raw.healthScore??computeHealth(data);
-
-  if(Array.isArray(raw.logs)&&raw.logs.length){
-    logsData=[...raw.logs].reverse();
-    const ll=$("logList");
-    if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
-  }
-
-  latestData=data;
-  pushHist({temp:data.temperature??0,turb:data.turbidity,water:data.waterDetected?1:0,ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
-  updateUI(data);
-  updateAIStatusBar();
-}
-
-function startLiveListener(){
-  onValue(ref(db, LIVE_PATH), snapshot=>{
-    processLiveData(snapshot.exists() ? snapshot.val() : null);
-  }, err=>{
-    console.error("Firebase live error:", err);
+    latestData=data;
+    pushHist({temp:data.temperature??0,turb:data.turbidity,water:data.waterDetected?1:0,
+              ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+    updateUI(data);
+    updateAIStatusBar();
+  } catch(e){
     setConnected(false);
-  });
+    console.warn("Firebase fetch error:", e);
+  }
 }
 
-function startLogsListener(){
-  onValue(ref(db, LOGS_PATH), snap=>{
-    if(!snap.exists())return;
-    const raw=snap.val();
-    if(Array.isArray(raw))logsData=[...raw].reverse();
-    else if(typeof raw==="object"&&raw.items)logsData=Array.isArray(raw.items)?[...raw.items].reverse():[];
+async function fetchAI(){
+  try{
+    const ai = await restGet("ecoguard/ai");
+    if(ai && ai.updatedAt){ aiLastUpdated = Number(ai.updatedAt); }
+    updateHomeAICard(ai);
+    updateAIStatusBar();
+  } catch(e){ console.warn("AI fetch error:", e); }
+}
+
+async function fetchLogs(){
+  try{
+    const raw = await restGet("ecoguard/logs");
+    if(!raw) return;
+    if(Array.isArray(raw)) logsData=[...raw].reverse();
+    else if(raw.items) logsData=Array.isArray(raw.items)?[...raw.items].reverse():[];
     else logsData=Object.values(raw).reverse().slice(0,30);
     const ll=$("logList");
     if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
-  });
+  } catch(e){ console.warn("Logs fetch error:", e); }
 }
 
-function startAIListener(){
-  onValue(ref(db, AI_PATH), snap=>{
-    const aiData = snap.exists() ? snap.val() : null;
-    if(aiData && aiData.updatedAt){ aiLastUpdated = Number(aiData.updatedAt); }
-    updateHomeAICard(aiData);
-    updateAIStatusBar();
-  });
+async function fetchControlMode(){
+  try{
+    const mode = await restGet("ecoguard/control/mode");
+    if(mode){ controlMode=String(mode);
+      const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
+      const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
+    }
+  } catch(e){}
 }
+
+async function refreshAll(){
+  await fetchAndUpdate();
+}
+
+function startRootListeners(){ /* handled inside fetchAndUpdate */ }
+function startLiveListener(){
+  // Start polling — plain fetch, no SDK cache
+  fetchAndUpdate();
+  fetchAI();
+  fetchLogs();
+  setInterval(fetchAndUpdate, 2000);   // live data every 2s
+  setInterval(fetchAI,        15000);  // AI every 15s
+  setInterval(fetchLogs,      30000);  // logs every 30s
+  setInterval(fetchControlMode, 5000); // control mode every 5s
+}
+function startLogsListener(){ /* handled in startLiveListener */ }
+function startAIListener(){   /* handled in startLiveListener */ }
 
 // ── FIREBASE AUTH ──────────────────────────────────────────────────
 onAuthStateChanged(auth,async user=>{
