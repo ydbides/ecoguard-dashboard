@@ -842,7 +842,7 @@ select option{background:#060d18;}
     <div class="card">
       <div class="card-label">💬 Ask EcoGuard AI — Chat</div>
       <div id="chatMessages" style="min-height:220px;max-height:420px;overflow-y:auto;padding:14px;background:rgba(0,0,0,0.2);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
-        <div class="chat-msg chat-ai">Hi! I'm EcoGuard AI. Ask me anything about your tank — I can see all your live sensor data from Firebase right now.</div>
+        <div class="chat-msg chat-ai">Hi! I'm EcoGuard AI powered by GPT-4o-mini. Ask me anything about your tank — I have access to all your live sensor data right now.</div>
       </div>
       <div style="display:flex;gap:8px;">
         <input id="chatInput" type="text" placeholder="Ask anything... e.g. Is my water safe for my fish? Why is the heater on?" style="flex:1;margin-top:0;" onkeydown="if(event.key==='Enter')sendChat()">
@@ -1201,10 +1201,12 @@ function getTempInfo(t){ t=Number(t||0);
   return      {label:"SERIOUS", cls:"dot-r",col:"var(--r)",  meaning:"Dangerously high — act now!"};}
 function getWaterInfo(w){ return w?{label:"GOOD",cls:"dot-g",col:"var(--g)",meaning:"Water detected normally."}:{label:"SERIOUS",cls:"dot-r",col:"var(--r)",meaning:"Low or missing water!"};}
 function getTurbInfo(v){ v=Number(v||0);
-  if(v<1800)return{label:"GOOD",  cls:"dot-g",col:"var(--g)",meaning:"Water is clean and clear."};
-  if(v<2200)return{label:"MILD",  cls:"dot-y",col:"var(--y)",meaning:"Slightly cloudy — monitor."};
-  if(v<3000)return{label:"BAD",   cls:"dot-o",col:"var(--o)",meaning:"Poor quality — act soon."};
-  return      {label:"SERIOUS",cls:"dot-r",col:"var(--r)",meaning:"Severe cloudiness — act now!"};}
+  // Turbidity sensor is digital: 0 = CLEAN, 1 = DIRTY
+  if(v===0)return{label:"CLEAN",  cls:"dot-g",col:"var(--g)",meaning:"Water is clean."};
+  if(v===1)return{label:"DIRTY",  cls:"dot-r",col:"var(--r)",meaning:"Water is dirty — check filter."};
+  // Fallback for legacy numeric values if any remain
+  if(v<1800)return{label:"CLEAN", cls:"dot-g",col:"var(--g)",meaning:"Water is clean."};
+  return       {label:"DIRTY",  cls:"dot-r",col:"var(--r)",meaning:"Water is dirty — check filter."};}
 function getPhInfo(ph){ ph=Number(ph||7);
   if(ph<6.0) return{label:"ACIDIC — CRITICAL",cls:"dot-r",col:"var(--r)",sev:"crit",meaning:`pH ${ph.toFixed(2)} dangerously acidic. Correct immediately.`};
   if(ph<6.5) return{label:"SLIGHTLY ACIDIC",  cls:"dot-o",col:"var(--o)",sev:"warn",meaning:`pH ${ph.toFixed(2)} below neutral. Risky for some species.`};
@@ -1736,7 +1738,7 @@ function updateUI(data){
   setGauge(Number(data.healthScore||0));
   s("healthScoreBig",`${data.healthScore??"-"}%`);
   const tPct=tI.label==="GOOD"?100:tI.label==="MILD"?75:40;
-  const tbPct=tbI.label==="GOOD"?100:tbI.label==="MILD"?80:tbI.label==="BAD"?55:20;
+  const tbPct=tbI.label==="CLEAN"?100:tbI.label==="GOOD"?100:20;  // 0=clean=100%, 1=dirty=20%
   const phPct=data.ph!=null?(phI.sev==="ok"?100:phI.sev==="warn"?60:20):0;
   const phBarCol=data.ph!=null?(phI.sev==="ok"?"var(--g)":phI.sev==="warn"?"var(--y)":"var(--r)"):"var(--t3)";
   setBar("tempScoreBar","tempScoreVal",tPct,tI.col);
@@ -2060,23 +2062,101 @@ function addChatMessage(role, text){
   box.scrollTop=box.scrollHeight;
 }
 
-function sendChat(){
+// ── OPENAI CHAT KEY ───────────────────────────────────────────────────────────
+// Set your OpenAI API key here so the chat can call GPT-4o-mini directly.
+// The key is only used in your browser — never sent to any server except OpenAI.
+const OPENAI_CHAT_KEY = "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";  // ← paste your OpenAI API key here
+
+async function callOpenAIChat(question){
+  // Build full sensor context to inject into the system prompt
+  const ctx = buildSensorContext();
+  const fish = activeFishProfile
+    ? `Active fish: ${activeFishProfile.name}. Temp range: ${activeFishProfile.tempMin}–${activeFishProfile.tempMax}°C. pH range: ${activeFishProfile.phMin}–${activeFishProfile.phMax}.`
+    : "No fish profile selected.";
+
+  const systemPrompt = `You are EcoGuard AI, an expert aquarium monitoring assistant embedded in a live dashboard.
+You have access to real-time sensor data from a Raspberry Pi 5 monitoring system.
+Answer questions clearly and specifically based on the live data below.
+Be direct, helpful, and practical. If something is wrong, say so. If fine, confirm it.
+Keep responses concise — 2-4 sentences unless a detailed explanation is needed.
+
+${ctx}
+
+${fish}`;
+
+  // Include recent chat history for context (last 6 messages)
+  const messages = [
+    { role: "system", content: systemPrompt }
+  ];
+  // Add recent history
+  chatHistory.slice(-6).forEach(({q,a}) => {
+    messages.push({ role: "user",      content: q });
+    messages.push({ role: "assistant", content: a });
+  });
+  messages.push({ role: "user", content: question });
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${OPENAI_CHAT_KEY}`,
+    },
+    body: JSON.stringify({
+      model:       "gpt-4o-mini",
+      messages:    messages,
+      max_tokens:  350,
+      temperature: 0.4,
+    }),
+  });
+
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.choices[0].message.content.trim();
+}
+
+async function sendChat(){
   const input=$("chatInput"); if(!input)return;
   const question=input.value.trim(); if(!question)return;
   input.value="";
-  addChatMessage("user",question);
-  // Thinking indicator
+  addChatMessage("user", question);
+
+  // Show thinking indicator
   const box=$("chatMessages");
   const thinking=document.createElement("div");
-  thinking.className="chat-msg chat-thinking"; thinking.textContent="Thinking...";
+  thinking.className="chat-msg chat-thinking";
+  thinking.textContent="EcoGuard AI is thinking...";
   box.appendChild(thinking); box.scrollTop=box.scrollHeight;
-  // Small delay so it feels responsive
-  setTimeout(()=>{
+
+  try{
+    let answer;
+    if(OPENAI_CHAT_KEY && OPENAI_CHAT_KEY.startsWith("sk-")){
+      // Real OpenAI call
+      answer = await callOpenAIChat(question);
+    } else {
+      // Fallback to rule-based if no key set
+      await new Promise(r=>setTimeout(r,300));
+      answer = answerQuestion(question);
+      answer += "\n\n(Set OPENAI_CHAT_KEY in the site code for real AI responses.)";
+    }
     box.removeChild(thinking);
-    const answer=answerQuestion(question);
-    addChatMessage("ai",answer);
-    chatHistory.push({q:question,a:answer});
-  },300);
+    addChatMessage("ai", answer);
+    chatHistory.push({q:question, a:answer});
+  } catch(e){
+    box.removeChild(thinking);
+    const errMsg = e.message.includes("401")
+      ? "Invalid API key. Check OPENAI_CHAT_KEY in the site code."
+      : e.message.includes("429")
+      ? "Rate limited by OpenAI. Wait a moment and try again."
+      : `OpenAI error: ${e.message}. Using local fallback.`;
+    addChatMessage("ai", errMsg.includes("fallback")
+      ? errMsg + "\n\n" + answerQuestion(question)
+      : errMsg);
+    chatHistory.push({q:question, a:errMsg});
+  }
 }
 window.sendChat=sendChat;
 
@@ -2201,7 +2281,11 @@ async function fetchAndUpdate(){
 async function fetchAI(){
   try{
     const ai = await restGet("ecoguard/ai");
-    if(ai && ai.updatedAt){ aiLastUpdated = Number(ai.updatedAt); }
+    if(ai && ai.updatedAt){
+    const ts = Number(ai.updatedAt);
+    // Handle both ms (>1e12) and seconds timestamps
+    aiLastUpdated = ts > 1e12 ? ts : ts * 1000;
+  }
     updateHomeAICard(ai);
     updateAIStatusBar();
   } catch(e){ console.warn("AI fetch error:", e); }
