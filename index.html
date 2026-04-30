@@ -2076,80 +2076,9 @@ function addChatMessage(role, text){
 // Set your OpenAI API key here so the chat can call GPT-4o-mini directly.
 // The key is only used in your browser — never sent to any server except OpenAI.
 // OpenAI key for chat — either set it here OR use the key field on the AI page
-let OPENAI_CHAT_KEY = localStorage.getItem("ecoguard_openai_key") || "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";
+// OpenAI chat handled by plain script below (window._openAIChat)
 
-async function callOpenAIChat(question){
-  // Build full sensor context to inject into the system prompt
-  // Always use the most current sensor data and profile
-  const d = latestData || {};
-  const ph = d.ph!=null ? Number(d.ph) : null;
-  const sensorLines = [
-    `System status: ${d.statusLabel||"Unknown"} | Health: ${d.healthScore||0}%`,
-    `Temperature: ${d.temperature!=null?formatTemp(Number(d.temperature)):"No sensor"}`,
-    `Water sensor: ${d.waterDetected?"PRESENT — OK":"DRY — not detected"}`,
-    `Turbidity: ${d.turbidityStr||(d.turbidity===1?"DIRTY":d.turbidity===0?"CLEAN":"Unknown")}`,
-    `pH: ${ph!=null?ph.toFixed(2):"No sensor"}`,
-    `Voltage: ${d.voltage!=null?d.voltage+"V":"Not measured"}`,
-    `Heater: ${d.heater?"ON":"OFF"} (${formatSec(d.heaterRuntime||0)})`,
-    `Pump: ${d.pump?"ON":"OFF"} (${formatSec(d.pumpRuntime||0)})`,
-    `Light: ${d.light?"ON":"OFF"} (${formatSec(d.lightRuntime||0)})`,
-    `Device IP: ${d.ip||"--"}`,
-  ].join("\n");
-
-  const fishLines = activeFishProfile
-    ? [
-        `Active fish profile: ${activeFishProfile.name} (${activeFishProfile.category||""})`,
-        `Preferred temperature: ${activeFishProfile.tempMin}–${activeFishProfile.tempMax}°C | Current: ${d.temperature!=null?formatTemp(Number(d.temperature)):"no sensor"} — ${d.temperature!=null&&d.temperature>=activeFishProfile.tempMin&&d.temperature<=activeFishProfile.tempMax?"WITHIN range":"OUTSIDE range"}`,
-        `Preferred pH: ${activeFishProfile.phMin}–${activeFishProfile.phMax} | Current: ${ph!=null?ph.toFixed(2):"no sensor"} — ${ph!=null&&ph>=activeFishProfile.phMin&&ph<=activeFishProfile.phMax?"WITHIN range":"OUTSIDE range"}`,
-        `Min tank size: ${activeFishProfile.minTank}L | Care: ${activeFishProfile.care}`,
-      ].join("\n")
-    : "No fish profile selected on dashboard.";
-
-  const systemPrompt = `You are EcoGuard AI, an expert aquarium monitoring assistant.
-You have access to LIVE real-time sensor data from a Raspberry Pi 5.
-Answer based ONLY on the data below — do not make up readings.
-Be direct and specific. 2-4 sentences normally, more only if needed.
-
-=== LIVE SENSOR DATA ===
-${sensorLines}
-
-=== FISH PROFILE ===
-${fishLines}
-=== END ===`;
-
-  // Include recent chat history for context (last 6 messages)
-  const messages = [
-    { role: "system", content: systemPrompt }
-  ];
-  // Add recent history
-  chatHistory.slice(-6).forEach(({q,a}) => {
-    messages.push({ role: "user",      content: q });
-    messages.push({ role: "assistant", content: a });
-  });
-  messages.push({ role: "user", content: question });
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type":  "application/json",
-      "Authorization": `Bearer ${OPENAI_CHAT_KEY}`,
-    },
-    body: JSON.stringify({
-      model:       "gpt-4o-mini",
-      messages:    messages,
-      max_tokens:  350,
-      temperature: 0.4,
-    }),
-  });
-
-  if(!res.ok){
-    const err = await res.json().catch(()=>({}));
-    throw new Error(err.error?.message || `HTTP ${res.status}`);
-  }
-
-  const data = await res.json();
-  return data.choices[0].message.content.trim();
-}
+// callOpenAIChat moved to plain script below
 
 async function sendChat(){
   const input=$("chatInput"); if(!input)return;
@@ -2157,70 +2086,37 @@ async function sendChat(){
   input.value="";
   addChatMessage("user", question);
 
-  // Show thinking indicator
   const box=$("chatMessages");
   const thinking=document.createElement("div");
   thinking.className="chat-msg chat-thinking";
   thinking.textContent="EcoGuard AI is thinking...";
   box.appendChild(thinking); box.scrollTop=box.scrollHeight;
 
-  try{
-    let answer;
-    if(OPENAI_CHAT_KEY && OPENAI_CHAT_KEY.startsWith("sk-")){
-      // Real OpenAI call
-      answer = await callOpenAIChat(question);
-    } else {
-      // Fallback to rule-based if no key set
-      await new Promise(r=>setTimeout(r,300));
-      answer = answerQuestion(question);
-      answer += "\n\n(Set OPENAI_CHAT_KEY in the site code for real AI responses.)";
-    }
-    box.removeChild(thinking);
-    addChatMessage("ai", answer);
-    chatHistory.push({q:question, a:answer});
-  } catch(e){
-    box.removeChild(thinking);
-    const errMsg = e.message.includes("401")
-      ? "Invalid API key. Check OPENAI_CHAT_KEY in the site code."
-      : e.message.includes("429")
-      ? "Rate limited by OpenAI. Wait a moment and try again."
-      : `OpenAI error: ${e.message}. Using local fallback.`;
-    addChatMessage("ai", errMsg.includes("fallback")
-      ? errMsg + "\n\n" + answerQuestion(question)
-      : errMsg);
-    chatHistory.push({q:question, a:errMsg});
+  // Use the plain-script OpenAI handler (outside module scope issue)
+  const result = await window._openAIChat.sendMessage(
+    question, latestData, activeFishProfile, chatHistory, formatTemp, formatSec
+  );
+
+  box.removeChild(thinking);
+
+  if(result.ok){
+    addChatMessage("ai", result.answer);
+    chatHistory.push({q:question, a:result.answer});
+  } else {
+    // Fallback to rule-based if OpenAI failed or no key
+    const fallback = answerQuestion(question);
+    const combined = result.answer + (fallback ? "\n\n" + fallback : "");
+    addChatMessage("ai", combined);
+    chatHistory.push({q:question, a:combined});
   }
 }
 window.sendChat=sendChat;
 
 function quickChat(q){ const i=$("chatInput"); if(i){i.value=q;} sendChat(); }
 
-function saveOpenAIKey(){
-  const val = $("openaiKeyInput")?.value?.trim();
-  if(val && val.startsWith("sk-")){
-    OPENAI_CHAT_KEY = val;
-    localStorage.setItem("ecoguard_openai_key", val);
-    const st=$("keyStatus");
-    if(st) st.textContent="✓ Key saved — chat will now use real OpenAI GPT-4o-mini.";
-    if(st) st.style.color="var(--g)";
-    updateAIStatusBar();
-  } else {
-    const st=$("keyStatus");
-    if(st) st.textContent="Key must start with sk- — get one at platform.openai.com/api-keys";
-    if(st) st.style.color="var(--r)";
-  }
-}
-window.saveOpenAIKey=saveOpenAIKey;
+// saveOpenAIKey moved to plain script below
 
-function clearOpenAIKey(){
-  OPENAI_CHAT_KEY = "";
-  localStorage.removeItem("ecoguard_openai_key");
-  const inp=$("openaiKeyInput"); if(inp) inp.value="";
-  const st=$("keyStatus");
-  if(st){ st.textContent="Key cleared — using rule-based fallback."; st.style.color="var(--t2)"; }
-  updateAIStatusBar();
-}
-window.clearOpenAIKey=clearOpenAIKey;
+// clearOpenAIKey moved to plain script below
 window.quickChat=quickChat;
 
 function clearChat(){
@@ -2521,9 +2417,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(tankSizeL&&$("tankSizeInput"))$("tankSizeInput").value=tankSizeL;
   populateSpeciesDropdown();
   $("nav-home")?.classList.add("active");
-  // Restore saved OpenAI key
-  const savedKey = localStorage.getItem("ecoguard_openai_key");
-  if(savedKey){ OPENAI_CHAT_KEY=savedKey; const inp=$("openaiKeyInput"); if(inp)inp.value=savedKey; const st=$("keyStatus"); if(st){st.textContent="✓ Key loaded from browser storage.";st.style.color="var(--g)";} }
+  // OpenAI key restore handled by plain script below
   // Restore stocking list from localStorage
   if(stockedFish.length>0){ renderStockingList(); analyseStocking(); }
 
@@ -2536,6 +2430,113 @@ document.addEventListener("DOMContentLoaded",()=>{
   startLogsListener();
   startAIListener();
 });
+</script>
+
+<!-- Plain script — not a module, so it has full global access -->
+<!-- This handles the OpenAI chat separately from the Firebase module -->
+<script>
+// ── OPENAI CHAT ─────────────────────────────────────────────────────────────
+// Runs outside the ES module so window/global access works correctly
+
+let _openAIKey = localStorage.getItem("ecoguard_openai_key") || "";
+
+function saveOpenAIKey(){
+  const val = document.getElementById("openaiKeyInput")?.value?.trim();
+  if(val && val.startsWith("sk-")){
+    _openAIKey = val;
+    localStorage.setItem("ecoguard_openai_key", val);
+    const st = document.getElementById("keyStatus");
+    if(st){ st.textContent = "✓ Key saved — chat now uses real OpenAI GPT-4o-mini."; st.style.color = "var(--g)"; }
+  } else {
+    const st = document.getElementById("keyStatus");
+    if(st){ st.textContent = "Key must start with sk- — get one at platform.openai.com/api-keys"; st.style.color = "var(--r)"; }
+  }
+}
+
+function clearOpenAIKey(){
+  _openAIKey = "";
+  localStorage.removeItem("ecoguard_openai_key");
+  const inp = document.getElementById("openaiKeyInput"); if(inp) inp.value = "";
+  const st  = document.getElementById("keyStatus");
+  if(st){ st.textContent = "Key cleared."; st.style.color = ""; }
+}
+
+// Load key on page load
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem("ecoguard_openai_key");
+  if(saved){
+    _openAIKey = saved;
+    const inp = document.getElementById("openaiKeyInput"); if(inp) inp.value = saved;
+    const st  = document.getElementById("keyStatus");
+    if(st){ st.textContent = "✓ Key loaded from browser."; st.style.color = "var(--g)"; }
+  }
+});
+
+async function sendChatMessage(question, latestData, activeFishProfile, chatHistory, formatTemp, formatSec){
+  if(!_openAIKey || !_openAIKey.startsWith("sk-")){
+    return { ok: false, answer: "No API key set. Paste your OpenAI key in the field above and click Save." };
+  }
+
+  // Build live sensor context
+  const d  = latestData || {};
+  const ph = d.ph != null ? Number(d.ph) : null;
+
+  const sensorLines = [
+    `System status: ${d.statusLabel||"Unknown"} | Health: ${d.healthScore||0}%`,
+    `Temperature: ${d.temperature!=null ? formatTemp(Number(d.temperature)) : "No sensor"}`,
+    `Water sensor: ${d.waterDetected ? "PRESENT — OK" : "DRY — not detected"}`,
+    `Turbidity: ${d.turbidityStr || (d.turbidity===1?"DIRTY":d.turbidity===0?"CLEAN":"Unknown")}`,
+    `pH: ${ph!=null ? ph.toFixed(2) : "No sensor"}`,
+    `Voltage: ${d.voltage!=null ? d.voltage+"V" : "Not measured"}`,
+    `Heater: ${d.heater?"ON":"OFF"} (runtime: ${formatSec(d.heaterRuntime||0)})`,
+    `Pump:   ${d.pump  ?"ON":"OFF"} (runtime: ${formatSec(d.pumpRuntime||0)})`,
+    `Light:  ${d.light ?"ON":"OFF"} (runtime: ${formatSec(d.lightRuntime||0)})`,
+  ].join("\n");
+
+  const fishLines = activeFishProfile
+    ? [
+        `Fish: ${activeFishProfile.name} (${activeFishProfile.category||""})`,
+        `Preferred temp: ${activeFishProfile.tempMin}–${activeFishProfile.tempMax}°C | Current: ${d.temperature!=null?formatTemp(Number(d.temperature)):"no sensor"} — ${d.temperature!=null&&d.temperature>=activeFishProfile.tempMin&&d.temperature<=activeFishProfile.tempMax?"WITHIN range":"OUTSIDE range"}`,
+        `Preferred pH:   ${activeFishProfile.phMin}–${activeFishProfile.phMax} | Current: ${ph!=null?ph.toFixed(2):"no sensor"} — ${ph!=null&&ph>=activeFishProfile.phMin&&ph<=activeFishProfile.phMax?"WITHIN range":"OUTSIDE range"}`,
+        `Min tank size: ${activeFishProfile.minTank}L | Care level: ${activeFishProfile.care}`,
+      ].join("\n")
+    : "No fish profile selected.";
+
+  const systemPrompt =
+    `You are EcoGuard AI, an expert aquarium assistant with access to live sensor data.\n` +
+    `Answer based ONLY on the data below. Be direct, specific, 2-4 sentences.\n\n` +
+    `=== LIVE SENSORS ===\n${sensorLines}\n\n` +
+    `=== FISH PROFILE ===\n${fishLines}\n=== END ===`;
+
+  const messages = [{ role: "system", content: systemPrompt }];
+  chatHistory.slice(-6).forEach(({q,a}) => {
+    messages.push({ role:"user",      content: q });
+    messages.push({ role:"assistant", content: a });
+  });
+  messages.push({ role:"user", content: question });
+
+  try{
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${_openAIKey}`,
+      },
+      body: JSON.stringify({ model:"gpt-4o-mini", messages, max_tokens:400, temperature:0.4 }),
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+    return { ok: true, answer: data.choices[0].message.content.trim() };
+  } catch(e){
+    const msg = e.message.includes("401") ? "Invalid API key — check it and try again."
+              : e.message.includes("429") ? "Rate limited — wait a moment and retry."
+              : `OpenAI error: ${e.message}`;
+    return { ok: false, answer: msg };
+  }
+}
+
+// Expose to window so the module script can call it
+window._openAIChat = { sendMessage: sendChatMessage };
 </script>
 </body>
 </html>
