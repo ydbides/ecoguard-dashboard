@@ -848,6 +848,16 @@ select option{background:#060d18;}
         <input id="chatInput" type="text" placeholder="Ask anything... e.g. Is my water safe for my fish? Why is the heater on?" style="flex:1;margin-top:0;" onkeydown="if(event.key==='Enter')sendChat()">
         <button class="btn-c" onclick="sendChat()" style="flex-shrink:0;white-space:nowrap;">Send 🚀</button>
       </div>
+      <!-- OpenAI key input -->
+      <div style="margin-top:10px;padding:12px 14px;border-radius:8px;background:rgba(0,0,0,0.2);border:1px solid var(--line);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);margin-bottom:8px;">OpenAI API Key for Chat</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input id="openaiKeyInput" type="password" placeholder="sk-..." style="flex:1;min-width:200px;margin-top:0;font-family:JetBrains Mono,monospace;font-size:12px;" oninput="saveOpenAIKey()">
+          <button class="btn-g" onclick="saveOpenAIKey()" style="flex-shrink:0;">Save Key</button>
+          <button class="btn-dim" onclick="clearOpenAIKey()" style="flex-shrink:0;">Clear</button>
+        </div>
+        <div id="keyStatus" style="margin-top:6px;font-size:11px;color:var(--t2);">Key is stored in your browser only — never sent anywhere except OpenAI.</div>
+      </div>
       <div id="aiStatusBar" style="margin-top:10px;padding:10px 14px;border-radius:8px;background:rgba(0,0,0,0.2);border:1px solid var(--line);font-size:12px;color:var(--t2);display:flex;align-items:center;gap:8px;">
         <span id="aiStatusDot" class="dot dot-y"></span>
         <span id="aiStatusText">Checking AI connection...</span>
@@ -1709,7 +1719,7 @@ function updateUI(data){
   // Sensor tiles
   s("tempVal",formatTemp(Number(data.temperature||0)));
   s("waterVal",data.waterDetected?"WATER OK":"LOW / DRY");
-  s("turbVal",data.turbidityStr?`${data.turbidity} · ${data.turbidityStr}`:(data.turbidity??"--"));
+  s("turbVal",data.turbidityStr ?? (data.turbidity===1?"DIRTY":data.turbidity===0?"CLEAN":"--"));
   s("phVal",data.ph!=null?`pH ${Number(data.ph).toFixed(2)}`:"No Sensor");
   setBadge($("tempStatus"),tI.cls,tI.label); setBadge($("waterStatus"),wI.cls,wI.label);
   setBadge($("turbStatus"),tbI.cls,tbI.label);
@@ -2065,24 +2075,47 @@ function addChatMessage(role, text){
 // ── OPENAI CHAT KEY ───────────────────────────────────────────────────────────
 // Set your OpenAI API key here so the chat can call GPT-4o-mini directly.
 // The key is only used in your browser — never sent to any server except OpenAI.
-const OPENAI_CHAT_KEY = "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";  // ← paste your OpenAI API key here
+// OpenAI key for chat — either set it here OR use the key field on the AI page
+let OPENAI_CHAT_KEY = localStorage.getItem("ecoguard_openai_key") || "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";
 
 async function callOpenAIChat(question){
   // Build full sensor context to inject into the system prompt
-  const ctx = buildSensorContext();
-  const fish = activeFishProfile
-    ? `Active fish: ${activeFishProfile.name}. Temp range: ${activeFishProfile.tempMin}–${activeFishProfile.tempMax}°C. pH range: ${activeFishProfile.phMin}–${activeFishProfile.phMax}.`
-    : "No fish profile selected.";
+  // Always use the most current sensor data and profile
+  const d = latestData || {};
+  const ph = d.ph!=null ? Number(d.ph) : null;
+  const sensorLines = [
+    `System status: ${d.statusLabel||"Unknown"} | Health: ${d.healthScore||0}%`,
+    `Temperature: ${d.temperature!=null?formatTemp(Number(d.temperature)):"No sensor"}`,
+    `Water sensor: ${d.waterDetected?"PRESENT — OK":"DRY — not detected"}`,
+    `Turbidity: ${d.turbidityStr||(d.turbidity===1?"DIRTY":d.turbidity===0?"CLEAN":"Unknown")}`,
+    `pH: ${ph!=null?ph.toFixed(2):"No sensor"}`,
+    `Voltage: ${d.voltage!=null?d.voltage+"V":"Not measured"}`,
+    `Heater: ${d.heater?"ON":"OFF"} (${formatSec(d.heaterRuntime||0)})`,
+    `Pump: ${d.pump?"ON":"OFF"} (${formatSec(d.pumpRuntime||0)})`,
+    `Light: ${d.light?"ON":"OFF"} (${formatSec(d.lightRuntime||0)})`,
+    `Device IP: ${d.ip||"--"}`,
+  ].join("\n");
 
-  const systemPrompt = `You are EcoGuard AI, an expert aquarium monitoring assistant embedded in a live dashboard.
-You have access to real-time sensor data from a Raspberry Pi 5 monitoring system.
-Answer questions clearly and specifically based on the live data below.
-Be direct, helpful, and practical. If something is wrong, say so. If fine, confirm it.
-Keep responses concise — 2-4 sentences unless a detailed explanation is needed.
+  const fishLines = activeFishProfile
+    ? [
+        `Active fish profile: ${activeFishProfile.name} (${activeFishProfile.category||""})`,
+        `Preferred temperature: ${activeFishProfile.tempMin}–${activeFishProfile.tempMax}°C | Current: ${d.temperature!=null?formatTemp(Number(d.temperature)):"no sensor"} — ${d.temperature!=null&&d.temperature>=activeFishProfile.tempMin&&d.temperature<=activeFishProfile.tempMax?"WITHIN range":"OUTSIDE range"}`,
+        `Preferred pH: ${activeFishProfile.phMin}–${activeFishProfile.phMax} | Current: ${ph!=null?ph.toFixed(2):"no sensor"} — ${ph!=null&&ph>=activeFishProfile.phMin&&ph<=activeFishProfile.phMax?"WITHIN range":"OUTSIDE range"}`,
+        `Min tank size: ${activeFishProfile.minTank}L | Care: ${activeFishProfile.care}`,
+      ].join("\n")
+    : "No fish profile selected on dashboard.";
 
-${ctx}
+  const systemPrompt = `You are EcoGuard AI, an expert aquarium monitoring assistant.
+You have access to LIVE real-time sensor data from a Raspberry Pi 5.
+Answer based ONLY on the data below — do not make up readings.
+Be direct and specific. 2-4 sentences normally, more only if needed.
 
-${fish}`;
+=== LIVE SENSOR DATA ===
+${sensorLines}
+
+=== FISH PROFILE ===
+${fishLines}
+=== END ===`;
 
   // Include recent chat history for context (last 6 messages)
   const messages = [
@@ -2161,6 +2194,33 @@ async function sendChat(){
 window.sendChat=sendChat;
 
 function quickChat(q){ const i=$("chatInput"); if(i){i.value=q;} sendChat(); }
+
+function saveOpenAIKey(){
+  const val = $("openaiKeyInput")?.value?.trim();
+  if(val && val.startsWith("sk-")){
+    OPENAI_CHAT_KEY = val;
+    localStorage.setItem("ecoguard_openai_key", val);
+    const st=$("keyStatus");
+    if(st) st.textContent="✓ Key saved — chat will now use real OpenAI GPT-4o-mini.";
+    if(st) st.style.color="var(--g)";
+    updateAIStatusBar();
+  } else {
+    const st=$("keyStatus");
+    if(st) st.textContent="Key must start with sk- — get one at platform.openai.com/api-keys";
+    if(st) st.style.color="var(--r)";
+  }
+}
+window.saveOpenAIKey=saveOpenAIKey;
+
+function clearOpenAIKey(){
+  OPENAI_CHAT_KEY = "";
+  localStorage.removeItem("ecoguard_openai_key");
+  const inp=$("openaiKeyInput"); if(inp) inp.value="";
+  const st=$("keyStatus");
+  if(st){ st.textContent="Key cleared — using rule-based fallback."; st.style.color="var(--t2)"; }
+  updateAIStatusBar();
+}
+window.clearOpenAIKey=clearOpenAIKey;
 window.quickChat=quickChat;
 
 function clearChat(){
@@ -2461,6 +2521,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(tankSizeL&&$("tankSizeInput"))$("tankSizeInput").value=tankSizeL;
   populateSpeciesDropdown();
   $("nav-home")?.classList.add("active");
+  // Restore saved OpenAI key
+  const savedKey = localStorage.getItem("ecoguard_openai_key");
+  if(savedKey){ OPENAI_CHAT_KEY=savedKey; const inp=$("openaiKeyInput"); if(inp)inp.value=savedKey; const st=$("keyStatus"); if(st){st.textContent="✓ Key loaded from browser storage.";st.style.color="var(--g)";} }
   // Restore stocking list from localStorage
   if(stockedFish.length>0){ renderStockingList(); analyseStocking(); }
 
