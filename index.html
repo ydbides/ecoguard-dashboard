@@ -2156,21 +2156,42 @@ async function fetchRootOnce(){
 
 const DB_URL = "https://ecoguard-11a04-default-rtdb.firebaseio.com";
 
-async function restGet(path){
-  const res = await fetch(`${DB_URL}/${path}.json`, { cache: "no-store" });
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+async function restGet(path, retries=2){
+  for(let i=0; i<=retries; i++){
+    try{
+      const res = await fetch(`${DB_URL}/${path}.json`, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(5000)  // 5s timeout per attempt
+      });
+      if(res.ok) return res.json();
+    } catch(e){
+      if(i===retries) throw e;
+      await new Promise(r=>setTimeout(r,500)); // wait 500ms before retry
+    }
+  }
 }
 
 async function fetchAndUpdate(){
   try{
     const raw = await restGet("ecoguard/live");
     if(!raw){ setConnected(false); return; }
-    setConnected(true);
 
-    // Skip if timestamp unchanged — same data
-    if(raw.updatedAtMs && raw.updatedAtMs === _lastUpdatedAtMs) return;
-    _lastUpdatedAtMs = raw.updatedAtMs ?? null;
+    // ── STALENESS CHECK ───────────────────────────────────────────────────────
+    // If Pi's timestamp is older than 10 seconds, it has stopped writing.
+    // FREEZE the display on last known good values — never show defaults.
+    if(raw.updatedAtMs && latestData){
+      const ageMs = Date.now() - Number(raw.updatedAtMs);
+      if(ageMs > 10000){
+        setConnected(false);
+        ["connectionText","connectionTextHero"].forEach(id=>{
+          const e=document.getElementById(id);
+          if(e) e.textContent = `Pi offline — last data ${Math.round(ageMs/1000)}s ago`;
+        });
+        return; // keep showing last good values — don't overwrite with stale data
+      }
+    }
+
+    setConnected(true);
 
     // Pi just started — show connecting state, don't render reset values
     if(raw.statusLabel === "STARTING"){
