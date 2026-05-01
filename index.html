@@ -449,7 +449,10 @@ select option{background:#060d18;}
 .rc-title{font-weight:600;font-size:12px;color:var(--t0);margin-bottom:2px;}
 .rc-range{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);margin-bottom:3px;}
 .fish-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--cyan);margin-bottom:5px;}
-.demo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;margin-top:10px;}
+.sensor-grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;}
+@media(max-width:1100px){.sensor-grid-5{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.sensor-grid-5{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:400px){.sensor-grid-5{grid-template-columns:1fr;}}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;animation:lb 2s infinite;box-shadow:0 0 5px var(--g);}
 @keyframes lb{0%,100%{opacity:1;}50%{opacity:.3;}}
 .footer-note{margin-top:32px;padding:14px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--t3);border-top:1px solid var(--line);letter-spacing:1px;}
@@ -615,7 +618,7 @@ select option{background:#060d18;}
 
     <!-- Water sensors -->
     <div class="section-title">Water Sensors</div>
-    <div class="g4 mb">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;" class="sensor-grid-5">
       <div class="tile">
         <span class="tile-icon">🌡</span>
         <div class="tile-name">Temperature</div>
@@ -645,6 +648,15 @@ select option{background:#060d18;}
         <div class="ph-strip"><div class="ph-needle" id="phNeedle" style="left:50%"></div></div>
         <div class="ph-lbls"><span>0</span><span>3.5</span><span>7</span><span>10.5</span><span>14</span></div>
         <div class="tile-hint" id="phMeaning">Analog sensor 0–14</div>
+      </div>
+
+      <!-- Voltage tile -->
+      <div class="tile" id="voltageTile" style="border-color:rgba(255,215,64,0.15);">
+        <span class="tile-icon">⚡</span>
+        <div class="tile-name" style="color:rgba(255,215,64,0.65);">Voltage</div>
+        <div class="tile-val" id="voltageVal" style="color:var(--y);">--</div>
+        <div id="voltageStatus" class="badge" style="border-color:rgba(255,215,64,0.2);"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint" id="voltageMeaning">Supply voltage via ADS1115 AIN1</div>
       </div>
     </div>
 
@@ -821,6 +833,21 @@ select option{background:#060d18;}
         <div class="chart-legend-item"><span class="chart-legend-dot" style="background:rgba(0,230,118,0.2);border:1px solid var(--g);width:14px;border-radius:3px;"></span>Ideal zone</div>
       </div>
       <div class="chart-wrap"><canvas id="phChart" width="900" height="200"></canvas></div>
+    </div>
+
+    <!-- Voltage graph -->
+    <div class="chart-card" style="border-color:rgba(255,215,64,0.15);">
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,64,0.3),transparent);position:absolute;top:0;left:0;right:0;"></div>
+      <div class="chart-hdr">
+        <div class="chart-title" style="color:var(--y);">⚡ Supply Voltage</div>
+        <div class="chart-mm" id="voltChartMM">Min: -- | Max: --</div>
+      </div>
+      <div class="chart-legend">
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--r);"></span>Critical &lt;10.5V</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--y);"></span>Warning &lt;11.5V</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--g);"></span>Good ≥11.5V</div>
+      </div>
+      <div class="chart-wrap"><canvas id="voltChart" width="900" height="200"></canvas></div>
     </div>
   </div>
 
@@ -1606,6 +1633,7 @@ function rebuildGraphs(){
   drawGraph("turbChart","turbChartMM",turbHistory,"#ff8c00","");
   drawGraph("waterChart","waterChartMM",waterHistory,"#00e676","");
   drawGraph("phChart","phChartMM",phHistory,"#c084fc","",phIdealMin,phIdealMax);
+  drawGraph("voltChart","voltChartMM",voltHistory,"#ffd740","V",11.5,14);
 }
 
 // ── HISTORY ────────────────────────────────────────────────────────
@@ -1618,11 +1646,11 @@ function saveHist(){
 }
 function pushHist(vs,max=120){
   tempHistory.push(vs.temp); turbHistory.push(vs.turb); waterHistory.push(vs.water);
-  phHistory.push(vs.ph); labelHistory.push(vs.lbl);
-  [tempHistory,turbHistory,waterHistory,phHistory,labelHistory].forEach(a=>{if(a.length>max)a.shift();});
+  phHistory.push(vs.ph); voltHistory.push(vs.volt??0); labelHistory.push(vs.lbl);
+  [tempHistory,turbHistory,waterHistory,phHistory,voltHistory,labelHistory].forEach(a=>{if(a.length>max)a.shift();});
   saveHist();
 }
-function clearGraphHistory(){ tempHistory=[];turbHistory=[];waterHistory=[];phHistory=[];labelHistory=[]; saveHist(); rebuildGraphs(); alert("Graph history cleared."); }
+function clearGraphHistory(){ tempHistory=[];turbHistory=[];waterHistory=[];phHistory=[];voltHistory=[];labelHistory=[]; saveHist(); rebuildGraphs(); alert("Graph history cleared."); }
 window.clearGraphHistory=clearGraphHistory;
 
 function calcTrend(){
@@ -1721,6 +1749,19 @@ function updateUI(data){
   s("waterVal",data.waterDetected?"WATER OK":"LOW / DRY");
   s("turbVal",data.turbidityStr ?? (data.turbidity===1?"DIRTY":data.turbidity===0?"CLEAN":"--"));
   s("phVal",data.ph!=null?`pH ${Number(data.ph).toFixed(2)}`:"No Sensor");
+
+  // Voltage tile
+  const voltVal = data.voltage!=null ? Number(data.voltage) : null;
+  s("voltageVal", voltVal!=null ? `${voltVal.toFixed(1)}V` : "--");
+  const voltI = voltVal!=null
+    ? (voltVal<=10.5 ? {label:"CRITICAL",cls:"dot-r",col:"var(--r)",meaning:"Voltage critically low — stop relays."}
+      :voltVal<=11.5 ? {label:"WARNING", cls:"dot-y",col:"var(--y)",meaning:"Voltage low — check power supply."}
+      :                {label:"GOOD",    cls:"dot-g",col:"var(--g)",meaning:"Supply voltage is healthy."})
+    : {label:"NO SENSOR",cls:"dot-y",col:"var(--y)",meaning:"Voltage not connected."};
+  setBadge($("voltageStatus"), voltI.cls, voltI.label);
+  s("voltageMeaning", voltI.meaning);
+  const vt=$("voltageTile");
+  if(vt){ vt.style.borderColor = voltVal!=null&&voltVal<=10.5?"rgba(255,45,85,0.35)":voltVal!=null&&voltVal<=11.5?"rgba(255,215,64,0.25)":"rgba(255,215,64,0.15)"; }
   setBadge($("tempStatus"),tI.cls,tI.label); setBadge($("waterStatus"),wI.cls,wI.label);
   setBadge($("turbStatus"),tbI.cls,tbI.label);
   setBadge($("phStatus"),data.ph!=null?"dot-p":"dot-y",data.ph!=null?phI.label:"NOT CONNECTED");
@@ -2293,7 +2334,7 @@ function processRaw(raw){
 
   latestData=data;
   pushHist({temp:data.temperature??0, turb:data.turbidity, water:data.waterDetected?1:0,
-            ph:data.ph??7, lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+            ph:data.ph??7, volt:data.voltage??null, lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
   updateUI(data);
   updateAIStatusBar();
 }
@@ -2332,7 +2373,7 @@ onAuthStateChanged(auth,async user=>{
 // ── EXPORT / PRINT / SHARE ─────────────────────────────────────────
 function exportCSV(){
   const len=Math.max(tempHistory.length,turbHistory.length,waterHistory.length,phHistory.length);
-  let csv="Sample,TemperatureC,Turbidity,WaterSensor,pH\n";
+  let csv="Sample,TemperatureC,Turbidity,WaterSensor,pH,Voltage\n";
   for(let i=0;i<len;i++)csv+=`${labelHistory[i]??i},${tempHistory[i]??""}, ${turbHistory[i]??""}, ${waterHistory[i]??""}, ${phHistory[i]??""}\n`;
   const blob=new Blob([csv],{type:"text/csv"});const url=URL.createObjectURL(blob);
   const a=document.createElement("a");a.href=url;a.download="ecoguard_live_data.csv";a.click();URL.revokeObjectURL(url);
