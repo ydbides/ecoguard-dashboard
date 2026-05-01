@@ -548,6 +548,7 @@ select option{background:#060d18;}
           <div class="sb"><span class="sb-name">Turbidity</span><div class="sb-track"><div class="sb-fill" id="turbScoreBar" style="width:0%;background:var(--o);box-shadow:0 0 6px rgba(255,140,0,.4);"></div></div><span class="sb-pct" id="turbScoreVal">--%</span></div>
           <div class="sb"><span class="sb-name">Water Level</span><div class="sb-track"><div class="sb-fill" id="waterScoreBar" style="width:0%;background:var(--g);box-shadow:0 0 6px rgba(0,230,118,.4);"></div></div><span class="sb-pct" id="waterScoreVal">--%</span></div>
           <div class="sb"><span class="sb-name">pH</span><div class="sb-track"><div class="sb-fill" id="phScoreBar" style="width:0%;background:var(--p);box-shadow:0 0 6px rgba(192,132,252,.4);"></div></div><span class="sb-pct" id="phScoreVal">--%</span></div>
+          <div class="sb"><span class="sb-name">Water V</span><div class="sb-track"><div class="sb-fill" id="voltScoreBar" style="width:0%;background:var(--y);box-shadow:0 0 6px rgba(255,215,64,.4);"></div></div><span class="sb-pct" id="voltScoreVal">--%</span></div>
         </div>
       </div>
     </div>
@@ -650,13 +651,13 @@ select option{background:#060d18;}
         <div class="tile-hint" id="phMeaning">Analog sensor 0–14</div>
       </div>
 
-      <!-- Voltage tile -->
+      <!-- Water voltage tile -->
       <div class="tile" id="voltageTile" style="border-color:rgba(255,215,64,0.15);">
-        <span class="tile-icon">⚡</span>
-        <div class="tile-name" style="color:rgba(255,215,64,0.65);">Voltage</div>
+        <span class="tile-icon">🔬</span>
+        <div class="tile-name" style="color:rgba(255,215,64,0.65);">Water Voltage</div>
         <div class="tile-val" id="voltageVal" style="color:var(--y);">--</div>
         <div id="voltageStatus" class="badge" style="border-color:rgba(255,215,64,0.2);"><span class="dot dot-y"></span><span>Checking...</span></div>
-        <div class="tile-hint" id="voltageMeaning">Supply voltage via ADS1115 AIN1</div>
+        <div class="tile-hint" id="voltageMeaning">Water conductivity via ADS1115 AIN1 — higher = more conductive</div>
       </div>
     </div>
 
@@ -839,7 +840,7 @@ select option{background:#060d18;}
     <div class="chart-card" style="border-color:rgba(255,215,64,0.15);">
       <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,64,0.3),transparent);position:absolute;top:0;left:0;right:0;"></div>
       <div class="chart-hdr">
-        <div class="chart-title" style="color:var(--y);">⚡ Supply Voltage</div>
+        <div class="chart-title" style="color:var(--y);">🔬 Water Voltage (ADS1115 AIN1)</div>
         <div class="chart-mm" id="voltChartMM">Min: -- | Max: --</div>
       </div>
       <div class="chart-legend">
@@ -1594,7 +1595,7 @@ function drawGraph(cId,mmId,vals,color,unit="",refMin=null,refMax=null){
   let gv=[...vals];
   if(cId==="tempChart"&&temperatureUnit==="F") gv=gv.map(c=>cToF(c));
   let minV=Math.min(...gv),maxV=Math.max(...gv);
-  if(minV===maxV){minV-=1;maxV+=1;}
+  if(minV===maxV){ minV=Math.max(0,minV-0.5); maxV+=0.5; }  // flat line — show small range
   if(refMin!=null&&refMax!=null){
     const ry1=tp+ph2-((Math.min(refMax,maxV)-minV)/(maxV-minV))*ph2;
     const ry2=tp+ph2-((Math.max(refMin,minV)-minV)/(maxV-minV))*ph2;
@@ -1633,7 +1634,7 @@ function rebuildGraphs(){
   drawGraph("turbChart","turbChartMM",turbHistory,"#ff8c00","");
   drawGraph("waterChart","waterChartMM",waterHistory,"#00e676","");
   drawGraph("phChart","phChartMM",phHistory,"#c084fc","",phIdealMin,phIdealMax);
-  drawGraph("voltChart","voltChartMM",voltHistory,"#ffd740","V",11.5,14);
+  drawGraph("voltChart","voltChartMM",voltHistory,"#ffd740","V",0,0.5);  // 0–0.5V = normal zone
 }
 
 // ── HISTORY ────────────────────────────────────────────────────────
@@ -1712,9 +1713,33 @@ function computeStatus(data){
   return"STABLE";
 }
 function computeHealth(data){
-  const t=Number(data.temperature||0),tb=Number(data.turbidity||0),phI=getPhInfo(data.ph||7);
-  const phScore=phI.sev==="ok"?100:phI.sev==="warn"?60:20;
-  return Math.round(((t>=24&&t<=28?100:t<=31?75:40)+(tb<1800?100:tb<2200?80:tb<3000?55:20)+(data.waterDetected?100:0)+phScore)/4);
+  const scores = [];
+  // Water presence
+  scores.push(data.waterDetected ? 100 : 0);
+  // Turbidity (digital 0=clean, 1=dirty)
+  scores.push(data.turbidity===0 ? 100 : data.turbidity===1 ? 20 : 100);
+  // Temperature
+  if(data.temperature!=null){
+    const t=Number(data.temperature), tMin=24, tMax=28;
+    if(t>=32||t<tMin-2)      scores.push(0);
+    else if(t>=tMax||t<tMin) scores.push(50);
+    else                      scores.push(100);
+  }
+  // pH
+  if(data.ph!=null){
+    const phI=getPhInfo(data.ph);
+    scores.push(phI.sev==="ok"?100:phI.sev==="warn"?50:0);
+  }
+  // Water voltage
+  if(data.voltage!=null){
+    const vv=Number(data.voltage);
+    scores.push(vv>1.0?0:vv>0.5?40:vv>0.2?80:100);
+  }
+  if(!scores.length) return 50;
+  const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+  // Hard cap if critical
+  if(data.statusLabel==="CRITICAL") return Math.min(avg,35);
+  return Math.max(0,Math.min(100,avg));
 }
 
 // ── MAIN UI UPDATE ─────────────────────────────────────────────────
@@ -1753,15 +1778,18 @@ function updateUI(data){
   // Voltage tile
   const voltVal = data.voltage!=null ? Number(data.voltage) : null;
   s("voltageVal", voltVal!=null ? `${voltVal.toFixed(1)}V` : "--");
+  // Water voltage: >1.0V = possible electrical leak/contamination (CRITICAL)
+  //                0.5–1.0V = elevated — monitor
+  //                <0.5V    = normal (low conductivity = clean water)
   const voltI = voltVal!=null
-    ? (voltVal<=10.5 ? {label:"CRITICAL",cls:"dot-r",col:"var(--r)",meaning:"Voltage critically low — stop relays."}
-      :voltVal<=11.5 ? {label:"WARNING", cls:"dot-y",col:"var(--y)",meaning:"Voltage low — check power supply."}
-      :                {label:"GOOD",    cls:"dot-g",col:"var(--g)",meaning:"Supply voltage is healthy."})
-    : {label:"NO SENSOR",cls:"dot-y",col:"var(--y)",meaning:"Voltage not connected."};
+    ? (voltVal>1.0  ? {label:"CRITICAL — LEAK",cls:"dot-r",col:"var(--r)",meaning:`${voltVal.toFixed(2)}V detected — possible electrical leak or contamination. Act immediately.`}
+      :voltVal>0.5  ? {label:"ELEVATED",       cls:"dot-y",col:"var(--y)",meaning:`${voltVal.toFixed(2)}V — slightly elevated. Monitor for electrical leakage.`}
+      :               {label:"NORMAL",          cls:"dot-g",col:"var(--g)",meaning:`${voltVal.toFixed(2)}V — water conductivity is normal. No electrical risk detected.`})
+    : {label:"NO SENSOR",cls:"dot-y",col:"var(--y)",meaning:"Water voltage sensor not connected."};
   setBadge($("voltageStatus"), voltI.cls, voltI.label);
   s("voltageMeaning", voltI.meaning);
   const vt=$("voltageTile");
-  if(vt){ vt.style.borderColor = voltVal!=null&&voltVal<=10.5?"rgba(255,45,85,0.35)":voltVal!=null&&voltVal<=11.5?"rgba(255,215,64,0.25)":"rgba(255,215,64,0.15)"; }
+  if(vt){ vt.style.borderColor = voltVal!=null&&voltVal>1.0?"rgba(255,45,85,0.35)":voltVal!=null&&voltVal>0.5?"rgba(255,215,64,0.25)":"rgba(255,215,64,0.15)"; }
   setBadge($("tempStatus"),tI.cls,tI.label); setBadge($("waterStatus"),wI.cls,wI.label);
   setBadge($("turbStatus"),tbI.cls,tbI.label);
   setBadge($("phStatus"),data.ph!=null?"dot-p":"dot-y",data.ph!=null?phI.label:"NOT CONNECTED");
@@ -1788,14 +1816,19 @@ function updateUI(data){
   // Health gauge + bars
   setGauge(Number(data.healthScore||0));
   s("healthScoreBig",`${data.healthScore??"-"}%`);
-  const tPct=tI.label==="GOOD"?100:tI.label==="MILD"?75:40;
-  const tbPct=tbI.label==="CLEAN"?100:tbI.label==="GOOD"?100:20;  // 0=clean=100%, 1=dirty=20%
+  const tPct=data.temperature==null?0:(Number(data.temperature)>=32||Number(data.temperature)<22?0:Number(data.temperature)>=30||Number(data.temperature)<24?50:100);
+  const tbPct=data.turbidity===0?100:data.turbidity===1?20:100;
   const phPct=data.ph!=null?(phI.sev==="ok"?100:phI.sev==="warn"?60:20):0;
   const phBarCol=data.ph!=null?(phI.sev==="ok"?"var(--g)":phI.sev==="warn"?"var(--y)":"var(--r)"):"var(--t3)";
+  // Voltage score: 0V=100%, 0.5V=80%, 1.0V=40%, >1.0V=0%
+  const vv=data.voltage!=null?Number(data.voltage):null;
+  const voltPct=vv==null?0:vv>1.0?0:vv>0.5?40:vv>0.2?80:100;
+  const voltBarCol=vv==null?"var(--t3)":vv>1.0?"var(--r)":vv>0.5?"var(--y)":"var(--g)";
   setBar("tempScoreBar","tempScoreVal",tPct,tI.col);
   setBar("turbScoreBar","turbScoreVal",tbPct,tbI.col);
   setBar("waterScoreBar","waterScoreVal",data.waterDetected?100:0,wI.col);
   setBar("phScoreBar","phScoreVal",phPct,phBarCol);
+  setBar("voltScoreBar","voltScoreVal",voltPct,voltBarCol);
 
   // Summary
   s("summaryStatus",data.statusLabel||"--");
@@ -2252,7 +2285,7 @@ async function fetchControlMode(){
 function startRootListeners(){
   // These change rarely — poll every 10s is fine
   fetchControlMode();
-  setInterval(fetchControlMode, 10000);
+  setInterval(fetchControlMode, 3000);  // control mode every 3s
 }
 
 function startLiveListener(){
@@ -2267,8 +2300,8 @@ function startLiveListener(){
   // AI and logs — poll since they update rarely
   fetchAI();
   fetchLogs();
-  setInterval(fetchAI,   15000);
-  setInterval(fetchLogs, 30000);
+  setInterval(fetchAI,   5000);   // check for new AI response every 5s
+  setInterval(fetchLogs, 10000);  // check logs every 10s
 }
 function startLogsListener(){ /* handled in startLiveListener */ }
 function startAIListener(){   /* handled in startLiveListener */ }
@@ -2324,7 +2357,8 @@ function processRaw(raw){
     controlMode:   controlMode,
   };
   data.statusLabel = raw.statusLabel ?? computeStatus(data);
-  data.healthScore = raw.healthScore ?? computeHealth(data);
+  // Always recompute health on site — keeps gauge in sync with score bars
+  data.healthScore = computeHealth(data);
 
   if(Array.isArray(raw.logs)&&raw.logs.length){
     logsData=[...raw.logs].reverse();
@@ -2539,7 +2573,7 @@ async function sendChatMessage(question, latestData, activeFishProfile, chatHist
     `Water sensor: ${d.waterDetected ? "PRESENT — OK" : "DRY — not detected"}`,
     `Turbidity: ${d.turbidityStr || (d.turbidity===1?"DIRTY":d.turbidity===0?"CLEAN":"Unknown")}`,
     `pH: ${ph!=null ? ph.toFixed(2) : "No sensor"}`,
-    `Voltage: ${d.voltage!=null ? d.voltage+"V" : "Not measured"}`,
+    `Water voltage (conductivity): ${d.voltage!=null ? d.voltage+"V" : "Not measured"} — >1.0V = electrical leak risk, <0.5V = normal`,
     `Heater: ${d.heater?"ON":"OFF"} (runtime: ${formatSec(d.heaterRuntime||0)})`,
     `Pump:   ${d.pump  ?"ON":"OFF"} (runtime: ${formatSec(d.pumpRuntime||0)})`,
     `Light:  ${d.light ?"ON":"OFF"} (runtime: ${formatSec(d.lightRuntime||0)})`,
