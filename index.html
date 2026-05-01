@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EcoGuard · Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Core palette */
+  --ink:#03080f;
+  --ink2:#060d18;
+  --surface:rgba(8,18,35,0.7);
+  --surface2:rgba(5,13,28,0.85);
+  --glass:rgba(255,255,255,0.03);
+  --glass2:rgba(255,255,255,0.06);
+
+  /* Borders */
+  --line:rgba(80,160,255,0.1);
+  --line2:rgba(80,160,255,0.2);
+  --line-bright:rgba(0,200,255,0.35);
+
+  /* Text */
+  --t0:#f0f7ff;
+  --t1:rgba(200,225,255,0.65);
+  --t2:rgba(140,180,230,0.4);
+  --t3:rgba(100,150,210,0.28);
+
+  /* Accent */
+  --cyan:#00c8ff;
+  --cyan2:#0af;
+  --cyan-glow:rgba(0,200,255,0.18);
+
+  /* Status */
+  --g:#00e676;   --gd:rgba(0,230,118,0.12);
+  --y:#ffd740;   --yd:rgba(255,215,64,0.12);
+  --o:#ff8c00;   --od:rgba(255,140,0,0.12);
+  --r:#ff2d55;   --rd:rgba(255,45,85,0.12);
+  --b:#2979ff;   --bd:rgba(41,121,255,0.12);
+  --p:#c084fc;   --pd:rgba(192,132,252,0.12);
+
+  --card-r:16px;
+  --nav-h:60px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+
+body{
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  background:var(--ink);
+  color:var(--t0);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Deep water background */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 120% 80% at -10% -5%, rgba(0,60,160,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 110% 100%, rgba(0,30,100,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,10,40,0.5) 0%, transparent 80%);
+  pointer-events:none;z-index:0;
+}
+
+/* Subtle grid */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0;
+  opacity:0.5;
+}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--nav-h);z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;gap:16px;
+  background:rgba(2,6,14,0.88);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(24px) saturate(160%);
+}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.burger{
+  width:28px;height:28px;display:flex;flex-direction:column;
+  justify-content:center;gap:5px;cursor:pointer;flex-shrink:0;
+}
+.burger span{
+  display:block;height:1.5px;border-radius:2px;
+  background:var(--cyan);transition:.25s;
+}
+.burger:hover span{background:white;}
+.logo{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(0,200,255,0.15),rgba(0,80,200,0.15));
+  border:1px solid var(--line2);
+  display:grid;place-items:center;font-size:17px;flex-shrink:0;
+}
+.brand{display:flex;flex-direction:column;gap:1px;}
+.brand-name{
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:800;letter-spacing:-.3px;
+  color:var(--t0);
+}
+.brand-name em{color:var(--cyan);font-style:normal;}
+.brand-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;color:var(--t2);letter-spacing:1.5px;text-transform:uppercase;
+}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.tag{
+  padding:4px 10px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+}
+.tag-sim{background:var(--od);border:1px solid rgba(255,140,0,0.25);color:var(--o);}
+.tag-pi{background:var(--pd);border:1px solid rgba(192,132,252,0.25);color:var(--p);}
+.conn-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:999px;
+  background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--g);
+}
+.unit-switch{
+  display:flex;background:rgba(0,200,255,0.05);
+  border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px;
+}
+.unit-switch button{
+  padding:4px 12px;border:none;border-radius:6px;
+  background:transparent;color:var(--t1);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  letter-spacing:.5px;transition:.2s;
+}
+.unit-switch button.active{background:var(--cyan);color:#000;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  position:fixed;top:0;left:-265px;width:245px;height:100%;
+  background:rgba(2,6,14,0.97);border-right:1px solid var(--line);
+  padding-top:calc(var(--nav-h)+12px);
+  z-index:2000;transition:left .3s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;backdrop-filter:blur(30px);
+}
+.sidebar.open{left:0;}
+.sidebar-group{
+  padding:16px 16px 6px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:2px;text-transform:uppercase;color:var(--t3);
+}
+.sidebar a{
+  display:flex;align-items:center;gap:10px;
+  color:var(--t1);text-decoration:none;
+  padding:9px 18px;font-size:13px;font-weight:500;cursor:pointer;
+  transition:.2s;border-left:2px solid transparent;
+  position:relative;
+}
+.sidebar a:hover,.sidebar a.active{
+  color:var(--cyan);background:rgba(0,200,255,0.04);border-left-color:var(--cyan);
+}
+.ni{width:16px;text-align:center;font-size:13px;opacity:.8;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1500;backdrop-filter:blur(6px);}
+.overlay.show{display:block;}
+
+/* ─── MAIN ─── */
+.main{
+  padding:calc(var(--nav-h)+28px) 28px 48px;
+  max-width:1560px;margin:0 auto;
+  position:relative;z-index:1;
+}
+.page{display:none;animation:fade .25s ease;}
+.page.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ─── PAGE HEADER ─── */
+.ph{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--line);}
+.ph h1{
+  font-family:'Syne',sans-serif;font-size:24px;font-weight:800;
+  letter-spacing:-.5px;color:var(--t0);
+}
+.ph h1 em{color:var(--cyan);font-style:normal;}
+.ph p{margin-top:5px;font-size:12px;color:var(--t2);}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--card-r);
+  padding:20px;backdrop-filter:blur(20px);
+  position:relative;overflow:hidden;transition:border-color .3s;
+}
+.card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,200,255,0.25),transparent);
+}
+.card:hover{border-color:var(--line2);}
+.card-label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--t2);
+  margin-bottom:12px;
+}
+.card-val{
+  font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:600;
+  color:var(--t0);line-height:1;letter-spacing:-1px;
+}
+.card-hint{margin-top:8px;font-size:12px;color:var(--t2);line-height:1.55;}
+
+/* Special pH card tint */
+.card-ph{border-color:rgba(192,132,252,0.15);}
+.card-ph::after{background:linear-gradient(90deg,transparent,rgba(192,132,252,0.3),transparent);}
+
+/* ─── GRIDS ─── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+.ghero{display:grid;grid-template-columns:1.7fr 1fr;gap:14px;margin-bottom:14px;}
+.mb{margin-bottom:14px;}
+.mt{margin-top:14px;}
+
+/* ─── SENSOR TILE ─── */
+.tile{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--card-r);padding:18px;
+  backdrop-filter:blur(20px);position:relative;overflow:hidden;
+  transition:border-color .25s,transform .2s;
+  cursor:default;
+}
+.tile::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,200,255,0.2),transparent);
+}
+.tile:hover{border-color:var(--line2);transform:translateY(-2px);}
+.tile-ph{border-color:rgba(192,132,252,0.15);}
+.tile-ph::after{background:linear-gradient(90deg,transparent,rgba(192,132,252,0.3),transparent);}
+.tile-icon{font-size:20px;margin-bottom:10px;display:block;opacity:.9;}
+.tile-name{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);margin-bottom:6px;
+}
+.tile-val{
+  font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;
+  color:var(--t0);line-height:1;margin-bottom:10px;
+}
+.tile-val.sm{font-size:18px;letter-spacing:0;}
+.tile-hint{font-size:11px;color:var(--t2);line-height:1.5;margin-top:8px;}
+
+/* Actuator tiles — subtle green/orange tint when active */
+.tile-act-on{background:rgba(0,230,118,0.04);border-color:rgba(0,230,118,0.15);}
+.tile-act-on::after{background:linear-gradient(90deg,transparent,rgba(0,230,118,0.25),transparent);}
+.tile-act-off{background:rgba(8,18,35,0.5);}
+
+/* ─── BADGES ─── */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  letter-spacing:.5px;border:1px solid var(--line);background:var(--glass);
+  margin-bottom:6px;
+}
+.dot{
+  width:6px;height:6px;border-radius:50%;flex-shrink:0;
+}
+.dot-g{background:var(--g);box-shadow:0 0 6px var(--g);}
+.dot-y{background:var(--y);box-shadow:0 0 6px var(--y);}
+.dot-o{background:var(--o);box-shadow:0 0 6px var(--o);}
+.dot-r{background:var(--r);box-shadow:0 0 6px var(--r);animation:rpulse 1.5s infinite;}
+.dot-b{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+.dot-p{background:var(--p);box-shadow:0 0 6px var(--p);}
+@keyframes rpulse{0%,100%{box-shadow:0 0 6px var(--r);}50%{box-shadow:0 0 16px var(--r),0 0 30px rgba(255,45,85,.3);}}
+.badge-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+
+/* ─── GAUGE ─── */
+.gauge-wrap{display:flex;justify-content:center;padding:8px 0 12px;}
+.g-bg{fill:none;stroke:rgba(0,200,255,0.07);stroke-width:8;}
+.g-fill{
+  fill:none;stroke:var(--cyan);stroke-width:8;stroke-linecap:round;
+  stroke-dasharray:283;stroke-dashoffset:283;
+  transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
+  filter:drop-shadow(0 0 8px rgba(0,200,255,.5));
+}
+
+/* ─── SCORE BARS ─── */
+.sb{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.sb-name{font-size:10px;color:var(--t2);width:76px;flex-shrink:0;}
+.sb-track{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,0.05);overflow:visible;position:relative;}
+.sb-fill{
+  height:100%;border-radius:99px;background:var(--cyan);
+  transition:width 1.2s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 6px rgba(0,200,255,.4);
+}
+.sb-pct{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  font-weight:600;color:var(--cyan);width:32px;text-align:right;
+}
+
+/* ─── CHARTS ─── */
+.chart-card{
+  background:var(--surface2);border:1px solid var(--line);
+  border-radius:var(--card-r);padding:20px;margin-bottom:14px;
+  backdrop-filter:blur(20px);position:relative;overflow:hidden;
+}
+.chart-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,200,255,0.2),transparent);
+}
+.chart-card-ph{border-color:rgba(192,132,252,0.15);}
+.chart-card-ph::after{background:linear-gradient(90deg,transparent,rgba(192,132,252,0.3),transparent);}
+.chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.chart-title{
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+}
+.chart-mm{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t2);
+}
+.chart-wrap{border-radius:10px;overflow:hidden;background:rgba(0,0,0,.3);padding:4px;}
+.chart-legend{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
+.chart-legend-item{
+  display:flex;align-items:center;gap:5px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--t2);
+}
+.chart-legend-dot{width:8px;height:8px;border-radius:50%;}
+canvas{width:100%;max-width:100%;height:auto;display:block;border-radius:8px;}
+
+/* ─── BUTTONS ─── */
+button{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 16px;border:1px solid var(--line);border-radius:8px;
+  background:var(--glass);color:var(--t0);cursor:pointer;
+  font-size:12px;font-family:'Inter',sans-serif;font-weight:500;
+  transition:.2s;white-space:nowrap;
+}
+button:hover{background:var(--glass2);border-color:var(--line2);}
+.btn-c{background:rgba(0,200,255,.12);border-color:rgba(0,200,255,.3);color:var(--cyan);}
+.btn-c:hover{background:rgba(0,200,255,.18);box-shadow:0 0 16px rgba(0,200,255,.15);}
+.btn-g{background:var(--gd);border-color:rgba(0,230,118,.25);color:var(--g);}
+.btn-o{background:var(--od);border-color:rgba(255,140,0,.25);color:var(--o);}
+.btn-r{background:var(--rd);border-color:rgba(255,45,85,.25);color:var(--r);}
+.btn-dim{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);color:var(--t2);}
+.btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;}
+
+/* ─── INPUTS ─── */
+input,select{
+  width:100%;padding:10px 13px;border-radius:8px;
+  background:rgba(0,0,0,.35);border:1px solid var(--line);
+  color:var(--t0);font-size:13px;font-family:'Inter',sans-serif;
+  margin-top:5px;transition:border-color .2s;appearance:none;
+}
+input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,255,.08);}
+select option{background:#060d18;}
+.ilabel{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--t2);margin-top:12px;display:block;
+}
+
+/* ─── PROFILE GRID ─── */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.pitem{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+.pitem-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--t2);margin-bottom:3px;
+}
+.pitem-val{font-size:13px;font-weight:500;color:var(--t0);}
+
+/* ─── MODE BIG ─── */
+.mode-big{
+  font-family:'Syne',sans-serif;font-size:44px;font-weight:800;
+  letter-spacing:-2px;line-height:1;margin:12px 0;
+}
+.mode-big.auto{color:var(--g);text-shadow:0 0 30px rgba(0,230,118,.3);}
+.mode-big.manual{color:var(--o);text-shadow:0 0 30px rgba(255,140,0,.3);}
+
+/* ─── FIT BADGE ─── */
+.fit-badge{
+  display:flex;align-items:flex-start;gap:8px;padding:10px 12px;
+  border-radius:8px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  font-size:11px;color:var(--t1);line-height:1.5;margin-top:8px;
+}
+.fit-dot{width:6px;height:6px;border-radius:50%;margin-top:3px;flex-shrink:0;}
+
+/* ─── pH STRIP ─── */
+.ph-strip{
+  margin-top:10px;height:6px;border-radius:99px;
+  background:linear-gradient(90deg,#ff2d55,#ff8c00,#ffd740,#00e676,#00c8ff,#2979ff,#c084fc);
+  position:relative;
+}
+.ph-needle{
+  position:absolute;top:-5px;width:2px;height:16px;
+  background:white;border-radius:2px;transform:translateX(-50%);
+  transition:left 1s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 8px rgba(255,255,255,.9);
+}
+.ph-lbls{
+  display:flex;justify-content:space-between;margin-top:4px;
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--t3);
+}
+
+/* ─── RANGE KEY ─── */
+.range-key{display:flex;flex-direction:column;gap:7px;margin-top:10px;padding:12px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:10px;}
+.range-row{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--t1);}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ─── MISC ─── */
+.section-title{
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;color:var(--t2);
+  margin-bottom:11px;display:flex;align-items:center;gap:10px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--line);}
+.alert-banner{
+  display:none;margin-bottom:16px;padding:14px 18px;border-radius:12px;
+  border:1px solid rgba(255,45,85,.35);background:rgba(255,45,85,.07);
+  display:flex;align-items:center;gap:10px;font-size:13px;
+}
+.soft-alert{padding:12px;background:var(--yd);border:1px solid rgba(255,215,64,.18);border-radius:8px;font-size:12px;color:var(--y);}
+.why-box{margin-top:11px;padding:11px 13px;background:var(--bd);border:1px solid rgba(41,121,255,.18);border-radius:8px;font-size:11px;color:var(--t1);line-height:1.6;}
+.response-box{margin-top:10px;padding:14px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;min-height:70px;font-size:12px;line-height:1.7;color:var(--t1);white-space:pre-wrap;}
+.log-box{padding:14px;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:10px;min-height:100px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.9;color:var(--t1);}
+.log-box ul{list-style:none;}
+.log-box li{padding:3px 0;border-bottom:1px solid rgba(80,160,255,0.06);}
+.log-box li:last-child{border-bottom:none;}
+.log-box li::before{content:'▸ ';color:var(--cyan);font-size:9px;}
+.account-status{margin-top:10px;font-size:11px;color:var(--t2);line-height:1.6;}
+.verified{color:var(--g);font-weight:600;}
+.not-verified{color:var(--y);font-weight:600;}
+.about-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--card-r);padding:22px;margin-bottom:14px;position:relative;overflow:hidden;}
+.about-block::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,255,.2),transparent);}
+.about-block h2,.about-block h3{font-family:'Syne',sans-serif;font-weight:700;color:var(--t0);margin-bottom:10px;}
+.about-block p{font-size:13px;color:var(--t1);line-height:1.7;}
+.rc{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px;}
+.rc-title{font-weight:600;font-size:12px;color:var(--t0);margin-bottom:2px;}
+.rc-range{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);margin-bottom:3px;}
+.fish-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--cyan);margin-bottom:5px;}
+.demo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;margin-top:10px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;animation:lb 2s infinite;box-shadow:0 0 5px var(--g);}
+@keyframes lb{0%,100%{opacity:1;}50%{opacity:.3;}}
+.footer-note{margin-top:32px;padding:14px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--t3);border-top:1px solid var(--line);letter-spacing:1px;}
+#notifyStatus{font-size:11px;color:var(--t2);margin-top:8px;}
+
+@media(max-width:1000px){.ghero,.g2,.g3{grid-template-columns:1fr;}.g4{grid-template-columns:1fr 1fr;}}
+@media(max-width:620px){.g4{grid-template-columns:1fr;}.pgrid{grid-template-columns:1fr;}.main{padding:calc(var(--nav-h)+16px) 14px 36px;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="burger" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+    <div class="logo">🐠</div>
+    <div class="brand">
+      <div class="brand-name">Eco<em>Guard</em></div>
+      <div class="brand-sub">Aquatic Intelligence · Pi 5</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    
+    <span class="tag tag-pi">🍓 Pi 5</span>
+    <div class="conn-pill"><span class="dot dot-g" id="onlineDot"></span><span id="connectionText">Firebase Online</span></div>
+    <div class="unit-switch">
+      <button id="unitCBtn" class="active" onclick="setUnit('C')">°C</button>
+      <button id="unitFBtn" onclick="setUnit('F')">°F</button>
+    </div>
+  </div>
+</div>
+
+<div id="overlay" class="overlay" onclick="closeAllPanels()"></div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-group">Monitor</div>
+  <a onclick="showPage('home')" id="nav-home"><span class="ni">⌂</span> Home</a>
+  <a onclick="showPage('sensorhealth')" id="nav-sensorhealth"><span class="ni">📡</span> Sensor Health</a>
+  <a onclick="showPage('deviceinfo')" id="nav-deviceinfo"><span class="ni">🖥</span> Device Info</a>
+  <a onclick="showPage('alerts')" id="nav-alerts"><span class="ni">🔔</span> Alerts</a>
+  <a onclick="showPage('insights')" id="nav-insights"><span class="ni">💡</span> Insights</a>
+  <a onclick="showPage('analytics')" id="nav-analytics"><span class="ni">📊</span> Analytics</a>
+  <a onclick="showPage('ai')" id="nav-ai"><span class="ni">🤖</span> AI Analysis</a>
+  <div class="sidebar-group">Configure</div>
+  <a onclick="showPage('fishprefs')" id="nav-fishprefs"><span class="ni">🐟</span> Fish Preferences</a>
+  <a onclick="showPage('account')" id="nav-account"><span class="ni">👤</span> Account</a>
+  <a onclick="showPage('logs')" id="nav-logs"><span class="ni">📋</span> Event Logs</a>
+  <a onclick="showPage('about')" id="nav-about"><span class="ni">ℹ</span> About</a>
+</div>
+
+<div class="main">
+
+  <!-- ALERT BANNER -->
+  <div id="alertBanner" class="alert-banner" style="display:none;">
+    <span style="font-size:18px;">⚠️</span>
+    <div><strong>Critical Alert</strong> — Immediate attention required. Check sensors now.</div>
+  </div>
+
+  <!-- ══════ HOME ══════ -->
+  <div id="home" class="page active">
+    <div class="ghero">
+      <!-- Overview -->
+      <div class="card">
+        <div class="card-label">System Overview</div>
+        <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:16px;">EcoGuard is a cloud-connected aquatic monitoring system running on Raspberry Pi 5. It tracks water conditions in real time and surfaces risk levels, pH anomalies, and environmental trends through Firebase.</p>
+        <div class="badge-row">
+          <div class="badge"><span class="dot dot-g" id="onlineDotHero"></span><span id="connectionTextHero">Firebase Online</span></div>
+          <div class="badge"><span class="dot" id="statusDot" style="background:var(--g);box-shadow:0 0 6px var(--g);"></span><span id="statusTextHero">STABLE</span></div>
+          <div class="badge"><span class="dot dot-b"></span><span id="lastUpdatedText">Updated: --</span></div>
+        </div>
+      </div>
+
+      <!-- Health Gauge -->
+      <div class="card">
+        <div class="card-label">System Health Score</div>
+        <div class="gauge-wrap">
+          <svg width="148" height="148" viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+            <circle class="g-bg" cx="50" cy="50" r="42"/>
+            <circle class="g-fill" cx="50" cy="50" r="42" id="gaugeFill" style="stroke-dasharray:264;stroke-dashoffset:264;"/>
+            <g transform="rotate(90 50 50)">
+              <text x="50" y="43" text-anchor="middle" dominant-baseline="middle"
+                font-family="JetBrains Mono,monospace" font-size="19" font-weight="600"
+                fill="white" id="healthScoreBig">--%</text>
+              <text x="50" y="58" text-anchor="middle" dominant-baseline="middle"
+                font-family="Inter,sans-serif" font-size="7.5"
+                fill="rgba(140,180,230,0.45)">System Health</text>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <div class="sb"><span class="sb-name">Temperature</span><div class="sb-track"><div class="sb-fill" id="tempScoreBar" style="width:0%"></div></div><span class="sb-pct" id="tempScoreVal">--%</span></div>
+          <div class="sb"><span class="sb-name">Turbidity</span><div class="sb-track"><div class="sb-fill" id="turbScoreBar" style="width:0%;background:var(--o);box-shadow:0 0 6px rgba(255,140,0,.4);"></div></div><span class="sb-pct" id="turbScoreVal">--%</span></div>
+          <div class="sb"><span class="sb-name">Water Level</span><div class="sb-track"><div class="sb-fill" id="waterScoreBar" style="width:0%;background:var(--g);box-shadow:0 0 6px rgba(0,230,118,.4);"></div></div><span class="sb-pct" id="waterScoreVal">--%</span></div>
+          <div class="sb"><span class="sb-name">pH</span><div class="sb-track"><div class="sb-fill" id="phScoreBar" style="width:0%;background:var(--p);box-shadow:0 0 6px rgba(192,132,252,.4);"></div></div><span class="sb-pct" id="phScoreVal">--%</span></div>
+          <div class="sb"><span class="sb-name">Water V</span><div class="sb-track"><div class="sb-fill" id="voltScoreBar" style="width:0%;background:var(--y);"></div></div><span class="sb-pct" id="voltScoreVal">--%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI HEALTH RESPONSE — full width below the hero row -->
+    <div class="card mb" id="aiHealthCard" style="border-color:rgba(0,200,255,0.2);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div>
+          <div class="card-label" style="margin-bottom:4px;">🤖 AI Health Analysis</div>
+          <div style="font-size:11px;color:var(--t2);">Generated by OpenAI from live sensor data via Pi 5 → Firebase → AI</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="aiHealthTimestamp" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--t3);letter-spacing:1px;">Last updated: --</div>
+          <div id="aiHealthSpinner" style="display:none;width:14px;height:14px;border:2px solid rgba(0,200,255,0.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;"></div>
+        </div>
+      </div>
+
+      <!-- AI summary headline -->
+      <div id="aiHealthHeadline" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--t0);margin-bottom:10px;line-height:1.3;">
+        Waiting for AI analysis...
+      </div>
+
+      <!-- AI full response -->
+      <div id="aiHealthBody" style="font-size:13px;color:var(--t1);line-height:1.8;white-space:pre-wrap;padding:14px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;min-height:60px;">
+        The AI response will appear here once your Pi 5 sends sensor data to OpenAI and writes the result back to Firebase at <span style="font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:11px;">ecoguard/ai/response</span>.
+      </div>
+
+      <!-- Status row -->
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
+        <div id="aiHealthStatusBadge" class="badge"><span class="dot dot-y"></span><span>Awaiting Pi 5 AI</span></div>
+        <div style="font-size:11px;color:var(--t2);">Pi 5 sends sensor readings to OpenAI every minute and writes the response to Firebase.</div>
+      </div>
+    </div>
+    <style>
+    @keyframes spin{to{transform:rotate(360deg);}}
+    #aiHealthCard::after{background:linear-gradient(90deg,transparent,rgba(0,200,255,0.3),transparent);}
+    </style>
+    <div class="g3 mb">
+      <div class="card">
+        <div class="card-label">System Summary</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Status</div><div class="pitem-val" id="summaryStatus">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Risk Level</div><div class="pitem-val" id="summaryRisk">--</div></div>
+          <div class="pitem" style="grid-column:span 2;"><div class="pitem-lbl">Recommended Action</div><div class="pitem-val" id="recommendedAction">--</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Active Fish Profile</div>
+        <div class="fish-title" id="activeProfileName">No profile selected</div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:10px;" id="activeProfileDesc">Go to Fish Preferences to choose a species.</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Pref. Temp</div><div class="pitem-val" id="profileTempRange">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Current Temp</div><div class="pitem-val" id="profileCurrentTemp">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Ideal pH</div><div class="pitem-val" id="profilePhRange">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Current pH</div><div class="pitem-val" id="profilePhCurrent">--</div></div>
+        </div>
+        <div id="fishCompatibilityBadge" class="fit-badge"><span class="fit-dot" style="background:var(--y);box-shadow:0 0 5px var(--y);"></span><span>Not checked yet</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Pi 5 Operating Mode</div>
+        <div class="card-hint">Current mode reported by the Pi 5 controller. Read-only — no relay control from this dashboard.</div>
+        <div class="mode-big auto" id="modeWidgetVal">AUTO</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">System Stop</div><div class="pitem-val" id="stopValSummary">RUNNING</div></div>
+          <div class="pitem"><div class="pitem-lbl">Device IP</div><div class="pitem-val" id="ipValSummary">--</div></div>
+        </div>
+        <div class="why-box">Mode is set by the Pi 5 controller logic. Dashboard is monitor-only — no relay commands sent.</div>
+      </div>
+    </div>
+
+    <!-- Water sensors -->
+    <div class="section-title">Water Sensors</div>
+    <div class="g4 mb">
+      <div class="tile">
+        <span class="tile-icon">🌡</span>
+        <div class="tile-name">Temperature</div>
+        <div class="tile-val" id="tempVal">--</div>
+        <div id="tempStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint" id="tempMeaning">Pending...</div>
+      </div>
+      <div class="tile">
+        <span class="tile-icon">💧</span>
+        <div class="tile-name">Water Sensor</div>
+        <div class="tile-val" id="waterVal">--</div>
+        <div id="waterStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint" id="waterMeaning">Pending...</div>
+      </div>
+      <div class="tile">
+        <span class="tile-icon">🌊</span>
+        <div class="tile-name">Turbidity</div>
+        <div class="tile-val" id="turbVal">--</div>
+        <div id="turbStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint" id="turbMeaning">Pending...</div>
+      </div>
+      <div class="tile tile-ph">
+        <span class="tile-icon">🧪</span>
+        <div class="tile-name" style="color:rgba(192,132,252,0.65);">pH Level</div>
+        <div class="tile-val" id="phVal" style="color:var(--p);">--</div>
+        <div id="phStatus" class="badge" style="border-color:rgba(192,132,252,0.2);"><span class="dot dot-p"></span><span>Checking...</span></div>
+        <div class="ph-strip"><div class="ph-needle" id="phNeedle" style="left:50%"></div></div>
+        <div class="ph-lbls"><span>0</span><span>3.5</span><span>7</span><span>10.5</span><span>14</span></div>
+        <div class="tile-hint" id="phMeaning">Analog sensor 0–14</div>
+      </div>
+          <div class="tile" style="border-color:rgba(255,215,64,0.15);">
+        <span class="tile-icon">🔬</span>
+        <div class="tile-name" style="color:rgba(255,215,64,0.65);">Water Voltage</div>
+        <div class="tile-val" id="voltageVal" style="color:var(--y);">--</div>
+        <div id="voltageStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint" id="voltageMeaning">Water conductivity · ADS1115 AIN1</div>
+      </div>
+    </div>
+
+    <!-- System status -->
+    <div class="g4 mb">
+      <div class="tile">
+        <span class="tile-icon">📶</span>
+        <div class="tile-name">System Status</div>
+        <div class="tile-val sm" id="statusVal">--</div>
+        <div id="overallStatusBadge" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint">Overall interpreted state</div>
+      </div>
+      <div class="tile">
+        <span class="tile-icon">⚡</span>
+        <div class="tile-name">Auto Mode</div>
+        <div class="tile-val sm" id="modeVal">--</div>
+        <div class="tile-hint">Pi 5 automation state</div>
+      </div>
+      <div class="tile">
+        <span class="tile-icon">📈</span>
+        <div class="tile-name">Trend</div>
+        <div class="tile-val sm" id="trendVal">--</div>
+        <div class="tile-hint">Based on recent history</div>
+      </div>
+      <div class="tile">
+        <span class="tile-icon">📝</span>
+        <div class="tile-name">Last Log</div>
+        <div class="tile-val sm" id="lastLogVal">--</div>
+        <div class="tile-hint">Most recent event</div>
+      </div>
+    </div>
+
+    <!-- Actuators read-only -->
+    <div class="section-title">Actuator Status — Read Only</div>
+    <div class="g3">
+      <div class="tile" id="heaterTile">
+        <span class="tile-icon">🔥</span>
+        <div class="tile-name">Heater</div>
+        <div class="tile-val" id="heaterVal">--</div>
+        <div id="heaterStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint">Runtime: <span id="heaterRun">--</span></div>
+        <div class="tile-hint" style="margin-top:4px;color:var(--t3);">Read from Pi 5 · no control</div>
+      </div>
+      <div class="tile" id="pumpTile">
+        <span class="tile-icon">⚙️</span>
+        <div class="tile-name">Pump</div>
+        <div class="tile-val" id="pumpVal">--</div>
+        <div id="pumpStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint">Runtime: <span id="pumpRun">--</span></div>
+        <div class="tile-hint" style="margin-top:4px;color:var(--t3);">Read from Pi 5 · no control</div>
+      </div>
+      <div class="tile" id="lightTile">
+        <span class="tile-icon">💡</span>
+        <div class="tile-name">Light</div>
+        <div class="tile-val" id="lightVal">--</div>
+        <div id="lightStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div>
+        <div class="tile-hint">Runtime: <span id="lightRun">--</span></div>
+        <div class="tile-hint" style="margin-top:4px;color:var(--t3);">Read from Pi 5 · no control</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ SENSOR HEALTH ══════ -->
+  <div id="sensorhealth" class="page">
+    <div class="ph"><h1>Sensor <em>Health</em></h1><p>Live sensor quality levels and operating states.</p></div>
+    <div class="g4">
+      <div class="tile"><span class="tile-icon">🌡</span><div class="tile-name">Temperature Sensor</div><div class="tile-val" id="sensorTempVal">--</div><div id="sensorTempStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div><div class="tile-hint" id="sensorTempMeaning">Waiting...</div></div>
+      <div class="tile"><span class="tile-icon">🌊</span><div class="tile-name">Turbidity Sensor</div><div class="tile-val" id="sensorTurbVal">--</div><div id="sensorTurbStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div><div class="tile-hint" id="sensorTurbMeaning">Waiting...</div></div>
+      <div class="tile"><span class="tile-icon">💧</span><div class="tile-name">Water Level Sensor</div><div class="tile-val" id="sensorWaterVal">--</div><div id="sensorWaterStatus" class="badge"><span class="dot dot-y"></span><span>Checking...</span></div><div class="tile-hint" id="sensorWaterMeaning">Waiting...</div></div>
+      <div class="tile tile-ph"><span class="tile-icon">🧪</span><div class="tile-name" style="color:rgba(192,132,252,0.65);">pH Sensor</div><div class="tile-val" id="sensorPhVal" style="color:var(--p);">--</div><div id="sensorPhStatus" class="badge" style="border-color:rgba(192,132,252,.2);"><span class="dot dot-p"></span><span>Checking...</span></div><div class="tile-hint" id="sensorPhMeaning">Analog 0–14</div></div>
+    </div>
+    <div class="card mt"><div class="card-label">Overall Sensor Health</div><div class="card-val" id="overallSensorHealthVal" style="font-size:24px;">--</div><div class="card-hint" id="overallSensorHealthMeaning">Waiting...</div></div>
+  </div>
+
+  <!-- ══════ DEVICE INFO ══════ -->
+  <div id="deviceinfo" class="page">
+    <div class="ph"><h1>Device <em>Info</em></h1><p>Hardware, access, and connection details for the Raspberry Pi 5 controller.</p></div>
+    <div class="pgrid">
+      <div class="pitem"><div class="pitem-lbl">Source Device</div><div class="pitem-val">Raspberry Pi 5</div></div>
+      <div class="pitem"><div class="pitem-lbl">Access Type</div><div class="pitem-val">Cloud Dashboard</div></div>
+      <div class="pitem"><div class="pitem-lbl">Connection State</div><div class="pitem-val" id="deviceConnectionPageVal">Connected</div></div>
+      <div class="pitem"><div class="pitem-lbl">Device IP</div><div class="pitem-val" id="deviceIpPageVal">--</div></div>
+      <div class="pitem"><div class="pitem-lbl">Last Updated</div><div class="pitem-val" id="deviceLastUpdatedPageVal">--</div></div>
+      <div class="pitem"><div class="pitem-lbl">Pi 5 Mode</div><div class="pitem-val" id="deviceModePageVal">AUTO</div></div>
+      <div class="pitem"><div class="pitem-lbl">Connection Quality</div><div class="pitem-val" id="deviceConnectionQualityPageVal">Good</div></div>
+      <div class="pitem"><div class="pitem-lbl">Refresh Age</div><div class="pitem-val" id="deviceRefreshAgePageVal">--</div></div>
+    </div>
+  </div>
+
+  <!-- ══════ ALERTS ══════ -->
+  <div id="alerts" class="page">
+    <div class="ph"><h1>System <em>Alerts</em></h1><p>Active warnings, critical conditions, and browser notification tools.</p></div>
+    <div class="g2">
+      <div class="card"><div class="card-label">Browser Notifications</div><div class="btn-row"><button class="btn-o" id="enableNotifyBtn">🔔 Enable Alerts</button><button class="btn-dim" id="testNotifyBtn">🧪 Test</button></div><div id="notifyStatus">Browser alerts not enabled yet.</div></div>
+      <div class="card"><div class="card-label">Soft Alert</div><div class="soft-alert" id="softAlertBox">System soft alerts will appear here.</div></div>
+    </div>
+    <div class="card mt"><div class="card-label">Alert Feed</div><div id="alertsList" class="log-box">No alerts yet.</div></div>
+  </div>
+
+  <!-- ══════ INSIGHTS ══════ -->
+  <div id="insights" class="page">
+    <div class="ph"><h1>System <em>Insights</em></h1><p>Recommended actions, issue tracking, and system behavior summaries.</p></div>
+    <div class="g2">
+      <div class="card"><div class="card-label">System Summary</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Status</div><div class="pitem-val" id="insightSummaryStatus">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Risk</div><div class="pitem-val" id="insightSummaryRisk">--</div></div>
+          <div class="pitem" style="grid-column:span 2;"><div class="pitem-lbl">Action</div><div class="pitem-val" id="insightRecommendedAction">--</div></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-label">Issue Tracking</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Stable For</div><div class="pitem-val" id="insightStableForVal">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Last Issue</div><div class="pitem-val" id="insightLastIssueVal">--</div></div>
+          <div class="pitem" style="grid-column:span 2;"><div class="pitem-lbl">Most Common Alert</div><div class="pitem-val" id="insightCommonAlertVal">--</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ ANALYTICS ══════ -->
+  <div id="analytics" class="page">
+    <div class="ph"><h1>Analytics <em>&amp; History</em></h1><p>Historical graphs, range guide, and export tools.</p></div>
+    <div class="card mb"><div class="card-label">Tools</div><div class="btn-row"><button class="btn-c" onclick="printPage()">🖨 Print</button><button class="btn-dim" onclick="shareSummary()">📤 Share</button><button class="btn-c" onclick="exportCSV()">⬇ Export CSV</button><button class="btn-r" onclick="clearGraphHistory()">🗑 Clear History</button></div></div>
+    <div class="g2 mb">
+      <div class="card"><div class="card-label">Live Summary</div><div id="analyticsSummary" style="font-size:12px;color:var(--t1);line-height:1.7;margin-top:8px;">Waiting for live data...</div></div>
+      <div class="card"><div class="card-label">Turbidity Range Guide</div>
+        <div class="range-key">
+          <div class="range-row"><span class="rdot" style="background:var(--g);box-shadow:0 0 5px var(--g);"></span><span><strong style="color:var(--g);">Good</strong> — below 1800 · clear water</span></div>
+          <div class="range-row"><span class="rdot" style="background:var(--y);box-shadow:0 0 5px var(--y);"></span><span><strong style="color:var(--y);">Mild</strong> — 1800–2199 · slightly cloudy</span></div>
+          <div class="range-row"><span class="rdot" style="background:var(--o);box-shadow:0 0 5px var(--o);"></span><span><strong style="color:var(--o);">Bad</strong> — 2200–2999 · poor quality</span></div>
+          <div class="range-row"><span class="rdot" style="background:var(--r);box-shadow:0 0 5px var(--r);"></span><span><strong style="color:var(--r);">Serious</strong> — 3000+ · immediate action</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Temperature -->
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">🌡 Temperature</div>
+        <div class="chart-mm" id="tempChartMM">Min: -- | Max: --</div>
+      </div>
+      <div class="chart-wrap"><canvas id="tempChart" width="900" height="200"></canvas></div>
+    </div>
+
+    <!-- Turbidity -->
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">🌊 Turbidity</div>
+        <div class="chart-mm" id="turbChartMM">Min: -- | Max: --</div>
+      </div>
+      <div class="chart-wrap"><canvas id="turbChart" width="900" height="200"></canvas></div>
+    </div>
+
+    <!-- Water -->
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">💧 Water Sensor</div>
+        <div class="chart-mm" id="waterChartMM">Min: -- | Max: --</div>
+      </div>
+      <div class="chart-wrap"><canvas id="waterChart" width="900" height="200"></canvas></div>
+    </div>
+
+    <!-- Voltage graph -->
+    <div class="chart-card" style="border-color:rgba(255,215,64,0.15);">
+      <div class="chart-hdr">
+        <div class="chart-title" style="color:var(--y);">🔬 Water Voltage (ADS1115 AIN1)</div>
+        <div class="chart-mm" id="voltChartMM">Min: -- | Max: --</div>
+      </div>
+      <div class="chart-legend">
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--r);"></span>Critical &gt;1.0V</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--y);"></span>Elevated 0.5–1.0V</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--g);"></span>Normal &lt;0.5V</div>
+      </div>
+      <div class="chart-wrap"><canvas id="voltChart" width="900" height="200"></canvas></div>
+    </div>
+
+    <!-- pH GRAPH -->
+    <div class="chart-card chart-card-ph">
+      <div class="chart-hdr">
+        <div class="chart-title" style="color:var(--p);">🧪 pH Level</div>
+        <div class="chart-mm" id="phChartMM">Min: -- | Max: --</div>
+      </div>
+      <div class="chart-legend">
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--r);"></span>Acidic &lt;6.5</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--g);"></span>Ideal 6.5–7.5</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--b);"></span>Alkaline &gt;7.5</div>
+        <div class="chart-legend-item"><span class="chart-legend-dot" style="background:rgba(0,230,118,0.2);border:1px solid var(--g);width:14px;border-radius:3px;"></span>Ideal zone</div>
+      </div>
+      <div class="chart-wrap"><canvas id="phChart" width="900" height="200"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════ AI ══════ -->
+  <div id="ai" class="page">
+    <div class="ph"><h1>AI <em>Analysis</em></h1><p>Ask anything about your tank. EcoGuard AI answers using your live sensor data from Firebase.</p></div>
+
+    <!-- Auto-generated Pi 5 analysis -->
+    <div class="card mb" id="aiAutoCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div><div class="card-label" style="margin-bottom:3px;">🤖 Latest AI Analysis from Pi 5</div><div style="font-size:11px;color:var(--t2);">Generated every 60s by your Pi 5 via OpenAI → written to Firebase</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div id="aiAutoTimestamp" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--t3);">Last: --</div><div id="aiAutoStatus" class="badge"><span class="dot dot-y"></span><span>Waiting...</span></div></div>
+      </div>
+      <div id="aiAutoHeadline" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--t0);margin-bottom:10px;line-height:1.3;">Waiting for Pi 5 AI response...</div>
+      <div id="aiAutoBody" style="font-size:13px;color:var(--t1);line-height:1.8;padding:14px;background:rgba(0,0,0,0.2);border:1px solid var(--line);border-radius:10px;min-height:60px;white-space:pre-wrap;">The Pi 5 will write an analysis here once it connects to OpenAI.</div>
+    </div>
+
+    <!-- Full ChatGPT interface -->
+    <div class="card">
+      <div class="card-label">💬 Ask ChatGPT — Live EcoGuard Chat</div>
+
+      <div style="padding:12px 14px;margin-bottom:12px;border-radius:10px;background:rgba(0,0,0,0.22);border:1px solid var(--line);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2);">OpenAI API Key</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:3px;">For testing only. Your key is stored in this browser's localStorage.</div>
+          </div>
+          <div id="chatGPTStatus" class="badge"><span class="dot dot-y"></span><span>No key loaded</span></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input id="openAIKeyInput" type="password" placeholder="Paste OpenAI key: sk-..." style="flex:1;min-width:240px;margin-top:0;font-family:'JetBrains Mono',monospace;font-size:12px;">
+          <button class="btn-g" onclick="saveOpenAIKey()">Save Key</button>
+          <button class="btn-dim" onclick="clearOpenAIKey()">Clear</button>
+        </div>
+        <div style="font-size:11px;color:var(--t3);line-height:1.6;margin-top:8px;">
+          Safer final setup: call OpenAI from your Raspberry Pi/backend, not directly from public HTML.
+        </div>
+      </div>
+
+      <div id="chatMessages" style="min-height:240px;max-height:440px;overflow-y:auto;padding:14px;background:rgba(0,0,0,0.2);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
+        <div class="chat-msg chat-ai">Hi! I'm ChatGPT connected to your EcoGuard dashboard. Save your OpenAI API key, then ask me about your tank using the live Firebase sensor data.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <input id="chatInput" type="text" placeholder="Ask ChatGPT... e.g. Is my water safe for my fish?" style="flex:1;margin-top:0;" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn-c" onclick="sendChat()" style="flex-shrink:0;white-space:nowrap;">Send 🚀</button>
+      </div>
+
+      <div class="btn-row" style="margin-top:10px;flex-wrap:wrap;">
+        <button class="btn-dim" onclick="quickChat('Is my tank stable right now?')">Tank stable?</button>
+        <button class="btn-dim" onclick="quickChat('What does the current pH mean for my fish?')">pH meaning?</button>
+        <button class="btn-dim" onclick="quickChat('Why is the heater on?')">Why heater on?</button>
+        <button class="btn-dim" onclick="quickChat('Why is the pump on?')">Why pump on?</button>
+        <button class="btn-dim" onclick="quickChat('What should I do right now?')">What to do?</button>
+        <button class="btn-dim" onclick="quickChat('Give me a full health summary of my tank.')">Full summary</button>
+        <button class="btn-r" onclick="clearChat()" style="margin-left:auto;">🗑 Clear</button>
+      </div>
+    </div>
+    <style>
+    .chat-msg{padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.65;max-width:88%;}
+    .chat-user{background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.2);color:var(--t0);align-self:flex-end;border-radius:10px 10px 3px 10px;}
+    .chat-ai{background:rgba(255,255,255,0.04);border:1px solid var(--line);color:var(--t1);align-self:flex-start;border-radius:10px 10px 10px 3px;white-space:pre-wrap;}
+    .chat-thinking{color:var(--t2);font-style:italic;font-size:12px;align-self:flex-start;}
+    #chatMessages::-webkit-scrollbar{width:4px;}
+    #chatMessages::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px;}
+    </style>
+  </div>
+
+  <!-- ══════ FISH PREFS ══════ -->
+  <div id="fishprefs" class="page">
+    <div class="ph"><h1>Fish <em>Preferences</em></h1><p>Choose a species — profile is saved to Firebase and read by your Pi 5 for threshold control.</p></div>
+    <div class="card mb" style="border-color:rgba(0,200,255,0.2);padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:18px;">🔁</span>
+        <div style="flex:1;min-width:180px;"><div style="font-size:12px;font-weight:600;color:var(--t0);">Synced to Firebase</div><div style="font-size:11px;color:var(--t2);">When you save a profile, it writes to <span style="font-family:'JetBrains Mono',monospace;color:var(--cyan);">ecoguard/activeProfile</span> and all fish data to <span style="font-family:'JetBrains Mono',monospace;color:var(--cyan);">ecoguard/fishProfiles/</span> — your Pi 5 reads thresholds from there automatically.</div></div>
+        <div id="fbSyncStatus" class="badge"><span class="dot dot-y"></span><span>Not synced yet</span></div>
+      </div>
+    </div>
+    <div class="g3 mb">
+      <div class="card"><div class="card-label">Fish Category</div><select id="categorySelect" onchange="populateSpeciesDropdown()"><option value="tropical">Tropical Fish</option><option value="monster">Monster Fish</option><option value="cichlids">Cichlids</option><option value="coldwater">Coldwater Fish</option></select></div>
+      <div class="card"><div class="card-label">Species</div><select id="speciesSelect" onchange="handleSpeciesSelection()"><option value="">Choose species...</option></select></div>
+      <div class="card"><div class="card-label">Tank Size (litres)</div><input type="number" id="tankSizeInput" placeholder="e.g. 270"><div class="btn-row"><button class="btn-g" id="savePrefsBtn">💾 Save Preferences</button></div></div>
+    </div>
+    <div class="g3 mb">
+      <div class="card"><div class="card-label">Custom Temperature</div>
+        <div class="g2" style="gap:8px;margin:0;">
+          <div><span class="ilabel">Minimum</span><input type="number" id="customTempMin" step="0.1" placeholder="e.g. 26"></div>
+          <div><span class="ilabel">Maximum</span><input type="number" id="customTempMax" step="0.1" placeholder="e.g. 28"></div>
+        </div>
+        <div class="btn-row"><button class="btn-c" onclick="applyCustomProfile()">✓ Use Custom</button><button class="btn-dim" onclick="clearFishProfile()">✕ Clear</button></div>
+      </div>
+      <div class="card"><div class="card-label">Demo Mode</div><div class="card-hint">Simulate sensor conditions for testing &amp; judging.</div>
+        <div class="demo-grid">
+          <button class="btn-o" onclick="setDemoMode('temp_high')">🔴 High Temp</button>
+          <button class="btn-c" onclick="setDemoMode('temp_low')">🔵 Low Temp</button>
+          <button class="btn-r" onclick="setDemoMode('water_low')">💧 Low Water</button>
+          <button class="btn-o" onclick="setDemoMode('turb_bad')">☁️ Bad Turb</button>
+          <button style="background:var(--pd);border:1px solid rgba(192,132,252,.25);color:var(--p);border-radius:8px;padding:9px 10px;font-size:12px;cursor:pointer;" onclick="setDemoMode('ph_low')">🧪 Low pH</button>
+          <button style="background:var(--pd);border:1px solid rgba(192,132,252,.25);color:var(--p);border-radius:8px;padding:9px 10px;font-size:12px;cursor:pointer;" onclick="setDemoMode('ph_high')">🧪 High pH</button>
+          <button class="btn-dim" onclick="setDemoMode('normal')">↺ Reset</button>
+        </div>
+        <div class="card-hint" id="demoStatus" style="margin-top:8px;">Demo: Normal</div>
+      </div>
+      <div class="card"><div class="card-label">Recommended Ranges</div>
+        <div class="rc"><div class="rc-title">Tropical Community</div><div class="rc-range">24–28 °C · pH 7.0–8.0</div><div style="font-size:10px;color:var(--t2);">Guppies, platys, mollies, tetras, gouramis</div></div>
+        <div class="rc"><div class="rc-title">Warm Premium Tropical</div><div class="rc-range">27–31 °C · pH 6.0–7.0</div><div style="font-size:10px;color:var(--t2);">Discus, angelfish, warmer tropicals</div></div>
+        <div class="rc"><div class="rc-title">Monster Fish</div><div class="rc-range">24–30 °C · pH 6.5–7.5</div><div style="font-size:10px;color:var(--t2);">Arowana, oscar, peacock bass, bichir</div></div>
+        <div class="rc"><div class="rc-title">African Cichlids</div><div class="rc-range">24–27 °C · pH 7.8–8.5</div><div style="font-size:10px;color:var(--t2);">Malawi peacocks, mbuna</div></div>
+        <div class="rc"><div class="rc-title">Coldwater</div><div class="rc-range">16–24 °C · pH 7.0–8.5</div><div style="font-size:10px;color:var(--t2);">Goldfish, koi, white cloud minnows</div></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="card-label">Active Profile</div><div class="fish-title" id="prefsActiveProfileName">No fish profile selected</div><div style="font-size:11px;color:var(--t2);margin-bottom:10px;" id="prefsActiveProfileDesc">Choose a fish to compare live water conditions.</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Pref. Temp</div><div class="pitem-val" id="prefsProfileTempRange">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Current Temp</div><div class="pitem-val" id="prefsProfileCurrentTemp">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Ideal pH</div><div class="pitem-val" id="prefsProfilePhRange">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Current pH</div><div class="pitem-val" id="prefsProfilePhCurrent">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Turbidity</div><div class="pitem-val" id="prefsProfileTurbView">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Best For</div><div class="pitem-val" id="prefsProfileBestFor">--</div></div>
+        </div>
+        <div id="prefsProfileSuitability" class="fit-badge"><span class="fit-dot" style="background:var(--y);box-shadow:0 0 5px var(--y);"></span><span>No active profile</span></div>
+      </div>
+      <div class="card"><div class="card-label">Tank Suitability</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Tank Size</div><div class="pitem-val" id="tankSizeDisplay">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Min. Suggested</div><div class="pitem-val" id="tankMinDisplay">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Result</div><div class="pitem-val" id="tankResultDisplay">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Care Level</div><div class="pitem-val" id="tankCareDisplay">--</div></div>
+        </div>
+        <div id="tankSuitabilityBadge" class="fit-badge"><span class="fit-dot" style="background:var(--y);box-shadow:0 0 5px var(--y);"></span><span>No tank size analysis yet</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ ACCOUNT ══════ -->
+  <div id="account" class="page">
+    <div class="ph"><h1>Account <em>&amp; Auth</em></h1><p>Create an account, log in, and save your preferences to the cloud.</p></div>
+    <div class="g2">
+      <div class="card"><div class="card-label">Login / Signup</div>
+        <span class="ilabel">Email</span><input type="email" id="emailInput" placeholder="Enter email">
+        <span class="ilabel">Password</span><input type="password" id="passwordInput" placeholder="Enter password">
+        <div class="btn-row"><button class="btn-c" id="signupBtn">+ Sign Up</button><button class="btn-g" id="loginBtn">→ Log In</button><button class="btn-dim" id="logoutBtn">Log Out</button></div>
+        <div class="btn-row"><button class="btn-o" id="verifyBtn">📧 Resend Verification</button></div>
+        <div class="account-status" id="authStatus">Not signed in. (Simulated — Firebase auth disabled)</div>
+        <div class="account-status" id="verifyStatus">Verification: <span class="not-verified">Not signed in</span></div>
+      </div>
+      <div class="card"><div class="card-label">Saved User Info</div>
+        <div class="pgrid">
+          <div class="pitem"><div class="pitem-lbl">Signed In As</div><div class="pitem-val" id="accountEmail">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Cloud Mode</div><div class="pitem-val" id="accountMode">AUTO</div></div>
+          <div class="pitem"><div class="pitem-lbl">Saved Fish</div><div class="pitem-val" id="accountFish">--</div></div>
+          <div class="pitem"><div class="pitem-lbl">Temp Range</div><div class="pitem-val" id="accountTempRange">--</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ LOGS ══════ -->
+  <div id="logs" class="page">
+    <div class="ph"><h1>Event <em>Logs</em></h1><p>Most recent system events from the EcoGuard Pi 5 controller.</p></div>
+    <div class="card"><div id="logList" class="log-box">Loading logs...</div></div>
+  </div>
+
+  <!-- ══════ ABOUT ══════ -->
+  <div id="about" class="page">
+    <div class="ph"><h1>About <em>EcoGuard</em></h1></div>
+    <div class="about-block"><h2>EcoGuard Intelligent Aquatic Monitoring System</h2><p>EcoGuard is a smart, cloud-connected aquatic monitoring system running on a Raspberry Pi 5. It combines real-time environmental sensing, Firebase cloud connectivity, dashboard analytics, and fish-specific intelligence to reduce human error and improve aquarium stability.</p></div>
+    <div class="about-block"><h3>Sensors</h3><p>EcoGuard monitors temperature, water level, turbidity, and pH in real time. The pH sensor measures water acidity/alkalinity on a 0–14 scale — a critical parameter for fish health that is now tracked and graphed continuously.</p></div>
+    <div class="about-block"><h3>Core Features</h3><p>Live monitoring, health scoring (including pH), pH strip visualisation and graph, sensor status, fish profile comparison with pH matching, tank suitability, analytics graphs, AI interpretation, browser alerts, and account-based preference saving.</p></div>
+    <div class="about-block"><h3>Why It Matters</h3><p>EcoGuard is built to help prevent fish deaths, reduce delayed reaction time, and make aquarium care smarter and more reliable — with pH now integrated as a first-class water quality metric.</p></div>
+  </div>
+
+  <div class="footer-note">EcoGuard &nbsp;·&nbsp; Raspberry Pi 5 + Firebase &nbsp;·&nbsp; <span class="live-dot"></span> 🔴 Live</div>
+</div>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════════════════
+//  EcoGuard Live Dashboard v4
+//  Features:
+//    - Fish profiles written to Firebase (ecoguard/fishProfiles/)
+//    - Active profile written to ecoguard/activeProfile (Pi reads this)
+//    - Home page AI card shows health score + Pi 5 OpenAI analysis
+//    - Full conversational AI chat using live sensor context
+// ═══════════════════════════════════════════════════════════════════
+
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, sendEmailVerification
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+
+// ── FIREBASE CONFIG ────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyADNfLml2yrjCRF3oiOU-j6NMcQ0rVHX-g",
+  authDomain:        "ecoguard-11a04.firebaseapp.com",
+  databaseURL:       "https://ecoguard-11a04-default-rtdb.firebaseio.com",
+  projectId:         "ecoguard-11a04",
+  storageBucket:     "ecoguard-11a04.firebasestorage.app",
+  messagingSenderId: "185018780967",
+  appId:             "1:185018780967:web:2dad2d86c728a55fa8ad02",
+  measurementId:     "G-K5KDZ9J08F"
+};
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+try { getAnalytics(app); } catch(_) {}
+
+// ── FIREBASE PATHS ─────────────────────────────────────────────────
+const LIVE_PATH          = "ecoguard/live";
+const LOGS_PATH          = "ecoguard/logs";
+const AI_PATH            = "ecoguard/ai";
+const ACTIVE_PROFILE_PATH= "ecoguard/activeProfile";
+const FISH_PROFILES_PATH = "ecoguard/fishProfiles";
+
+// ── FISH PROFILES (local fallback — also written to Firebase) ──────
+const FISH_PROFILES = {
+  tropical:{
+    guppy:         {name:"Guppy",                tempMin:24,tempMax:28,phMin:7.0,phMax:8.0,bestFor:"Community tanks",     desc:"Hardy livebearer for warm community tanks.",       minTank:40,  care:"Easy"},
+    neon_tetra:    {name:"Neon Tetra",            tempMin:22,tempMax:27,phMin:6.0,phMax:7.0,bestFor:"Schooling tanks",     desc:"Peaceful schooling tropical fish.",                 minTank:60,  care:"Easy"},
+    cardinal_tetra:{name:"Cardinal Tetra",        tempMin:24,tempMax:28,phMin:5.5,phMax:7.0,bestFor:"Soft warm aquariums", desc:"Bright schooling fish preferring soft acidic water.",minTank:60,  care:"Easy"},
+    angelfish:     {name:"Angelfish",             tempMin:26,tempMax:30,phMin:6.5,phMax:7.0,bestFor:"Tall planted tanks",  desc:"Elegant tropical cichlid liking slightly acidic water.",minTank:120,care:"Moderate"},
+    discus:        {name:"Discus",                tempMin:28,tempMax:31,phMin:5.5,phMax:6.5,bestFor:"Premium aquariums",   desc:"Sensitive fish needing warm soft acidic water.",    minTank:200, care:"Advanced"},
+    betta:         {name:"Betta",                 tempMin:25,tempMax:28,phMin:6.5,phMax:7.5,bestFor:"Calm warm tanks",     desc:"Warm-water fish preferring stable conditions.",     minTank:20,  care:"Easy"},
+    molly:         {name:"Molly",                 tempMin:24,tempMax:28,phMin:7.0,phMax:8.0,bestFor:"Community tanks",     desc:"Adaptable livebearer liking slightly alkaline water.",minTank:60, care:"Easy"},
+    platy:         {name:"Platy",                 tempMin:22,tempMax:27,phMin:7.0,phMax:8.0,bestFor:"Beginner tanks",      desc:"Peaceful beginner-friendly livebearer.",            minTank:50,  care:"Easy"},
+    swordtail:     {name:"Swordtail",             tempMin:22,tempMax:28,phMin:7.0,phMax:8.0,bestFor:"Active tropical tanks",desc:"Active livebearer liking neutral-alkaline water.",  minTank:80,  care:"Easy"},
+    gourami:       {name:"Gourami",               tempMin:24,tempMax:28,phMin:6.0,phMax:7.5,bestFor:"Peaceful aquariums",  desc:"Labyrinth fish preferring warm stable water.",      minTank:70,  care:"Moderate"}
+  },
+  monster:{
+    arowana:          {name:"Arowana",         tempMin:24,tempMax:30,phMin:6.0,phMax:7.5,bestFor:"Large predator tanks",   desc:"Prize monster fish needing very large space.",       minTank:700, care:"Advanced"},
+    oscar:            {name:"Oscar",           tempMin:24,tempMax:28,phMin:6.5,phMax:7.5,bestFor:"Large cichlid tanks",    desc:"Intelligent large cichlid with big personality.",    minTank:250, care:"Moderate"},
+    flowerhorn:       {name:"Flowerhorn",      tempMin:26,tempMax:30,phMin:7.0,phMax:8.0,bestFor:"Showcase tanks",         desc:"Warm hybrid cichlid preferring alkaline water.",     minTank:250, care:"Moderate"},
+    red_tail_catfish: {name:"Red Tail Catfish",tempMin:24,tempMax:28,phMin:6.0,phMax:7.5,bestFor:"Very large systems",     desc:"Huge catfish needing enormous volume.",              minTank:1500,care:"Advanced"},
+    peacock_bass:     {name:"Peacock Bass",    tempMin:24,tempMax:30,phMin:6.5,phMax:7.5,bestFor:"Predator aquariums",     desc:"Fast predator preferring warm oxygen-rich water.",   minTank:600, care:"Advanced"},
+    datnoid:          {name:"Datnoid",         tempMin:24,tempMax:30,phMin:6.5,phMax:7.5,bestFor:"Premium predator tanks", desc:"Beautiful predator needing stability and space.",    minTank:400, care:"Advanced"},
+    bichir:           {name:"Bichir",          tempMin:24,tempMax:28,phMin:6.5,phMax:7.5,bestFor:"Bottom-dweller tanks",   desc:"Prehistoric fish doing well in warm stable tanks.",  minTank:250, care:"Moderate"}
+  },
+  cichlids:{
+    malawi_peacock:{name:"Malawi Peacock",tempMin:24,tempMax:27,phMin:7.8,phMax:8.5,bestFor:"African cichlid tanks",desc:"Colorful Malawi cichlid needing alkaline water.",minTank:200,care:"Moderate"},
+    mbuna:         {name:"Mbuna",         tempMin:24,tempMax:27,phMin:7.8,phMax:8.5,bestFor:"Rocky African setups", desc:"Aggressive rock cichlids with strict alkaline needs.",minTank:200,care:"Moderate"},
+    green_terror:  {name:"Green Terror",  tempMin:23,tempMax:28,phMin:6.5,phMax:7.5,bestFor:"Large aggressive tanks",desc:"Powerful cichlid needing space and filtration.",  minTank:250,care:"Advanced"},
+    blood_parrot:  {name:"Blood Parrot",  tempMin:24,tempMax:28,phMin:6.5,phMax:7.5,bestFor:"Display tanks",        desc:"Hybrid cichlid liking warm stable water.",        minTank:200,care:"Moderate"},
+    severum:       {name:"Severum",       tempMin:24,tempMax:28,phMin:6.0,phMax:7.5,bestFor:"Large cichlid tanks",  desc:"Calmer South American cichlid.",                  minTank:250,care:"Moderate"}
+  },
+  coldwater:{
+    goldfish_common:{name:"Common Goldfish",        tempMin:18,tempMax:24,phMin:7.0,phMax:8.0,bestFor:"Coldwater tanks",      desc:"Heavy-waste fish needing lots of space.",        minTank:150, care:"Moderate"},
+    goldfish_fancy: {name:"Fancy Goldfish",          tempMin:18,tempMax:24,phMin:7.0,phMax:8.0,bestFor:"Cool indoor tanks",   desc:"Round-bodied goldfish needing strong filtration.",minTank:100, care:"Moderate"},
+    koi:            {name:"Koi",                     tempMin:16,tempMax:24,phMin:7.0,phMax:8.5,bestFor:"Ponds",               desc:"Large pond fish not suitable for small tanks.",  minTank:1000,care:"Advanced"},
+    white_cloud:    {name:"White Cloud Mtn Minnow",  tempMin:18,tempMax:24,phMin:6.5,phMax:7.5,bestFor:"Cool community tanks",desc:"Peaceful schooling coldwater species.",          minTank:50,  care:"Easy"}
+  }
+};
+
+// ── STATE ──────────────────────────────────────────────────────────
+let temperatureUnit   = "C";
+let tankSizeL         = Number(localStorage.getItem("ecoguard_tankSizeL") || "0");
+let activeFishProfile = JSON.parse(localStorage.getItem("ecoguard_activeFishProfile") || "null");
+let tempHistory       = JSON.parse(localStorage.getItem("ecoguard_tempHistory")  || "[]");
+let turbHistory       = JSON.parse(localStorage.getItem("ecoguard_turbHistory")  || "[]");
+let waterHistory      = JSON.parse(localStorage.getItem("ecoguard_waterHistory") || "[]");
+let phHistory         = JSON.parse(localStorage.getItem("ecoguard_phHistory")    || "[]");
+let voltHistory       = JSON.parse(localStorage.getItem("ecoguard_voltHistory")  || "[]");
+let labelHistory      = JSON.parse(localStorage.getItem("ecoguard_labelHistory") || "[]");
+let latestData        = null;
+let logsData          = [];
+let currentUser       = null;
+let lastFetchAt       = null;
+let notifyEnabled     = false;
+let prevData          = null;
+let rootTurbStr       = null;
+let rootWaterStr      = null;
+let rootVoltage       = null;
+let controlMode       = "auto";
+let chatHistory       = [];   // [{role,content}] for conversational context
+let openAIKey         = localStorage.getItem("ecoguard_openai_key") || "";
+const OPENAI_MODEL    = "gpt-4o-mini";
+
+const $ = id => document.getElementById(id);
+
+// ── NAV ────────────────────────────────────────────────────────────
+function toggleSidebar(){ $("sidebar").classList.toggle("open"); $("overlay").classList.toggle("show"); }
+function closeAllPanels(){ $("sidebar").classList.remove("open"); $("overlay").classList.remove("show"); }
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  $(id).classList.add("active");
+  document.querySelectorAll(".sidebar a").forEach(a=>a.classList.remove("active"));
+  const n=$("nav-"+id); if(n)n.classList.add("active");
+  closeAllPanels();
+  if(id==="analytics")setTimeout(rebuildGraphs,80);
+}
+window.toggleSidebar=toggleSidebar; window.closeAllPanels=closeAllPanels; window.showPage=showPage;
+
+// ── UNITS ──────────────────────────────────────────────────────────
+function cToF(c){ return (c*9/5)+32; }
+function formatTemp(v,u=true){ const val=temperatureUnit==="F"?cToF(v):v; return `${Number(val).toFixed(1)}${u?(temperatureUnit==="F"?" °F":" °C"):""}`; }
+function formatTempRange(a,b){ return `${formatTemp(a)} – ${formatTemp(b)}`; }
+function setUnit(u){
+  temperatureUnit=u; $("unitCBtn").classList.toggle("active",u==="C"); $("unitFBtn").classList.toggle("active",u==="F");
+  updateFishProfileUI(); if(latestData)updateUI(latestData); rebuildGraphs();
+}
+window.setUnit=setUnit;
+function formatSec(s){ s=Number(s||0); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60; return h>0?`${h}h ${m}m`:m>0?`${m}m ${sc}s`:`${sc}s`; }
+
+// ── SENSOR INFO ────────────────────────────────────────────────────
+function getTempInfo(t){ t=Number(t||0);
+  if(t<24)return{label:"LOW",      cls:"dot-b",col:"var(--cyan)",meaning:"Below preferred range."};
+  if(t<=28)return{label:"GOOD",    cls:"dot-g",col:"var(--g)",  meaning:"Temperature is healthy."};
+  if(t<=31)return{label:"MILD",    cls:"dot-y",col:"var(--y)",  meaning:"Slightly high — monitor."};
+  return      {label:"SERIOUS", cls:"dot-r",col:"var(--r)",  meaning:"Dangerously high — act now!"};}
+function getWaterInfo(w){ return w?{label:"GOOD",cls:"dot-g",col:"var(--g)",meaning:"Water detected normally."}:{label:"SERIOUS",cls:"dot-r",col:"var(--r)",meaning:"Low or missing water!"};}
+function getTurbInfo(v){ v=Number(v||0);
+  // Digital sensor: 0=CLEAN, 100=DIRTY (Pi sends 0 or 100)
+  if(v===0)   return{label:"CLEAN", cls:"dot-g",col:"var(--g)",meaning:"Water is clean — filtration working well."};
+  if(v===100) return{label:"DIRTY", cls:"dot-r",col:"var(--r)",meaning:"Water is dirty — check the filter."};
+  if(v===1)   return{label:"DIRTY", cls:"dot-r",col:"var(--r)",meaning:"Water is dirty — check the filter."};
+  if(v<50)    return{label:"CLEAN", cls:"dot-g",col:"var(--g)",meaning:"Water is clean."};
+  return        {label:"DIRTY", cls:"dot-r",col:"var(--r)",meaning:"Water is dirty — check the filter."};}
+function getPhInfo(ph){ ph=Number(ph||7);
+  if(ph<6.0) return{label:"ACIDIC — CRITICAL",cls:"dot-r",col:"var(--r)",sev:"crit",meaning:`pH ${ph.toFixed(2)} dangerously acidic. Correct immediately.`};
+  if(ph<6.5) return{label:"SLIGHTLY ACIDIC",  cls:"dot-o",col:"var(--o)",sev:"warn",meaning:`pH ${ph.toFixed(2)} below neutral. Risky for some species.`};
+  if(ph<=7.5)return{label:"IDEAL",            cls:"dot-g",col:"var(--g)",sev:"ok",  meaning:`pH ${ph.toFixed(2)} ideal for most tropical freshwater fish.`};
+  if(ph<=8.5)return{label:"SLIGHTLY ALKALINE",cls:"dot-y",col:"var(--y)",sev:"warn",meaning:`pH ${ph.toFixed(2)} above neutral — good for cichlids/livebearers.`};
+  return        {label:"ALKALINE — CRITICAL",cls:"dot-r",col:"var(--r)",sev:"crit",meaning:`pH ${ph.toFixed(2)} dangerously high. Correct immediately.`};}
+function getOnOff(s){ return s?{label:"ON",cls:"dot-b",col:"var(--cyan)"}:{label:"OFF",cls:"dot-g",col:"var(--g)"};}
+
+// ── BADGE HELPERS ──────────────────────────────────────────────────
+function setBadge(el,cls,label){ if(!el)return; el.innerHTML=`<span class="dot ${cls}"></span><span>${label}</span>`; }
+function setFit(el,col,text){   if(!el)return; el.innerHTML=`<span class="fit-dot" style="background:${col};box-shadow:0 0 5px ${col};"></span><span>${text}</span>`; }
+
+// ── GAUGE ──────────────────────────────────────────────────────────
+function setGauge(score){
+  const f=$("gaugeFill"); if(!f)return;
+  const c=2*Math.PI*42; f.style.strokeDasharray=c; f.style.strokeDashoffset=c-(Number(score)/100)*c;
+}
+
+// ── SCORE BARS ─────────────────────────────────────────────────────
+function setBar(barId,valId,pct,col){
+  const b=$(barId),v=$(valId);
+  if(b){b.style.width=pct+"%"; if(col){b.style.background=col;b.style.boxShadow=`0 0 6px ${col}66`;}}
+  if(v)v.textContent=pct+"%";
+}
+function setNeedle(ph){ const n=$("phNeedle"); if(n)n.style.left=Math.max(0,Math.min(100,(Number(ph)/14)*100))+"%"; }
+function setActuatorTile(id,on){ const t=$(id); if(!t)return; t.classList.toggle("tile-act-on",on); t.classList.toggle("tile-act-off",!on); }
+
+// ── FISH PROFILE LOGIC ─────────────────────────────────────────────
+function getTankSuit(p){
+  if(!p||!tankSizeL)return{col:"var(--y)",label:"No tank size",msg:"Enter tank size in litres."};
+  if(tankSizeL>=p.minTank)return{col:"var(--g)",label:"SUITABLE",msg:`${tankSizeL} L is suitable for ${p.name}.`};
+  const r=tankSizeL/p.minTank;
+  if(r>=0.7)return{col:"var(--y)",label:"SMALL/CAUTION",msg:`${tankSizeL} L is below suggested ${p.minTank} L.`};
+  return{col:"var(--r)",label:"TOO SMALL",msg:`Need at least ${p.minTank} L for ${p.name}.`};
+}
+function getFishSuit(p,data){
+  if(!p)return{col:"var(--y)",label:"No active profile",msg:"Select a fish profile."};
+  const t=Number(data?.temperature??0),w=!!data?.waterDetected,tb=Number(data?.turbidity??0),ph=Number(data?.ph??7);
+  if(!w)return{col:"var(--r)",label:"NOT SUITABLE",msg:`${p.name}: water sensor reports DRY.`};
+  if(t<p.tempMin||t>p.tempMax)return{col:"var(--y)",label:"TEMP WARNING",msg:`${p.name} prefers ${formatTempRange(p.tempMin,p.tempMax)}, current: ${formatTemp(t)}.`};
+  if(p.phMin!=null&&(ph<p.phMin||ph>p.phMax))return{col:"var(--r)",label:"pH MISMATCH",msg:`${p.name} needs pH ${p.phMin}–${p.phMax}, current: ${ph.toFixed(2)}.`};
+  if(tb>=3000)return{col:"var(--r)",label:"NOT SUITABLE",msg:`${p.name}: turbidity dangerously high.`};
+  if(tb>=2200)return{col:"var(--o)",label:"CAUTION",msg:`${p.name}: temp & pH OK but turbidity poor.`};
+  if(tb>=1800)return{col:"var(--y)",label:"MONITORING",msg:`${p.name}: readings acceptable but slightly cloudy.`};
+  return{col:"var(--g)",label:"SUITABLE ✓",msg:`${p.name}: temp, pH, and water quality all look great!`};
+}
+
+// ── WRITE FISH PROFILES TO FIREBASE ───────────────────────────────
+// Called once on load and whenever user saves a profile
+async function syncFishProfilesToFirebase(){
+  try {
+    // Write every category/species to ecoguard/fishProfiles/category/species
+    for (const [cat, species] of Object.entries(FISH_PROFILES)){
+      for (const [key, profile] of Object.entries(species)){
+        const fbProfile = {
+          name:    profile.name,
+          tempMin: profile.tempMin,
+          tempMax: profile.tempMax,
+          phMin:   profile.phMin,
+          phMax:   profile.phMax,
+          minTank: profile.minTank,
+          care:    profile.care,
+          bestFor: profile.bestFor,
+          desc:    profile.desc
+        };
+        await set(ref(db,`${FISH_PROFILES_PATH}/${cat}/${key}`), fbProfile);
+      }
+    }
+    console.log("Fish profiles synced to Firebase");
+  } catch(e){ console.warn("Fish profiles sync failed:", e); }
+}
+
+// Write the active profile to Firebase so Pi 5 can read thresholds
+async function writeActiveProfileToFirebase(profile, category, key){
+  if(!profile)return;
+  try {
+    const payload = {
+      name:     profile.name,
+      category: category,
+      key:      key,
+      tempMin:  profile.tempMin,
+      tempMax:  profile.tempMax,
+      phMin:    profile.phMin,
+      phMax:    profile.phMax,
+      minTank:  profile.minTank,
+      care:     profile.care,
+      bestFor:  profile.bestFor,
+      desc:     profile.desc,
+      tankSizeL:tankSizeL,
+      updatedAt:Date.now()
+    };
+    await set(ref(db, ACTIVE_PROFILE_PATH), payload);
+    setBadge($("fbSyncStatus"),"dot-g",`Synced · ${new Date().toLocaleTimeString()}`);
+    console.log("Active profile written to Firebase:", ACTIVE_PROFILE_PATH);
+  } catch(e){
+    setBadge($("fbSyncStatus"),"dot-r","Sync failed");
+    console.warn("Active profile sync failed:", e);
+  }
+}
+
+// ── SPECIES DROPDOWN ───────────────────────────────────────────────
+function populateSpeciesDropdown(){
+  const cat=$("categorySelect").value;
+  $("speciesSelect").innerHTML=`<option value="">Choose species...</option>`;
+  Object.entries(FISH_PROFILES[cat]).forEach(([k,f])=>{
+    const o=document.createElement("option"); o.value=k; o.textContent=f.name; $("speciesSelect").appendChild(o);
+  });
+  if(activeFishProfile&&activeFishProfile.source===cat) $("speciesSelect").value=activeFishProfile.key||"";
+}
+window.populateSpeciesDropdown=populateSpeciesDropdown;
+
+function handleSpeciesSelection(){
+  const cat=$("categorySelect").value, key=$("speciesSelect").value;
+  if(!key){clearFishProfile();return;}
+  activeFishProfile={source:cat,key,category:cat.charAt(0).toUpperCase()+cat.slice(1),...FISH_PROFILES[cat][key]};
+  localStorage.setItem("ecoguard_activeFishProfile",JSON.stringify(activeFishProfile));
+  updateFishProfileUI();
+}
+window.handleSpeciesSelection=handleSpeciesSelection;
+
+function applyCustomProfile(){
+  const mn=Number($("customTempMin").value), mx=Number($("customTempMax").value);
+  const pmn=Number($("customPhMin")?.value||6.5), pmx=Number($("customPhMax")?.value||7.5);
+  if(isNaN(mn)||isNaN(mx)||mn>=mx){alert("Enter valid min and max temp.");return;}
+  activeFishProfile={source:"custom",key:"custom",category:"Custom",name:"Custom Profile",
+    tempMin:mn,tempMax:mx,phMin:pmn,phMax:pmx,
+    bestFor:"Your setup",desc:"Custom profile.",minTank:Number($("tankSizeInput").value||tankSizeL||40),care:"Custom"};
+  localStorage.setItem("ecoguard_activeFishProfile",JSON.stringify(activeFishProfile));
+  updateFishProfileUI();
+}
+window.applyCustomProfile=applyCustomProfile;
+
+function clearFishProfile(){
+  activeFishProfile=null; localStorage.removeItem("ecoguard_activeFishProfile");
+  $("speciesSelect").value=""; updateFishProfileUI();
+}
+window.clearFishProfile=clearFishProfile;
+
+function updateFishProfileUI(){
+  const data=latestData||{};
+  const suit=getFishSuit(activeFishProfile,data), tank=getTankSuit(activeFishProfile);
+  const ph=Number(data.ph||7);
+  const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+
+  // Home + prefs profile display
+  const profileName = activeFishProfile?`${activeFishProfile.name} (${activeFishProfile.category})`:"No profile selected";
+  const profileDesc = activeFishProfile?activeFishProfile.desc:"Go to Fish Preferences to choose a species.";
+  ["activeProfileName","prefsActiveProfileName"].forEach(id=>s(id,profileName));
+  ["activeProfileDesc","prefsActiveProfileDesc"].forEach(id=>s(id,profileDesc));
+
+  s("profileTempRange",activeFishProfile?formatTempRange(activeFishProfile.tempMin,activeFishProfile.tempMax):"--");
+  s("profileCurrentTemp",latestData?formatTemp(Number(latestData.temperature||0)):"--");
+  s("profilePhRange",activeFishProfile?`${activeFishProfile.phMin}–${activeFishProfile.phMax}`:"--");
+  s("profilePhCurrent",latestData?`${ph.toFixed(2)}`:"--");
+  s("prefsProfileTempRange",activeFishProfile?formatTempRange(activeFishProfile.tempMin,activeFishProfile.tempMax):"--");
+  s("prefsProfileCurrentTemp",latestData?formatTemp(Number(latestData.temperature||0)):"--");
+  s("prefsProfilePhRange",activeFishProfile?`${activeFishProfile.phMin}–${activeFishProfile.phMax}`:"--");
+  s("prefsProfilePhCurrent",latestData?`${ph.toFixed(2)}`:"--");
+  s("prefsProfileTurbView",latestData?`${latestData.turbidity??"-"} (${getTurbInfo(latestData.turbidity).label})`:"--");
+  s("prefsProfileBestFor",activeFishProfile?activeFishProfile.bestFor:"--");
+  if($("fishCompatibilityBadge"))setFit($("fishCompatibilityBadge"),suit.col,`${suit.label} — ${suit.msg}`);
+  if($("prefsProfileSuitability"))setFit($("prefsProfileSuitability"),suit.col,`${suit.label} — ${suit.msg}`);
+
+  s("tankSizeDisplay",tankSizeL?`${tankSizeL} L`:"--");
+  s("tankMinDisplay",activeFishProfile?`${activeFishProfile.minTank} L`:"--");
+  s("tankResultDisplay",tank.label); s("tankCareDisplay",activeFishProfile?activeFishProfile.care:"--");
+  if($("tankSuitabilityBadge"))setFit($("tankSuitabilityBadge"),tank.col,tank.msg);
+  s("accountFish",activeFishProfile?activeFishProfile.name:"--");
+  s("accountTempRange",activeFishProfile?formatTempRange(activeFishProfile.tempMin,activeFishProfile.tempMax):"--");
+}
+
+// ── GRAPHS ─────────────────────────────────────────────────────────
+function drawGraph(cId,mmId,vals,color,unit="",refMin=null,refMax=null){
+  const canvas=$(cId); if(!canvas)return;
+  const ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
+  const lp=54,rp=16,tp=20,bp=36,pw=w-lp-rp,ph2=h-tp-bp;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle="rgba(80,160,255,0.06)"; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=tp+(ph2/4)*i;ctx.beginPath();ctx.moveTo(lp,y);ctx.lineTo(w-rp,y);ctx.stroke();}
+  ctx.strokeStyle="rgba(80,160,255,0.15)"; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(lp,tp);ctx.lineTo(lp,h-bp);ctx.lineTo(w-rp,h-bp);ctx.stroke();
+  if($(mmId))$(mmId).textContent="Min: -- | Max: --";
+  if(!vals||vals.length<2){ctx.fillStyle="rgba(140,180,230,0.3)";ctx.font="12px Inter,sans-serif";ctx.fillText("Waiting for data...",lp+12,tp+24);return;}
+  let gv=[...vals];
+  if(cId==="tempChart"&&temperatureUnit==="F") gv=gv.map(c=>cToF(c));
+  let minV=Math.min(...gv),maxV=Math.max(...gv);
+  if(minV===maxV){ minV=Math.max(0,minV-0.5); maxV=minV+1; }
+  if(refMin!=null&&refMax!=null){
+    const ry1=tp+ph2-((Math.min(refMax,maxV)-minV)/(maxV-minV))*ph2;
+    const ry2=tp+ph2-((Math.max(refMin,minV)-minV)/(maxV-minV))*ph2;
+    ctx.fillStyle="rgba(0,230,118,0.07)"; ctx.fillRect(lp,Math.min(ry1,tp),pw,Math.max(ry2-ry1,ph2+tp-Math.min(ry1,tp)));
+    [refMin,refMax].forEach(rv=>{
+      if(rv>=minV&&rv<=maxV){
+        const ry=tp+ph2-((rv-minV)/(maxV-minV))*ph2;
+        ctx.strokeStyle="rgba(0,230,118,0.25)";ctx.lineWidth=1;ctx.setLineDash([4,4]);
+        ctx.beginPath();ctx.moveTo(lp,ry);ctx.lineTo(w-rp,ry);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle="rgba(0,230,118,0.5)";ctx.font="9px JetBrains Mono,monospace";
+        ctx.fillText(`pH ${rv}`,w-rp-36,ry-3);
+      }
+    });
+  }
+  ctx.fillStyle="rgba(140,180,230,0.4)";ctx.font="10px JetBrains Mono,monospace";
+  ctx.fillText(`${maxV.toFixed(1)}${unit}`,4,tp+8); ctx.fillText(`${minV.toFixed(1)}${unit}`,4,h-bp);
+  const px=i=>lp+(i/(gv.length-1))*pw, py=v=>tp+ph2-((v-minV)/(maxV-minV))*ph2;
+  const grad=ctx.createLinearGradient(0,tp,0,h-bp);
+  grad.addColorStop(0,color+"50"); grad.addColorStop(1,color+"00");
+  ctx.beginPath();ctx.moveTo(px(0),h-bp);
+  gv.forEach((v,i)=>ctx.lineTo(px(i),py(v)));
+  ctx.lineTo(px(gv.length-1),h-bp);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.shadowColor=color;ctx.shadowBlur=8;
+  ctx.beginPath();gv.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+  ctx.stroke();ctx.shadowBlur=0;
+  gv.forEach((v,i)=>{
+    ctx.fillStyle=cId==="phChart"?(v<6.5?"var(--r)":v>7.5?"#2979ff":"var(--g)"):color;
+    ctx.beginPath();ctx.arc(px(i),py(v),2.5,0,Math.PI*2);ctx.fill();
+  });
+  if($(mmId))$(mmId).textContent=`Min: ${minV.toFixed(1)}${unit} | Max: ${maxV.toFixed(1)}${unit}`;
+}
+function rebuildGraphs(){
+  const u=temperatureUnit==="F"?"°F":"°C";
+  const phIdealMin=activeFishProfile?.phMin??6.5, phIdealMax=activeFishProfile?.phMax??7.5;
+  drawGraph("tempChart","tempChartMM",tempHistory,"#00c8ff",u);
+  drawGraph("turbChart","turbChartMM",turbHistory,"#ff8c00","");
+  drawGraph("waterChart","waterChartMM",waterHistory,"#00e676","");
+  drawGraph("phChart","phChartMM",phHistory,"#c084fc","",phIdealMin,phIdealMax);
+  drawGraph("voltChart","voltChartMM",voltHistory,"#ffd740","V",0,0.5);
+}
+
+// ── HISTORY ────────────────────────────────────────────────────────
+function saveHist(){
+  localStorage.setItem("ecoguard_tempHistory",JSON.stringify(tempHistory));
+  localStorage.setItem("ecoguard_turbHistory",JSON.stringify(turbHistory));
+  localStorage.setItem("ecoguard_waterHistory",JSON.stringify(waterHistory));
+  localStorage.setItem("ecoguard_phHistory",JSON.stringify(phHistory));
+  localStorage.setItem("ecoguard_voltHistory",JSON.stringify(voltHistory));
+  localStorage.setItem("ecoguard_labelHistory",JSON.stringify(labelHistory));
+}
+function pushHist(vs,max=120){
+  tempHistory.push(vs.temp); turbHistory.push(vs.turb); waterHistory.push(vs.water);
+  phHistory.push(vs.ph); voltHistory.push(vs.volt??0); labelHistory.push(vs.lbl);
+  [tempHistory,turbHistory,waterHistory,phHistory,voltHistory,labelHistory].forEach(a=>{if(a.length>max)a.shift();});
+  saveHist();
+}
+function clearGraphHistory(){ tempHistory=[];turbHistory=[];waterHistory=[];phHistory=[];voltHistory=[];labelHistory=[]; saveHist(); rebuildGraphs(); alert("Graph history cleared."); }
+window.clearGraphHistory=clearGraphHistory;
+
+function calcTrend(){
+  if(tempHistory.length<2)return"Not enough data";
+  const td=tempHistory[tempHistory.length-1]-tempHistory[tempHistory.length-2];
+  const trd=turbHistory[turbHistory.length-1]-turbHistory[turbHistory.length-2];
+  const phd=phHistory.length>=2?phHistory[phHistory.length-1]-phHistory[phHistory.length-2]:0;
+  if(trd>100)return"Water quality worsening";
+  if(Math.abs(phd)>0.3)return phd<0?"pH dropping":"pH rising";
+  if(td>0.5)return"Temperature rising"; if(td<-0.5)return"Temperature falling"; return"Stable";
+}
+
+function getAction(data){
+  if(!data.waterDetected)return"Check water level immediately";
+  if(Number(data.temperature)>=32)return"Cool the system immediately";
+  const ph=Number(data.ph||7);
+  if(ph<6.0||ph>9.0)return"Correct pH urgently";
+  if(Number(data.temperature)>=30)return"Monitor temperature closely";
+  if(Number(data.temperature)<24)return"Check heating system";
+  if(Number(data.turbidity)>=3000)return"Inspect water urgently";
+  if(ph<6.5)return"Raise pH — slightly acidic";
+  if(ph>7.5)return"Lower pH — slightly alkaline";
+  if(Number(data.turbidity)>=2200)return"Clean filtration soon";
+  return"No action needed — all readings normal";
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────────────────
+function sendNotif(title,body){
+  if(!notifyEnabled||Notification.permission!=="granted")return;
+  new Notification(title,{body,icon:"https://em-content.zobj.net/thumbs/120/apple/354/tropical-fish_1f420.png"});
+}
+function checkAlerts(data){
+  if(!prevData){prevData=JSON.parse(JSON.stringify(data));return;}
+  const alerts=[];
+  if(prevData.waterDetected&&!data.waterDetected) alerts.push("Water sensor DRY — check water level!");
+  if(Number(prevData.temperature)<30&&Number(data.temperature)>=30) alerts.push(`High temp: ${formatTemp(Number(data.temperature))}`);
+  if(Number(prevData.turbidity)<2200&&Number(data.turbidity)>=2200) alerts.push(`Turbidity poor: ${data.turbidity}`);
+  const phI=getPhInfo(data.ph);
+  if(phI.sev==="crit"&&getPhInfo(prevData.ph).sev!=="crit") alerts.push(`Critical pH: ${Number(data.ph).toFixed(2)}`);
+  if(alerts.length){
+    alerts.forEach(msg=>sendNotif("EcoGuard Alert",msg));
+    const al=$("alertsList"); if(al)al.innerHTML="<ul>"+alerts.map(a=>`<li>${a}</li>`).join("")+"</ul>";
+    const sa=$("softAlertBox"); if(sa)sa.textContent=alerts[0];
+  }
+  prevData=JSON.parse(JSON.stringify(data));
+}
+
+// ── CONNECTION UI ──────────────────────────────────────────────────
+function setConnected(ok){
+  ["onlineDot","onlineDotHero"].forEach(id=>{const e=$(id);if(e)e.className=`dot ${ok?"dot-g":"dot-r"}`;});
+  ["connectionText","connectionTextHero"].forEach(id=>{const e=$(id);if(e)e.textContent=ok?"Firebase Online":"Firebase Offline";});
+}
+
+// ── COMPUTE STATUS/HEALTH ──────────────────────────────────────────
+function computeStatus(data){
+  const phI=getPhInfo(data.ph||7);
+  const tMin=activeFishProfile?.tempMin??24;
+  const tMax=activeFishProfile?.tempMax??30;
+  if(!data.waterDetected||Number(data.temperature)>=32||Number(data.turbidity)===1||Number(data.turbidity)===100||phI.sev==="crit")return"CRITICAL";
+  if(Number(data.temperature)>=tMax||Number(data.temperature)<tMin||phI.sev==="warn")return"WARNING";
+  return"STABLE";
+}
+function computeHealth(data){
+  const scores=[];
+  // Water presence
+  scores.push(data.waterDetected?100:0);
+  // Turbidity: 0=CLEAN=100%, 100 or 1=DIRTY=20%
+  const td=Number(data.turbidity??0);
+  scores.push(td===0?100:(td===100||td===1)?20:80);
+  // Temperature — use active fish profile thresholds, fall back to defaults
+  if(data.temperature!=null){
+    const t=Number(data.temperature);
+    const tMin=activeFishProfile?.tempMin??24;
+    const tMax=activeFishProfile?.tempMax??28;
+    if(t>=32||t<tMin-2)      scores.push(0);
+    else if(t>=tMax||t<tMin) scores.push(50);
+    else                      scores.push(100);
+  }
+  // pH — use fish profile thresholds
+  if(data.ph!=null){
+    const phI=getPhInfo(data.ph);
+    scores.push(phI.sev==="ok"?100:phI.sev==="warn"?50:0);
+  }
+  // Water voltage conductivity
+  if(data.voltage!=null){
+    const vv=Number(data.voltage);
+    scores.push(vv>1.0?0:vv>0.5?40:vv>0.2?80:100);
+  }
+  if(!scores.length)return 50;
+  const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+  if(data.statusLabel==="CRITICAL")return Math.min(avg,35);
+  return Math.max(0,Math.min(100,avg));
+}
+
+// ── MAIN UI UPDATE ─────────────────────────────────────────────────
+function updateUI(data){
+  const tI=getTempInfo(data.temperature), wI=getWaterInfo(data.waterDetected);
+  const tbI=getTurbInfo(data.turbidity);
+  const phI=data.ph!=null?getPhInfo(data.ph):{label:"NO SENSOR",cls:"dot-y",col:"var(--y)",sev:"none",meaning:"pH sensor not connected."};
+  const hI=getOnOff(data.heater), pI=getOnOff(data.pump), lI=getOnOff(data.light);
+  const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+
+  // Sensor tiles
+  s("tempVal",formatTemp(Number(data.temperature||0)));
+  s("waterVal",data.waterDetected?"WATER OK":"LOW / DRY");
+  s("turbVal",(data.turbidityStr??"--") + " · " + (data.turbidity!=null?Number(data.turbidity):""));
+  s("phVal",data.ph!=null?`pH ${Number(data.ph).toFixed(2)}`:"No Sensor");
+  const vv3=data.voltage!=null?Number(data.voltage):null;
+  s("voltageVal",vv3!=null?`${vv3.toFixed(2)}V`:"--");
+  const voltI2=vv3==null?{label:"NO SENSOR",cls:"dot-y",meaning:"Not connected"}:vv3>1.0?{label:"CRITICAL — LEAK",cls:"dot-r",meaning:`${vv3.toFixed(2)}V — electrical leak risk!`}:vv3>0.5?{label:"ELEVATED",cls:"dot-y",meaning:`${vv3.toFixed(2)}V — slightly elevated`}:{label:"NORMAL",cls:"dot-g",meaning:`${vv3.toFixed(2)}V — no electrical risk`};
+  setBadge($("voltageStatus"),voltI2.cls,voltI2.label); s("voltageMeaning",voltI2.meaning);
+  setBadge($("tempStatus"),tI.cls,tI.label); setBadge($("waterStatus"),wI.cls,wI.label);
+  setBadge($("turbStatus"),tbI.cls,tbI.label);
+  setBadge($("phStatus"),data.ph!=null?"dot-p":"dot-y",data.ph!=null?phI.label:"NOT CONNECTED");
+  s("tempMeaning",tI.meaning); s("waterMeaning",wI.meaning); s("turbMeaning",tbI.meaning);
+  s("phMeaning",data.ph!=null?phI.meaning:"pH sensor not yet writing to Firebase.");
+  if(data.ph!=null)setNeedle(data.ph);
+
+  // System tiles
+  s("statusVal",data.statusLabel||"--"); s("modeVal",data.autoMode?"AUTO":"MANUAL");
+  s("trendVal",calcTrend()); s("lastLogVal",logsData[0]||"No logs");
+  setBadge($("overallStatusBadge"),data.statusLabel==="STABLE"?"dot-g":data.statusLabel==="WARNING"?"dot-y":"dot-r",data.statusLabel||"UNKNOWN");
+
+  // Actuator tiles
+  s("heaterVal",data.heater?"ON":"OFF"); s("pumpVal",data.pump?"ON":"OFF"); s("lightVal",data.light?"ON":"OFF");
+  s("heaterRun",formatSec(data.heaterRuntime||0)); s("pumpRun",formatSec(data.pumpRuntime||0)); s("lightRun",formatSec(data.lightRuntime||0));
+  setBadge($("heaterStatus"),hI.cls,hI.label); setBadge($("pumpStatus"),pI.cls,pI.label); setBadge($("lightStatus"),lI.cls,lI.label);
+  setActuatorTile("heaterTile",data.heater); setActuatorTile("pumpTile",data.pump); setActuatorTile("lightTile",data.light);
+
+  // Status dot
+  const sd=$("statusDot");
+  if(sd){const sc=data.statusLabel==="STABLE"?"var(--g)":data.statusLabel==="WARNING"?"var(--y)":"var(--r)";sd.style.background=sc;sd.style.boxShadow=`0 0 6px ${sc}`;}
+  s("statusTextHero",data.statusLabel||"Unknown");
+
+  // Health gauge + bars
+  setGauge(Number(data.healthScore||0));
+  s("healthScoreBig",`${data.healthScore??"-"}%`);
+  const t2=data.temperature!=null?Number(data.temperature):null;
+  const _tMin=activeFishProfile?.tempMin??24;
+  const _tMax=activeFishProfile?.tempMax??28;
+  const tPct=t2==null?0:t2>=32||t2<_tMin-2?0:t2>=_tMax||t2<_tMin?50:100;
+  const _tdp=Number(data.turbidity??0);
+  const tbPct=_tdp===0?100:_tdp===100||_tdp===1?20:80;
+  const phPct=data.ph!=null?(phI.sev==="ok"?100:phI.sev==="warn"?60:20):0;
+  const phBarCol=data.ph!=null?(phI.sev==="ok"?"var(--g)":phI.sev==="warn"?"var(--y)":"var(--r)"):"var(--t3)";
+  setBar("tempScoreBar","tempScoreVal",tPct,tI.col);
+  setBar("turbScoreBar","turbScoreVal",tbPct,tbI.col);
+  setBar("waterScoreBar","waterScoreVal",data.waterDetected?100:0,wI.col);
+  setBar("phScoreBar","phScoreVal",phPct,phBarCol);
+  const vv2=data.voltage!=null?Number(data.voltage):null;
+  const voltPct=vv2==null?0:vv2>1.0?0:vv2>0.5?40:vv2>0.2?80:100;
+  const voltBarCol=vv2==null?"var(--t3)":vv2>1.0?"var(--r)":vv2>0.5?"var(--y)":"var(--g)";
+  setBar("voltScoreBar","voltScoreVal",voltPct,voltBarCol);
+
+  // Summary
+  s("summaryStatus",data.statusLabel||"--");
+  s("summaryRisk",data.statusLabel==="CRITICAL"?"High":data.statusLabel==="WARNING"?"Medium":"Low");
+  s("recommendedAction",getAction(data));
+
+  // Mode widget
+  const mw=$("modeWidgetVal");
+  if(mw){mw.textContent=data.autoMode?"AUTO":"MANUAL"; mw.className=`mode-big ${data.autoMode?"auto":"manual"}`;}
+  s("stopValSummary",data.systemStopped?"STOPPED ⛔":"RUNNING ✓"); s("ipValSummary",data.ip||"--");
+
+  // Sensor health page
+  s("sensorTempVal",formatTemp(Number(data.temperature||0))); setBadge($("sensorTempStatus"),tI.cls,tI.label); s("sensorTempMeaning",tI.meaning);
+  s("sensorTurbVal",data.turbidity??"--"); setBadge($("sensorTurbStatus"),tbI.cls,tbI.label); s("sensorTurbMeaning",tbI.meaning);
+  s("sensorWaterVal",data.waterDetected?"WATER OK":"LOW/NONE"); setBadge($("sensorWaterStatus"),wI.cls,wI.label); s("sensorWaterMeaning",wI.meaning);
+  s("sensorPhVal",data.ph!=null?`pH ${Number(data.ph).toFixed(2)}`:"No Sensor");
+  setBadge($("sensorPhStatus"),data.ph!=null?"dot-p":"dot-y",data.ph!=null?phI.label:"NOT CONNECTED");
+  s("sensorPhMeaning",data.ph!=null?phI.meaning:"pH sensor not connected.");
+  const allOk=[tI,wI,tbI].every(x=>x.cls==="dot-g")&&(data.ph==null||phI.sev==="ok");
+  const anyCrit=[tI,wI,tbI].some(x=>x.cls==="dot-r")||(data.ph!=null&&phI.sev==="crit");
+  s("overallSensorHealthVal",allOk?"Excellent":anyCrit?"Critical":"Monitor");
+  s("overallSensorHealthMeaning",`${tI.meaning} ${wI.meaning} ${tbI.meaning} ${phI.meaning}`);
+
+  // Device info
+  s("deviceIpPageVal",data.ip||"--"); s("deviceModePageVal",data.autoMode?"AUTO":"MANUAL");
+  s("deviceLastUpdatedPageVal",new Date().toLocaleTimeString());
+
+  // Insights
+  s("insightSummaryStatus",data.statusLabel||"--");
+  s("insightSummaryRisk",data.statusLabel==="CRITICAL"?"High":data.statusLabel==="WARNING"?"Medium":"Low");
+  s("insightRecommendedAction",getAction(data));
+  s("insightStableForVal",data.statusLabel==="STABLE"?"Stable now":"Attention needed");
+  s("insightLastIssueVal",logsData[0]||"No issues"); s("insightCommonAlertVal","pH / Turbidity");
+
+  // Analytics summary
+  const ph=data.ph!=null?Number(data.ph):null;
+  const phStr=ph!=null?`pH: ${ph.toFixed(2)} (${phI.label})`:"pH: No sensor";
+  s("analyticsSummary",`Temp: ${formatTemp(Number(data.temperature||0))} · Turb: ${data.turbidity}${data.turbidityStr?` (${data.turbidityStr})`:""} (${tbI.label}) · ${phStr} · Water: ${data.waterDetected?"OK":"DRY"} · Heater: ${data.heater?"ON":"OFF"} · Pump: ${data.pump?"ON":"OFF"}${rootVoltage!=null?` · V: ${rootVoltage}V`:""}${activeFishProfile?` · Fish: ${activeFishProfile.name}`:""}`);
+
+  // Alert banner
+  $("alertBanner").style.display=(!data.waterDetected||data.statusLabel==="CRITICAL"||Number(data.turbidity)>=3000||(data.ph!=null&&phI.sev==="crit"))?"flex":"none";
+
+  // Timestamps
+  lastFetchAt=new Date();
+  s("lastUpdatedText",`Updated: ${lastFetchAt.toLocaleTimeString()}`);
+
+  // Auto AI interpretation (for old aiSummary/aiDetails still in insights)
+  let det="",risk="LOW RISK",rc="dot-g";
+  if(!data.waterDetected){det="Water sensor reports DRY. Check water level immediately.";risk="HIGH RISK";rc="dot-r";}
+  else if(ph!=null&&ph<6){det=`pH ${ph.toFixed(2)} is dangerously acidic. Add pH buffer immediately.`;risk="HIGH RISK";rc="dot-r";}
+  else if(Number(data.temperature)>=32){det=`Temperature critically high at ${formatTemp(Number(data.temperature))}.`;risk="HIGH RISK";rc="dot-r";}
+  else if(tbI.label==="SERIOUS"){det="Extremely cloudy water. Inspect and clean filtration immediately.";risk="HIGH RISK";rc="dot-r";}
+  else if(tbI.label==="BAD"||Number(data.temperature)>=30||(ph!=null&&(ph<6.5||ph>7.5))){det=`${getAction(data)}.`;risk="MEDIUM RISK";rc="dot-y";}
+  else{det="All readings within normal range. System is stable.";risk="LOW RISK";rc="dot-g";}
+  s("aiSummary",data.statusLabel||"Stable"); s("aiDetails",det); s("riskText",risk);
+  const rb=$("riskBadge");
+  if(rb){const col=rc==="dot-g"?"var(--g)":rc==="dot-y"?"var(--y)":"var(--r)";rb.innerHTML=`<span class="dot ${rc}"></span><span>${risk}</span>`;}
+
+  updateFishProfileUI(); checkAlerts(data); rebuildGraphs();
+  const ll=$("logList");
+  if(ll)ll.innerHTML=logsData.length?"<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>":"No logs yet.";
+}
+
+// ── HOME PAGE AI CARD ──────────────────────────────────────────────
+// Reads from ecoguard/ai (written by Pi 5 via OpenAI)
+function updateHomeAICard(ai){
+  const headline  = $("aiHealthHeadline");
+  const body      = $("aiHealthBody");
+  const badge     = $("aiHealthStatusBadge");
+  const timestamp = $("aiHealthTimestamp");
+
+  // Also update the AI page auto card
+  const autoHead  = $("aiAutoHeadline");
+  const autoBody  = $("aiAutoBody");
+  const autoStamp = $("aiAutoTimestamp");
+  const autoStatus= $("aiAutoStatus");
+
+  if(!ai){
+    if(headline)headline.textContent="Waiting for first AI analysis from Pi 5...";
+    if(body)body.textContent="Your Pi 5 will write an AI health summary here once it connects to OpenAI.";
+    if(badge)badge.innerHTML=`<span class="dot dot-y"></span><span>No AI data yet</span>`;
+    if(autoHead)autoHead.textContent="Waiting for Pi 5 AI response...";
+    if(autoBody)autoBody.textContent="The Pi 5 will write an analysis here once it connects to OpenAI.";
+    return;
+  }
+
+  const responseText = typeof ai==="string"?ai:(ai.response??ai.text??ai.message??"No response");
+  const headlineText = typeof ai==="object"?(ai.headline??firstSentence(responseText)):firstSentence(responseText);
+  const status       = typeof ai==="object"?(ai.status??"ok"):"ok";
+  const updatedAt    = typeof ai==="object"?(ai.updatedAt??ai.timestamp??null):null;
+  const timeStr      = updatedAt?`${new Date(Number(updatedAt)).toLocaleTimeString()}`:null;
+
+  // Home page card
+  if(headline)headline.textContent=headlineText;
+  if(body)    body.textContent=responseText;
+  if(timestamp&&timeStr)timestamp.textContent=`Last updated: ${timeStr}`;
+  if(badge){
+    const cls=status==="critical"?"dot-r":status==="warning"?"dot-y":"dot-g";
+    const lbl=status==="critical"?"Critical — Act Now":status==="warning"?"Warning — Monitor":"System OK";
+    badge.innerHTML=`<span class="dot ${cls}"></span><span>${lbl}</span>`;
+  }
+  const card=$("aiHealthCard");
+  if(card)card.style.borderColor=status==="critical"?"rgba(255,45,85,0.35)":status==="warning"?"rgba(255,215,64,0.25)":"rgba(0,200,255,0.2)";
+
+  // AI page auto card
+  if(autoHead)autoHead.textContent=headlineText;
+  if(autoBody)autoBody.textContent=responseText;
+  if(autoStamp&&timeStr)autoStamp.textContent=`Last: ${timeStr}`;
+  if(autoStatus){
+    const cls=status==="critical"?"dot-r":status==="warning"?"dot-y":"dot-g";
+    const lbl=status==="critical"?"Critical":"System OK";
+    autoStatus.innerHTML=`<span class="dot ${cls}"></span><span>${lbl}</span>`;
+  }
+}
+
+function firstSentence(text){
+  if(!text)return"AI analysis received";
+  const s=text.split(/[.\n]/)[0].trim();
+  return s.length>100?s.slice(0,97)+"...":s;
+}
+
+// ── CONVERSATIONAL AI CHAT ─────────────────────────────────────────
+// Calls the dashboard's own rule-based engine — no API key needed in browser
+// Rich context-aware answers based on ALL live sensor data
+
+function buildSensorContext(){
+  if(!latestData)return"No live sensor data available yet. Please wait for Firebase to connect.";
+  const d=latestData;
+  const ph=d.ph!=null?Number(d.ph):null;
+  const phI=ph!=null?getPhInfo(ph):{label:"No sensor",sev:"none",meaning:"pH not connected"};
+  const fishLine=activeFishProfile?`Active fish: ${activeFishProfile.name} (${activeFishProfile.category}). Preferred temp: ${formatTempRange(activeFishProfile.tempMin,activeFishProfile.tempMax)}. Preferred pH: ${activeFishProfile.phMin}–${activeFishProfile.phMax}. Min tank: ${activeFishProfile.minTank}L. Care: ${activeFishProfile.care}.`:"No fish profile selected.";
+  const suit=activeFishProfile?getFishSuit(activeFishProfile,d):{label:"None",msg:""};
+  return [
+    `=== LIVE ECOGUARD SENSOR DATA (${new Date().toLocaleTimeString()}) ===`,
+    `System status: ${d.statusLabel} | Health score: ${d.healthScore}% | Mode: ${d.autoMode?"AUTO":"MANUAL"}`,
+    `Temperature: ${d.temperature!=null?formatTemp(Number(d.temperature)):"No sensor"} | Water: ${d.waterDetected?"PRESENT (OK)":"DRY / LOW — CRITICAL"}`,
+    `Turbidity: ${d.turbidity}${d.turbidityStr?` (${d.turbidityStr})`:""} | Status: ${getTurbInfo(d.turbidity).label}`,
+    `pH: ${ph!=null?`${ph.toFixed(2)} — ${phI.label}`:"No sensor connected yet"}`,
+    `Heater: ${d.heater?"ON":"OFF"} (runtime ${formatSec(d.heaterRuntime||0)}) | Pump: ${d.pump?"ON":"OFF"} (runtime ${formatSec(d.pumpRuntime||0)}) | Light: ${d.light?"ON":"OFF"} (runtime ${formatSec(d.lightRuntime||0)})`,
+    `Voltage: ${rootVoltage!=null?`${rootVoltage}V`:"Not measured"} | Device IP: ${d.ip||"--"} | Control mode: ${controlMode.toUpperCase()}`,
+    `Trend: ${calcTrend()} | Recommended action: ${getAction(d)}`,
+    fishLine,
+    activeFishProfile?`Fish suitability: ${suit.label} — ${suit.msg}`:"",
+    `Tank size: ${tankSizeL?`${tankSizeL} L`:"Not set"}`,
+    `=== END DATA ===`
+  ].filter(Boolean).join("\n");
+}
+
+function answerQuestion(question){
+  if(!latestData)return"I don't have any live sensor data yet. Please wait for your Pi 5 to connect to Firebase.";
+
+  const d=latestData;
+  const q=question.toLowerCase().trim();
+  const ph=d.ph!=null?Number(d.ph):null;
+  const phI=ph!=null?getPhInfo(ph):{label:"No sensor",sev:"none",meaning:"pH not connected"};
+  const tbI=getTurbInfo(d.turbidity);
+  const temp=Number(d.temperature||0);
+  const suit=activeFishProfile?getFishSuit(activeFishProfile,d):null;
+  const tank=activeFishProfile?getTankSuit(activeFishProfile):null;
+
+  // Stable / overall status
+  if(q.match(/stable|overall|status|how.*(tank|system)|health score|score/)){
+    const score=d.healthScore??0;
+    let verdict=score>=80?"Your tank looks healthy and stable.":`Your tank has a health score of ${score}% — `;
+    if(!d.waterDetected)verdict+=`\n\nThe biggest issue right now is the water sensor reporting DRY. This is CRITICAL — check the water level immediately.`;
+    else if(d.statusLabel==="CRITICAL")verdict+=`There is at least one critical reading. ${getAction(d)}.`;
+    else if(d.statusLabel==="WARNING")verdict+=`There are some readings that need attention. ${getAction(d)}.`;
+    else verdict=`Health score: ${score}%. Status: ${d.statusLabel}. ${getAction(d)}.`;
+    if(ph!=null)verdict+=`\n\npH is ${ph.toFixed(2)} (${phI.label}). ${phI.meaning}`;
+    verdict+=`\n\nTurbidity: ${d.turbidity} — ${tbI.label}. ${tbI.meaning}`;
+    if(activeFishProfile&&suit)verdict+=`\n\nFor your ${activeFishProfile.name}: ${suit.msg}`;
+    return verdict;
+  }
+
+  // Temperature
+  if(q.match(/temp|heat|cool|warm|cold|degrees|celsius|fahrenheit/)){
+    let ans=`Current temperature: ${formatTemp(temp)}.\n${getTempInfo(temp).meaning}`;
+    ans+=`\nHeater is ${d.heater?"ON":"OFF"} (runtime: ${formatSec(d.heaterRuntime||0)}).`;
+    if(temp<24)ans+=`\n\nThe temperature is below the typical threshold of 24°C. The heater should be working to bring it up.`;
+    else if(temp>=32)ans+=`\n\nCRITICAL: Temperature is dangerously high. Check your heater and cooling immediately.`;
+    else if(temp>=30)ans+=`\n\nTemperature is slightly high. Monitor it closely.`;
+    else ans+=`\n\nTemperature is in a good range for most tropical fish.`;
+    if(activeFishProfile)ans+=`\n\nFor your ${activeFishProfile.name}: preferred range is ${formatTempRange(activeFishProfile.tempMin,activeFishProfile.tempMax)}. Current temp is ${temp>=activeFishProfile.tempMin&&temp<=activeFishProfile.tempMax?"within":"outside"} that range.`;
+    return ans;
+  }
+
+  // pH
+  if(q.match(/ph|acid|alkalin|buffer|neutral|ph level/)){
+    if(ph===null)return"The pH sensor is not yet connected to Firebase. Once your Pi 5 writes the 'ph' field to ecoguard/live, full pH analysis will be available here.";
+    let ans=`Current pH: ${ph.toFixed(2)} — ${phI.label}.\n${phI.meaning}`;
+    if(ph<6.5)ans+=`\n\nThe water is acidic. Add a pH buffer (e.g. sodium bicarbonate/baking soda) slowly to raise it. Aim for 6.5–7.5 for most tropical fish.`;
+    else if(ph>7.5)ans+=`\n\nThe water is alkaline. To lower pH, use pH Down solution or add driftwood/peat to soften the water gradually.`;
+    else ans+=`\n\nThis is an ideal range for most freshwater fish.`;
+    if(activeFishProfile)ans+=`\n\nFor your ${activeFishProfile.name}: preferred pH is ${activeFishProfile.phMin}–${activeFishProfile.phMax}. ${ph>=activeFishProfile.phMin&&ph<=activeFishProfile.phMax?"✓ Currently within that range.":"⚠ Currently outside that range."}`;
+    return ans;
+  }
+
+  // Turbidity / water clarity
+  if(q.match(/turb|cloud|clear|dirty|water qualit|clean/)){
+    let ans=`Current turbidity: ${d.turbidity}${d.turbidityStr?` (${d.turbidityStr})`:""}.\n${tbI.meaning}`;
+    ans+=`\nPump is ${d.pump?"ON":"OFF"} (runtime: ${formatSec(d.pumpRuntime||0)}).`;
+    if(d.turbidity>=3000)ans+=`\n\nThis is a serious level. Check and clean your filter immediately. Do a partial water change (20–30%) and inspect for any debris or dead matter in the tank.`;
+    else if(d.turbidity>=2200)ans+=`\n\nWater quality is poor. Clean your filter media and consider a partial water change soon.`;
+    else if(d.turbidity>=1800)ans+=`\n\nWater is slightly cloudy. Keep an eye on it — increase filtration if it continues to rise.`;
+    else ans+=`\n\nWater clarity is good. Filtration appears to be working well.`;
+    return ans;
+  }
+
+  // Water level / sensor
+  if(q.match(/water.*(level|sensor|detect)|dry|wet|flood|level/)){
+    if(!d.waterDetected)return`⚠ CRITICAL: The water sensor is reporting DRY. This means the water level may be critically low or the sensor is not submerged. Check the tank water level immediately and top it up if needed. The system will not operate safely without water detection.`;
+    return`Water sensor is reporting PRESENT — water level is detected normally. The sensor is submerged and reading correctly.`;
+  }
+
+  // Pump
+  if(q.match(/pump/)){
+    let ans=`The pump is currently ${d.pump?"ON":"OFF"}.`;
+    if(d.pump)ans+=`\n\nIt has been running for ${formatSec(d.pumpRuntime||0)}. The pump typically activates when turbidity is elevated (above ~1700) to circulate and filter the water.`;
+    else ans+=`\n\nThe pump is OFF because turbidity is within an acceptable range (${d.turbidity}), or the system is in MANUAL mode.`;
+    ans+=`\n\nCurrent turbidity: ${d.turbidity} — ${tbI.label}.`;
+    return ans;
+  }
+
+  // Heater
+  if(q.match(/heat/)){
+    let ans=`The heater is currently ${d.heater?"ON":"OFF"}.`;
+    if(d.heater)ans+=`\n\nIt has been running for ${formatSec(d.heaterRuntime||0)}. The heater activates when temperature drops below the minimum threshold (24°C). Current temp is ${formatTemp(temp)}.`;
+    else ans+=`\n\nThe heater is OFF because temperature (${formatTemp(temp)}) is at or above the minimum threshold.`;
+    return ans;
+  }
+
+  // Light
+  if(q.match(/light|lamp|bulb|bright/)){
+    return `The light is ${d.light?"ON":"OFF"} (runtime: ${formatSec(d.lightRuntime||0)}). ${d.light?"The lighting system is active.":"The light is currently off. This may be due to MANUAL mode or scheduled timing."}`;
+  }
+
+  // Fish / profile
+  if(q.match(/fish|species|profile|suitable|compatible/)){
+    if(!activeFishProfile)return"No fish profile is currently selected. Go to Fish Preferences to choose a species. Once set, I can tell you exactly how your water conditions compare to what that fish needs.";
+    const suit=getFishSuit(activeFishProfile,d);
+    let ans=`Active fish profile: ${activeFishProfile.name} (${activeFishProfile.category}).\n${activeFishProfile.desc}`;
+    ans+=`\n\nSuitability: ${suit.label}\n${suit.msg}`;
+    ans+=`\n\nPreferred temp: ${formatTempRange(activeFishProfile.tempMin,activeFishProfile.tempMax)} — current: ${formatTemp(temp)}`;
+    if(ph!=null)ans+=`\nPreferred pH: ${activeFishProfile.phMin}–${activeFishProfile.phMax} — current: ${ph.toFixed(2)}`;
+    const tank=getTankSuit(activeFishProfile);
+    ans+=`\n\nTank size: ${tank.label} — ${tank.msg}`;
+    return ans;
+  }
+
+  // What to do / recommendations
+  if(q.match(/what.*(do|should|recommend|action|fix)|help|advice|suggest/)){
+    const action=getAction(d);
+    let ans=`Based on current readings:\n\nStatus: ${d.statusLabel} | Health: ${d.healthScore}%\n\nRecommended action: ${action}`;
+    if(!d.waterDetected)ans+=`\n\n⚠ MOST URGENT: Water sensor is DRY. Check water level immediately — everything else is secondary.`;
+    if(ph!=null&&phI.sev==="crit")ans+=`\n\n⚠ URGENT: pH is ${ph.toFixed(2)} — ${phI.meaning} Address this before it harms your fish.`;
+    if(d.turbidity>=2200)ans+=`\n\nWater quality is poor (turbidity ${d.turbidity}). Clean filtration soon.`;
+    if(temp>=30)ans+=`\n\nTemperature is high at ${formatTemp(temp)}. Reduce tank temperature gradually.`;
+    if(d.statusLabel==="STABLE"&&d.healthScore>=80)ans+=`\n\nEverything looks good. Continue regular maintenance — water changes weekly, check filter monthly.`;
+    return ans;
+  }
+
+  // Voltage / power
+  if(q.match(/volt|power|battery|supply|electric/)){
+    return rootVoltage!=null?`Supply voltage: ${rootVoltage}V. ${rootVoltage<11.5?"⚠ Voltage is below 11.5V — check your power supply.":"Voltage looks normal."}`:"Voltage is not currently being measured. If you have a voltage divider connected to ADS1115 P1, it will appear here.";
+  }
+
+  // Mode
+  if(q.match(/mode|auto|manual|control/)){
+    return `The system is in ${controlMode.toUpperCase()} mode (set via Firebase at ecoguard/control/mode).\n\nIn AUTO mode, the Pi 5 controls the heater, pump, and light automatically based on sensor readings.\nIn MANUAL mode, the relays stay as set externally — the Pi 5 only monitors and reports.`;
+  }
+
+  // Full summary
+  if(q.match(/summary|full|everything|report|all/)){
+    return buildSensorContext()
+      .replace("=== LIVE ECOGUARD SENSOR DATA","EcoGuard Full Report")
+      .replace("=== END DATA ===","")
+      .trim();
+  }
+
+  // Fallback — give a general status with context
+  return `Based on your current sensor readings:\n\n${buildSensorContext().split("\n").slice(1,6).join("\n")}\n\nI can answer questions about: temperature, pH, turbidity, water level, heater, pump, light, fish profile, tank size, system stability, voltage, and what action to take. Try asking something specific!`;
+}
+
+// ── CHAT UI ────────────────────────────────────────────────────────
+function addChatMessage(role, text){
+  const box=$("chatMessages"); if(!box)return;
+  const div=document.createElement("div");
+  div.className=`chat-msg chat-${role}`;
+  div.textContent=text;
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+}
+
+function updateChatGPTStatus(){
+  const badge=$("chatGPTStatus");
+  const input=$("openAIKeyInput");
+  if(input && openAIKey) input.value=openAIKey;
+  if(!badge)return;
+  if(openAIKey && openAIKey.startsWith("sk-")){
+    badge.innerHTML=`<span class="dot dot-g"></span><span>ChatGPT Ready</span>`;
+  }else{
+    badge.innerHTML=`<span class="dot dot-y"></span><span>No key loaded</span>`;
+  }
+}
+
+function saveOpenAIKey(){
+  const val=$("openAIKeyInput")?.value?.trim() || "";
+  if(!val.startsWith("sk-")){
+    alert("Paste a valid OpenAI API key starting with sk-");
+    return;
+  }
+  openAIKey=val;
+  localStorage.setItem("ecoguard_openai_key",openAIKey);
+  updateChatGPTStatus();
+}
+window.saveOpenAIKey=saveOpenAIKey;
+
+function clearOpenAIKey(){
+  openAIKey="";
+  localStorage.removeItem("ecoguard_openai_key");
+  const input=$("openAIKeyInput"); if(input)input.value="";
+  updateChatGPTStatus();
+}
+window.clearOpenAIKey=clearOpenAIKey;
+
+function buildChatGPTSystemPrompt(){
+  return `You are ChatGPT inside the EcoGuard aquarium dashboard. Use the live EcoGuard data below to answer the user's question. Be practical, clear, and safety-first. If the water sensor is DRY or voltage is above 1.0V, treat it as critical. If data is missing, say exactly what is missing. Keep answers short unless the user asks for detail.\n\n${buildSensorContext()}`;
+}
+
+async function askChatGPT(question){
+  if(!openAIKey || !openAIKey.startsWith("sk-")){
+    return "Please paste your OpenAI API key in the box above and click Save Key first.";
+  }
+
+  const messages=[
+    {role:"system",content:buildChatGPTSystemPrompt()},
+    ...chatHistory.slice(-8).flatMap(m=>[
+      {role:"user",content:m.q},
+      {role:"assistant",content:m.a}
+    ]),
+    {role:"user",content:question}
+  ];
+
+  const res=await fetch("https://api.openai.com/v1/chat/completions",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${openAIKey}`
+    },
+    body:JSON.stringify({
+      model:OPENAI_MODEL,
+      messages,
+      temperature:0.3,
+      max_tokens:500
+    })
+  });
+
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok){
+    const msg=data?.error?.message || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data.choices?.[0]?.message?.content?.trim() || "ChatGPT returned no text.";
+}
+
+async function sendChat(){
+  const input=$("chatInput"); if(!input)return;
+  const question=input.value.trim(); if(!question)return;
+  input.value="";
+  addChatMessage("user",question);
+
+  const box=$("chatMessages");
+  const thinking=document.createElement("div");
+  thinking.className="chat-msg chat-thinking";
+  thinking.textContent="ChatGPT is thinking...";
+  box.appendChild(thinking); box.scrollTop=box.scrollHeight;
+
+  try{
+    const answer=await askChatGPT(question);
+    box.removeChild(thinking);
+    addChatMessage("ai",answer);
+    chatHistory.push({q:question,a:answer});
+  }catch(err){
+    box.removeChild(thinking);
+    const fallback=answerQuestion(question);
+    addChatMessage("ai",`ChatGPT API error: ${err.message}\n\nFallback EcoGuard answer:\n${fallback}`);
+  }
+}
+window.sendChat=sendChat;
+
+function quickChat(q){ const i=$("chatInput"); if(i){i.value=q;} sendChat(); }
+window.quickChat=quickChat;
+
+function clearChat(){
+  const box=$("chatMessages"); if(!box)return;
+  box.innerHTML=`<div class="chat-msg chat-ai">Chat cleared. Ask me anything about your tank!</div>`;
+  chatHistory=[];
+}
+window.clearChat=clearChat;
+window.fillPrompt=q=>{const i=$("aiPrompt");if(i)i.value=q;};
+
+// ── FIREBASE ROOT LISTENERS ────────────────────────────────────────
+function startRootListeners(){
+  onValue(ref(db,"ecoguard/turbidity"),snap=>{rootTurbStr=snap.exists()?String(snap.val()):null;});
+  onValue(ref(db,"ecoguard/water"),    snap=>{rootWaterStr=snap.exists()?String(snap.val()):null;});
+  onValue(ref(db,"ecoguard/voltage"),  snap=>{rootVoltage=snap.exists()?Number(snap.val()):null;
+    const el=$("deviceVoltageVal"); if(el)el.textContent=rootVoltage!=null?`${rootVoltage}V`:"--";
+  });
+  onValue(ref(db,"ecoguard/control/mode"),snap=>{
+    controlMode=snap.exists()?String(snap.val()):"auto";
+    if(latestData)latestData.controlMode=controlMode;
+    const mw=$("modeWidgetVal"); if(mw){mw.textContent=controlMode.toUpperCase();mw.className=`mode-big ${controlMode==="auto"?"auto":"manual"}`;}
+    const mv=$("modeVal"); if(mv)mv.textContent=controlMode.toUpperCase();
+    const dm=$("deviceModePageVal"); if(dm)dm.textContent=controlMode.toUpperCase();
+  });
+}
+
+// ── FIREBASE LIVE LISTENER ─────────────────────────────────────────
+function startLiveListener(){
+  onValue(ref(db,LIVE_PATH),snapshot=>{
+    setConnected(true);
+    if(!snapshot.exists()){setConnected(false);return;}
+    const raw=snapshot.val();
+    const waterBool=raw.waterDetected!=null?Boolean(raw.waterDetected):(rootWaterStr?rootWaterStr!=="DRY":true);
+    const turb=Number(raw.turbidity??0);
+
+    const data={
+      temperature:   Number(raw.temperature??0),
+      turbidity:     turb,
+      turbidityStr:  raw.turbidityStr??rootTurbStr??null,
+      waterDetected: waterBool,
+      ph:            raw.ph!=null?Number(raw.ph):null,
+      heater:        Boolean(raw.heater??false),
+      pump:          Boolean(raw.pump??false),
+      light:         Boolean(raw.light??false),
+      heaterRuntime: Number(raw.heaterRuntime??0),
+      pumpRuntime:   Number(raw.pumpRuntime??0),
+      lightRuntime:  Number(raw.lightRuntime??0),
+      ip:            raw.ip??"--",
+      autoMode:      Boolean(raw.autoMode??true),
+      systemStopped: Boolean(raw.systemStopped??false),
+      voltage:       raw.voltage??rootVoltage??null,
+      controlMode:   controlMode,
+    };
+    data.statusLabel=raw.statusLabel??computeStatus(data);
+    data.healthScore=computeHealth(data);  // always recompute — keeps gauge+bars in sync
+
+    // Logs from live payload
+    if(Array.isArray(raw.logs)&&raw.logs.length){
+      logsData=[...raw.logs].reverse();
+      const ll=$("logList");
+      if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
+    }
+
+    latestData=data;
+    pushHist({temp:data.temperature,turb:data.turbidity,water:data.waterDetected?1:0,ph:data.ph??7,volt:data.voltage??null,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+    updateUI(data);
+  },err=>{console.error("Firebase error:",err);setConnected(false);});
+}
+
+// ── FIREBASE LOGS LISTENER ─────────────────────────────────────────
+function startLogsListener(){
+  onValue(ref(db,LOGS_PATH),snapshot=>{
+    if(!snapshot.exists())return;
+    const raw=snapshot.val();
+    if(Array.isArray(raw))logsData=[...raw].reverse();
+    else if(typeof raw==="object"&&raw.items)logsData=Array.isArray(raw.items)?[...raw.items].reverse():[];
+    else logsData=Object.values(raw).reverse().slice(0,30);
+    const ll=$("logList");
+    if(ll&&logsData.length)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
+  });
+}
+
+// ── FIREBASE AI LISTENER ───────────────────────────────────────────
+function startAIListener(){
+  onValue(ref(db,AI_PATH),snapshot=>{
+    updateHomeAICard(snapshot.exists()?snapshot.val():null);
+  });
+}
+
+// ── FIREBASE AUTH ──────────────────────────────────────────────────
+onAuthStateChanged(auth,async user=>{
+  currentUser=user;
+  const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+  if(user){
+    await user.reload();
+    s("authStatus",`Signed in as ${user.email}`); s("accountEmail",user.email||"--");
+    const verEl=$("verifyStatus");
+    if(verEl)verEl.innerHTML=user.emailVerified?`Verification: <span class="verified">✓ Verified</span>`:`Verification: <span class="not-verified">Not verified</span>`;
+    try{
+      const snap=await get(ref(db,`users/${user.uid}/preferences`));
+      if(snap.exists()){
+        const prefs=snap.val();
+        if(prefs.tankSizeL){tankSizeL=Number(prefs.tankSizeL);localStorage.setItem("ecoguard_tankSizeL",String(tankSizeL));if($("tankSizeInput"))$("tankSizeInput").value=tankSizeL;}
+        if(prefs.temperatureUnit)setUnit(prefs.temperatureUnit);
+        if(prefs.activeFishProfile){
+          activeFishProfile=prefs.activeFishProfile;
+          localStorage.setItem("ecoguard_activeFishProfile",JSON.stringify(activeFishProfile));
+          $("categorySelect").value=activeFishProfile.source||"tropical";
+          populateSpeciesDropdown(); $("speciesSelect").value=activeFishProfile.key||"";
+        }
+        s("accountMode","AUTO"); updateFishProfileUI();
+      }
+    }catch(e){console.warn("Prefs load failed:",e);}
+  }else{
+    s("authStatus","Not signed in."); s("accountEmail","--");
+    const verEl=$("verifyStatus");
+    if(verEl)verEl.innerHTML=`Verification: <span class="not-verified">Not signed in</span>`;
+  }
+});
+
+// ── EXPORT / PRINT / SHARE ─────────────────────────────────────────
+function exportCSV(){
+  const len=Math.max(tempHistory.length,turbHistory.length,waterHistory.length,phHistory.length);
+  let csv="Sample,TemperatureC,Turbidity,WaterSensor,pH\n";
+  for(let i=0;i<len;i++)csv+=`${labelHistory[i]??i},${tempHistory[i]??""}, ${turbHistory[i]??""}, ${waterHistory[i]??""}, ${phHistory[i]??""}\n`;
+  const blob=new Blob([csv],{type:"text/csv"});const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="ecoguard_live_data.csv";a.click();URL.revokeObjectURL(url);
+}
+window.exportCSV=exportCSV;
+function printPage(){showPage("analytics");setTimeout(()=>window.print(),250);}
+window.printPage=printPage;
+async function shareSummary(){
+  if(!latestData)return;
+  const tbI=getTurbInfo(latestData.turbidity),phI=latestData.ph!=null?getPhInfo(latestData.ph):{label:"No sensor"};
+  const text=`EcoGuard Live\nTemp: ${formatTemp(Number(latestData.temperature||0))}\nWater: ${latestData.waterDetected?"OK":"LOW"}\nTurbidity: ${latestData.turbidity} (${tbI.label})\npH: ${latestData.ph!=null?Number(latestData.ph).toFixed(2):"No sensor"} (${phI.label})\nHealth: ${latestData.healthScore}%\nStatus: ${latestData.statusLabel}`;
+  if(navigator.share){try{await navigator.share({title:"EcoGuard",text});}catch(_){}}
+  else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert("Copied to clipboard.");}
+}
+window.shareSummary=shareSummary;
+
+// ── DOM READY ──────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded",()=>{
+
+  // Notifications
+  $("enableNotifyBtn")?.addEventListener("click",async()=>{
+    if(!("Notification"in window)){$("notifyStatus").textContent="Not supported.";return;}
+    const p=await Notification.requestPermission();
+    notifyEnabled=p==="granted";
+    $("notifyStatus").textContent=p==="granted"?"✓ Browser alerts enabled.":"Permission not granted.";
+  });
+  $("testNotifyBtn")?.addEventListener("click",()=>{
+    if(Notification.permission==="granted")new Notification("EcoGuard Alert",{body:"Browser notifications are working!"});
+    else alert("Enable alerts first.");
+  });
+
+  // Auth
+  $("signupBtn")?.addEventListener("click",async()=>{
+    const email=$("emailInput").value.trim(),password=$("passwordInput").value;
+    if(!email||!password){$("authStatus").textContent="Enter email and password first.";return;}
+    try{const cred=await createUserWithEmailAndPassword(auth,email,password);await sendEmailVerification(cred.user);$("authStatus").textContent="Account created. Check email for verification link.";}
+    catch(err){$("authStatus").textContent=`Sign up failed: ${err.message}`;}
+  });
+  $("loginBtn")?.addEventListener("click",async()=>{
+    const email=$("emailInput").value.trim(),password=$("passwordInput").value;
+    if(!email||!password){$("authStatus").textContent="Enter email and password first.";return;}
+    try{await signInWithEmailAndPassword(auth,email,password);}
+    catch(err){$("authStatus").textContent=`Login failed: ${err.message}`;}
+  });
+  $("logoutBtn")?.addEventListener("click",async()=>{
+    try{await signOut(auth);$("authStatus").textContent="Logged out.";}
+    catch(err){$("authStatus").textContent=`Logout failed: ${err.message}`;}
+  });
+  $("verifyBtn")?.addEventListener("click",async()=>{
+    if(!currentUser){$("authStatus").textContent="Please log in first.";return;}
+    try{await sendEmailVerification(currentUser);$("authStatus").textContent="Verification email sent.";}
+    catch(err){$("authStatus").textContent=`Failed: ${err.message}`;}
+  });
+
+  // Save preferences + write to Firebase
+  $("savePrefsBtn")?.addEventListener("click",async()=>{
+    tankSizeL=Number($("tankSizeInput").value||0);
+    localStorage.setItem("ecoguard_tankSizeL",String(tankSizeL));
+
+    // Write active profile to Firebase (Pi 5 reads this)
+    if(activeFishProfile){
+      await writeActiveProfileToFirebase(activeFishProfile, activeFishProfile.source||"custom", activeFishProfile.key||"custom");
+    }
+
+    updateFishProfileUI();
+
+    if(currentUser){
+      try{
+        await set(ref(db,`users/${currentUser.uid}/preferences`),{
+          tankSizeL,temperatureUnit,activeFishProfile:activeFishProfile||null,updatedAt:Date.now()
+        });
+        alert("Preferences saved to Firebase!");
+      }catch(e){alert("Saved locally only. Firebase write failed.");}
+    }else{
+      alert("Saved locally. Log in to sync to cloud.");
+    }
+  });
+
+  $("tankSizeInput")?.addEventListener("input",()=>{
+    tankSizeL=Number($("tankSizeInput").value||0);
+    localStorage.setItem("ecoguard_tankSizeL",String(tankSizeL)); updateFishProfileUI();
+  });
+
+  // Refresh age counter
+  setInterval(()=>{
+    const el=$("deviceRefreshAgePageVal");
+    if(el&&lastFetchAt){el.textContent=`${Math.round((Date.now()-lastFetchAt.getTime())/1000)} sec`;}
+  },1000);
+
+  // Init
+  if(tankSizeL&&$("tankSizeInput"))$("tankSizeInput").value=tankSizeL;
+  populateSpeciesDropdown();
+  updateChatGPTStatus();
+  $("nav-home")?.classList.add("active");
+
+  // Sync fish profiles to Firebase in the background
+  syncFishProfilesToFirebase();
+
+  // Start all Firebase listeners
+  startRootListeners();
+  startLiveListener();
+  startLogsListener();
+  startAIListener();
+});
+</script>
+</body>
+</html>
