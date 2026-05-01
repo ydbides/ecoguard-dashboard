@@ -2171,89 +2171,7 @@ async function restGet(path, retries=2){
   }
 }
 
-async function fetchAndUpdate(){
-  try{
-    const raw = await restGet("ecoguard/live");
-    if(!raw){ setConnected(false); return; }
-
-    // ── STALENESS CHECK ───────────────────────────────────────────────────────
-    // If Pi's timestamp is older than 10 seconds, it has stopped writing.
-    // FREEZE the display on last known good values — never show defaults.
-    if(raw.updatedAtMs && latestData){
-      const ageMs = Date.now() - Number(raw.updatedAtMs);
-      if(ageMs > 10000){
-        setConnected(false);
-        ["connectionText","connectionTextHero"].forEach(id=>{
-          const e=document.getElementById(id);
-          if(e) e.textContent = `Pi offline — last data ${Math.round(ageMs/1000)}s ago`;
-        });
-        return; // keep showing last good values — don't overwrite with stale data
-      }
-    }
-
-    setConnected(true);
-
-    // Pi just started — show connecting state, don't render reset values
-    if(raw.statusLabel === "STARTING"){
-      const sd=$("statusDot");
-      if(sd){sd.style.background="var(--cyan)";sd.style.boxShadow="0 0 6px var(--cyan)";}
-      const s2=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
-      s2("statusTextHero","STARTING"); s2("statusVal","STARTING");
-      s2("summaryStatus","Starting up..."); s2("recommendedAction","Waiting for sensors...");
-      s2("healthScoreBig","--"); setGauge(0);
-      return;
-    }
-
-    // Fetch root fields alongside live data
-    const [turbRaw, waterRaw, voltRaw] = await Promise.all([
-      restGet("ecoguard/turbidity").catch(()=>null),
-      restGet("ecoguard/water").catch(()=>null),
-      restGet("ecoguard/voltage").catch(()=>null),
-    ]);
-    rootTurbStr  = turbRaw  ? String(turbRaw)  : null;
-    rootWaterStr = waterRaw ? String(waterRaw) : null;
-    rootVoltage  = voltRaw  ? Number(voltRaw)  : null;
-
-    const waterBool = raw.waterDetected!=null ? Boolean(raw.waterDetected)
-                    : (rootWaterStr ? rootWaterStr!=="DRY" : true);
-
-    const data={
-      temperature:   raw.temperature!=null ? Number(raw.temperature) : null,
-      turbidity:     Number(raw.turbidity??0),
-      turbidityStr:  raw.turbidityStr ?? rootTurbStr ?? null,
-      waterDetected: waterBool,
-      ph:            raw.ph!=null ? Number(raw.ph) : null,
-      heater:        Boolean(raw.heater??false),
-      pump:          Boolean(raw.pump??false),
-      light:         Boolean(raw.light??false),
-      heaterRuntime: Number(raw.heaterRuntime??0),
-      pumpRuntime:   Number(raw.pumpRuntime??0),
-      lightRuntime:  Number(raw.lightRuntime??0),
-      ip:            raw.ip??"--",
-      autoMode:      Boolean(raw.autoMode??true),
-      systemStopped: Boolean(raw.systemStopped??false),
-      voltage:       raw.voltage!=null ? Number(raw.voltage) : (rootVoltage??null),
-      controlMode:   controlMode,
-    };
-    data.statusLabel = raw.statusLabel ?? computeStatus(data);
-    data.healthScore = raw.healthScore ?? computeHealth(data);
-
-    if(Array.isArray(raw.logs)&&raw.logs.length){
-      logsData=[...raw.logs].reverse();
-      const ll=$("logList");
-      if(ll)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
-    }
-
-    latestData=data;
-    pushHist({temp:data.temperature??0,turb:data.turbidity,water:data.waterDetected?1:0,
-              ph:data.ph??7,lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
-    updateUI(data);
-    updateAIStatusBar();
-  } catch(e){
-    setConnected(false);
-    console.warn("Firebase fetch error:", e);
-  }
-}
+// fetchAndUpdate replaced by processRaw() called from onValue listener
 
 async function fetchAI(){
   try{
@@ -2290,23 +2208,95 @@ async function fetchControlMode(){
   } catch(e){}
 }
 
-async function refreshAll(){
-  await fetchAndUpdate();
+function startRootListeners(){
+  // These change rarely — poll every 10s is fine
+  fetchControlMode();
+  setInterval(fetchControlMode, 10000);
 }
 
-function startRootListeners(){ /* handled inside fetchAndUpdate */ }
 function startLiveListener(){
-  // Start polling — plain fetch, no SDK cache
-  fetchAndUpdate();
+  // onValue = persistent WebSocket connection to Firebase
+  // Fires INSTANTLY the moment Pi writes new data — zero polling delay
+  // The staleness check inside processRaw() prevents default values showing
+  onValue(ref(db, LIVE_PATH), snapshot => {
+    if(!snapshot.exists()){ setConnected(false); return; }
+    processRaw(snapshot.val());
+  }, err => { console.error("Live listener error:", err); setConnected(false); });
+
+  // AI and logs — poll since they update rarely
   fetchAI();
   fetchLogs();
-  setInterval(fetchAndUpdate, 2000);   // live data every 2s
-  setInterval(fetchAI,        15000);  // AI every 15s
-  setInterval(fetchLogs,      30000);  // logs every 30s
-  setInterval(fetchControlMode, 5000); // control mode every 5s
+  setInterval(fetchAI,   15000);
+  setInterval(fetchLogs, 30000);
 }
 function startLogsListener(){ /* handled in startLiveListener */ }
 function startAIListener(){   /* handled in startLiveListener */ }
+
+// Rename fetchAndUpdate to processRaw for onValue usage
+function processRaw(raw){
+  if(!raw){ setConnected(false); return; }
+
+  // Staleness check — if Pi timestamp is old, freeze display on last good values
+  if(raw.updatedAtMs && latestData){
+    const ageMs = Date.now() - Number(raw.updatedAtMs);
+    if(ageMs > 10000){
+      setConnected(false);
+      ["connectionText","connectionTextHero"].forEach(id=>{
+        const e=document.getElementById(id);
+        if(e) e.textContent = `Pi offline — last data ${Math.round(ageMs/1000)}s ago`;
+      });
+      return;
+    }
+  }
+
+  setConnected(true);
+
+  if(raw.statusLabel === "STARTING"){
+    const sd=$("statusDot");
+    if(sd){sd.style.background="var(--cyan)";sd.style.boxShadow="0 0 6px var(--cyan)";}
+    const s2=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+    s2("statusTextHero","STARTING"); s2("statusVal","STARTING");
+    s2("summaryStatus","Starting up..."); s2("recommendedAction","Waiting for sensors...");
+    s2("healthScoreBig","--"); setGauge(0);
+    return;
+  }
+
+  const waterBool = raw.waterDetected!=null ? Boolean(raw.waterDetected)
+                  : (rootWaterStr ? rootWaterStr!=="DRY" : true);
+
+  const data={
+    temperature:   raw.temperature!=null ? Number(raw.temperature) : null,
+    turbidity:     Number(raw.turbidity??0),
+    turbidityStr:  raw.turbidityStr ?? rootTurbStr ?? null,
+    waterDetected: waterBool,
+    ph:            raw.ph!=null ? Number(raw.ph) : null,
+    heater:        Boolean(raw.heater??false),
+    pump:          Boolean(raw.pump??false),
+    light:         Boolean(raw.light??false),
+    heaterRuntime: Number(raw.heaterRuntime??0),
+    pumpRuntime:   Number(raw.pumpRuntime??0),
+    lightRuntime:  Number(raw.lightRuntime??0),
+    ip:            raw.ip??"--",
+    autoMode:      Boolean(raw.autoMode??true),
+    systemStopped: Boolean(raw.systemStopped??false),
+    voltage:       raw.voltage!=null ? Number(raw.voltage) : (rootVoltage??null),
+    controlMode:   controlMode,
+  };
+  data.statusLabel = raw.statusLabel ?? computeStatus(data);
+  data.healthScore = raw.healthScore ?? computeHealth(data);
+
+  if(Array.isArray(raw.logs)&&raw.logs.length){
+    logsData=[...raw.logs].reverse();
+    const ll=$("logList");
+    if(ll)ll.innerHTML="<ul>"+logsData.slice(0,20).map(l=>`<li>${l}</li>`).join("")+"</ul>";
+  }
+
+  latestData=data;
+  pushHist({temp:data.temperature??0, turb:data.turbidity, water:data.waterDetected?1:0,
+            ph:data.ph??7, lbl:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+  updateUI(data);
+  updateAIStatusBar();
+}
 
 // ── FIREBASE AUTH ──────────────────────────────────────────────────
 onAuthStateChanged(auth,async user=>{
