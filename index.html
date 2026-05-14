@@ -2150,7 +2150,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   setInterval(()=>{
     const el=$("deviceRefreshAgePageVal");
     if(el&&lastFetchAt){el.textContent=`${Math.round((Date.now()-lastFetchAt.getTime())/1000)} sec`;}
-  },1000);
+  },5000);
 
   // Init
   if(tankSizeL&&$("tankSizeInput"))$("tankSizeInput").value=tankSizeL;
